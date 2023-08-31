@@ -20,6 +20,7 @@
  *
  */
 
+#include "ns3/yans-wifi-phy.h"
 #include "mosaic-node-manager.h"
 
 #include "mosaic-ns3-server.h"
