@@ -57,14 +57,17 @@ namespace ns3 {
     }
 
     MosaicNodeManager::MosaicNodeManager() : m_ipAddressHelper("10.1.0.0", "255.255.0.0") {
+        m_lteHelper = CreateObject<LteHelper>();
+        m_epcHelper = CreateObject<PointToPointEpcHelper>();
+        m_lteHelper->SetEpcHelper(m_epcHelper);
     }
 
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr) {
         m_serverPtr = serverPtr;
-        m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
-        m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
-        m_channel = m_wifiChannelHelper.Create();
-        m_wifiPhyHelper.SetChannel(m_channel);
+        // m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
+        // m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
+        // m_channel = m_wifiChannelHelper.Create();
+        // m_wifiPhyHelper.SetChannel(m_channel);
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
@@ -76,12 +79,19 @@ namespace ns3 {
         NS_LOG_INFO("Created node " << singleNode->GetId());
         m_mosaic2ns3ID[ID] = singleNode->GetId();
 
-        //Install Wave device
-        NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
+        // //Install Wave device
+        // NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
+        // InternetStackHelper internet;   
+        // internet.Install(singleNode);
+        // NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
+        // m_ipAddressHelper.Assign(netDevices);
+
+        // Install LTE device
+        NS_LOG_INFO("Install LTE on node " << singleNode->GetId());
         InternetStackHelper internet;   
         internet.Install(singleNode);
-        NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
-        m_ipAddressHelper.Assign(netDevices);
+        NetDeviceContainer lteDevices = m_lteHelper->Install(singleNode);
+        m_ipAddressHelper.Assign(lteDevices);
 
         //Install app
         NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
