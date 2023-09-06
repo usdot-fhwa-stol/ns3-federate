@@ -57,6 +57,11 @@ enum CMD {
 	CMD_SUCCESS = 41
 };
 
+enum COMTECTYPE{
+	DSRC = 1,
+	LTE = 2
+};
+
 enum RADIO_NUMBER {
 	NO_RADIO=0,
 	SINGLE_RADIO=1,

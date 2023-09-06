@@ -34,6 +34,7 @@
 // #include "ns3/yans-wifi-helper.h"
 #include "ns3/lte-module.h"
 #include "ns3/lte-v2x-helper.h"
+#include "ClientServerChannel.h"
 
 namespace ns3 {
 
@@ -52,7 +53,7 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr);
+        void Configure(MosaicNs3Server* serverPtr, int communicationType);
 
         void CreateMosaicNode(int ID, Vector position);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
@@ -73,6 +74,11 @@ namespace ns3 {
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
+
+        //Selected communication technology type
+        //1: DSRC
+        //2: LTE
+        int m_communicationType = 1;
 
         //Channel
         // YansWifiChannelHelper m_wifiChannelHelper;

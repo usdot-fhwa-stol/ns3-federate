@@ -37,7 +37,7 @@ namespace ns3 {
      * @param port  port for receiving the commands from MOSAIC
      * @param MosaicNodeManger MosaicNodeManger given from the NS3 starter script
      */
-    MosaicNs3Server::MosaicNs3Server(int port, int cmdPort) {
+    MosaicNs3Server::MosaicNs3Server(int port, int cmdPort, int communicationType) {
         std::cout << "Starting federate on port " << port << "\n";
 
         if (cmdPort > 0) {

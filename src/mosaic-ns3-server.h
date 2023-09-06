@@ -36,7 +36,7 @@ namespace ns3 {
     class MosaicNs3Server {
     public:
         MosaicNs3Server() = delete;
-        MosaicNs3Server(int port, int cmdPort);        
+        MosaicNs3Server(int port, int cmdPort, int communicationType);        
 
         /**
          * @brief NS3 Magic: a specialized entry-point is needed to create this class from a end-user script. The call of the constructor is forbidden by the NS3.

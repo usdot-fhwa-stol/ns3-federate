@@ -62,8 +62,9 @@ namespace ns3 {
         m_lteHelper->SetEpcHelper(m_epcHelper);
     }
 
-    void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr) {
+    void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, int communicationType) {
         m_serverPtr = serverPtr;
+        m_communicationType = communicationType;
         // m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
         // m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
         // m_channel = m_wifiChannelHelper.Create();
@@ -78,20 +79,35 @@ namespace ns3 {
         
         NS_LOG_INFO("Created node " << singleNode->GetId());
         m_mosaic2ns3ID[ID] = singleNode->GetId();
+        
+        // switch (m_communicationType)
+        // {
+        // case /* constant-expression */:
+        //     /* code */
+        //     break;
+        
+        // default:
+        //     break;
+        // }
 
-        // //Install Wave device
-        // NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
-        // InternetStackHelper internet;   
-        // internet.Install(singleNode);
-        // NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
-        // m_ipAddressHelper.Assign(netDevices);
-
-        // Install LTE device
-        NS_LOG_INFO("Install LTE on node " << singleNode->GetId());
-        InternetStackHelper internet;   
-        internet.Install(singleNode);
-        NetDeviceContainer lteDevices = m_lteHelper->Install(singleNode);
-        m_ipAddressHelper.Assign(lteDevices);
+        if (m_communicationType == 1){
+            //DSRC
+            //Install Wave device
+            NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
+            InternetStackHelper internet;   
+            internet.Install(singleNode);
+            NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
+            m_ipAddressHelper.Assign(netDevices);
+        }
+        else if (m_communicationType == 2){
+            //LTE
+            // Install LTE device
+            NS_LOG_INFO("Install LTE on node " << singleNode->GetId());
+            InternetStackHelper internet;   
+            internet.Install(singleNode);
+            NetDeviceContainer lteDevices = m_lteHelper->Install(singleNode);
+            m_ipAddressHelper.Assign(lteDevices);
+        }
 
         //Install app
         NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
