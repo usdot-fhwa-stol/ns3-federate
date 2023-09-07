@@ -27,14 +27,14 @@
 
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/node-container.h"
-// #include "ns3/wifi-80211p-helper.h"
-// #include "ns3/wave-mac-helper.h"
+#include "ClientServerChannel.h"
+#include "ns3/wifi-80211p-helper.h"
+#include "ns3/wave-mac-helper.h"
 #include "ns3/vector.h"
-// #include "ns3/yans-wifi-channel.h"
-// #include "ns3/yans-wifi-helper.h"
+#include "ns3/yans-wifi-channel.h"
+#include "ns3/yans-wifi-helper.h"
 #include "ns3/lte-module.h"
 #include "ns3/lte-v2x-helper.h"
-#include "ClientServerChannel.h"
 
 namespace ns3 {
 
@@ -81,17 +81,17 @@ namespace ns3 {
         int m_communicationType = 1;
 
         //Channel
-        // YansWifiChannelHelper m_wifiChannelHelper;
-        // Ptr<YansWifiChannel> m_channel;
+        YansWifiChannelHelper m_wifiChannelHelper;
+        Ptr<YansWifiChannel> m_channel;
 
         //PHY
-        // YansWifiPhyHelper m_wifiPhyHelper = YansWifiPhyHelper::Default();
+        YansWifiPhyHelper m_wifiPhyHelper = YansWifiPhyHelper::Default();
 
         //MAC
-        // NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
+        NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
 
         //Assembler
-        // Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
+        Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
 
         Ipv4AddressHelper m_ipAddressHelper;
 

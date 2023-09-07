@@ -57,9 +57,9 @@ enum CMD {
 	CMD_SUCCESS = 41
 };
 
-enum COMTECTYPE{
-	DSRC = 1,
-	LTE = 2
+enum COMMUNICATION_TYPE{
+	COMM_TYPE_DSRC = 1,
+	COMM_TYPE_LTE = 2
 };
 
 enum RADIO_NUMBER {

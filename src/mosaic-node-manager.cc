@@ -65,10 +65,12 @@ namespace ns3 {
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, int communicationType) {
         m_serverPtr = serverPtr;
         m_communicationType = communicationType;
-        // m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
-        // m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
-        // m_channel = m_wifiChannelHelper.Create();
-        // m_wifiPhyHelper.SetChannel(m_channel);
+        if (m_communicationType == COMM_TYPE_DSRC){
+            m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
+            m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
+            m_channel = m_wifiChannelHelper.Create();
+            m_wifiPhyHelper.SetChannel(m_channel);
+        }
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
@@ -80,33 +82,30 @@ namespace ns3 {
         NS_LOG_INFO("Created node " << singleNode->GetId());
         m_mosaic2ns3ID[ID] = singleNode->GetId();
         
-        // switch (m_communicationType)
-        // {
-        // case /* constant-expression */:
-        //     /* code */
-        //     break;
-        
-        // default:
-        //     break;
-        // }
-
-        if (m_communicationType == 1){
-            //DSRC
-            //Install Wave device
-            NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
-            InternetStackHelper internet;   
-            internet.Install(singleNode);
-            NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
-            m_ipAddressHelper.Assign(netDevices);
-        }
-        else if (m_communicationType == 2){
-            //LTE
-            // Install LTE device
-            NS_LOG_INFO("Install LTE on node " << singleNode->GetId());
-            InternetStackHelper internet;   
-            internet.Install(singleNode);
-            NetDeviceContainer lteDevices = m_lteHelper->Install(singleNode);
-            m_ipAddressHelper.Assign(lteDevices);
+        switch (m_communicationType)
+        {
+            case COMM_TYPE_DSRC:
+            {
+                NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
+                InternetStackHelper internet;   
+                internet.Install(singleNode);
+                NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
+                m_ipAddressHelper.Assign(netDevices);
+                break;
+            }
+                
+            case COMM_TYPE_LTE:
+            {
+                NS_LOG_INFO("Install LTE on node " << singleNode->GetId());
+                InternetStackHelper internet;   
+                internet.Install(singleNode);
+                NetDeviceContainer lteDevices = m_lteHelper->Install(singleNode);
+                m_ipAddressHelper.Assign(lteDevices);
+                break;
+            }
+            default:
+                NS_LOG_INFO("Communication type not implemented in ns3 \n");
+                break;
         }
 
         //Install app
