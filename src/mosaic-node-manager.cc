@@ -96,25 +96,30 @@ namespace ns3 {
 
             // Install LTE device
             NetDeviceContainer vehicleDev = m_lteHelper->InstallUeDevice(singleNode);
+            NS_LOG_DEBUG("LTE device installed.");
 
             // Install IP stack
             InternetStackHelper internet;
             internet.Install(singleNode);
+            NS_LOG_DEBUG("IP stack installed.");
 
             // Assign IP address
-            Ipv4InterfaceContainer vehicleIpIface;
-            vehicleIpIface = m_epcHelper->AssignUeIpv4Address(vehicleDev);
+            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(vehicleDev);
+            NS_LOG_DEBUG("IP address assigned: " << vehicleIpIface.GetAddress(0));
 
             // Set default gateway
             Ipv4StaticRoutingHelper Ipv4RoutingHelper;
             Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
             vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+            NS_LOG_DEBUG("Default gateway set.");
 
             // Consider buildings for propagation model
             BuildingsHelper::Install(singleNode);
+            NS_LOG_DEBUG("BuildingsHelper installed.");
 
             // Attach the vehicle to the LTE network
             m_lteHelper->Attach(vehicleDev);
+            NS_LOG_DEBUG("Vehicle attached to LTE network.");
 
             // Set up V2X communication on the vehicle
             Ptr<LteUeNetDevice> ueDevice = DynamicCast<LteUeNetDevice>(singleNode->GetDevice(0));
@@ -122,6 +127,7 @@ namespace ns3 {
             Ptr<LteUeRrc> rrc = ueDevice->GetRrc();
             NS_ASSERT(rrc != nullptr);
             rrc->SetAttribute("SidelinkEnabled", BooleanValue(true));
+            NS_LOG_DEBUG("V2X communication setup on vehicle.");
 
             // Activate sidelink bearer for V2X communication
             // Create a LteSlTft object for traffic flow template
@@ -129,14 +135,13 @@ namespace ns3 {
             uint32_t groupL2 = 0x01;                                // TODO: MAC layer
             Ptr<LteSlTft> tft = CreateObject<LteSlTft>(LteSlTft::BIDIRECTIONAL, groupIp, groupL2); 
             m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), vehicleDev, tft);
+            NS_LOG_DEBUG("Sidelink bearer activated.");
 
             // Configure V2X for the vehicle
             m_ueSidelinkConfiguration->SetSlEnabled(true);
             m_ueSidelinkConfiguration->SetV2xEnabled(true);
             m_lteV2xHelper->InstallSidelinkV2xConfiguration(vehicleDev, m_ueSidelinkConfiguration);
-
-            // Set up the LTE V2X communication
-            m_lteV2xHelper->EnableV2xCommunication(vehicleDev, true);
+            NS_LOG_DEBUG("V2X configured for vehicle.");
 
         }
 
