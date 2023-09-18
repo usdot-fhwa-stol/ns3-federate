@@ -41,6 +41,7 @@
 #include "ns3/point-to-point-epc-helper.h"
 
 #include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/mobility-helper.h"
 
 
 namespace ns3 {

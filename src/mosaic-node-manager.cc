@@ -67,6 +67,30 @@ namespace ns3 {
             m_channel = m_wifiChannelHelper.Create();
             m_wifiPhyHelper.SetChannel(m_channel);
         } else if (commType == LTE){
+            
+            {
+                // Create eNB Container
+                NodeContainer eNodeB;
+                eNodeB.Create(1); 
+
+                // Topology eNodeB
+                Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+                pos_eNB->Add(Vector(0, 0, 0));
+
+                //  Install mobility eNodeB
+                MobilityHelper mob_eNB;
+                mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+                mob_eNB.SetPositionAllocator(pos_eNB);
+                mob_eNB.Install(eNodeB);
+
+                // Install Service
+                NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(eNodeB);
+
+                // Required to use NIST 3GPP model
+                BuildingsHelper::Install (eNodeB);
+                BuildingsHelper::MakeMobilityModelConsistent () ; 
+            }
+            // Initialize LTE and V2X helper
             m_lteHelper = CreateObject<LteHelper>();
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
             m_lteV2xHelper->SetLteHelper(m_lteHelper);
@@ -143,6 +167,9 @@ namespace ns3 {
             m_lteV2xHelper->InstallSidelinkV2xConfiguration(vehicleDev, m_ueSidelinkConfiguration);
             NS_LOG_DEBUG("V2X configured for vehicle.");
 
+            // Required to use NIST 3GPP model
+            BuildingsHelper::Install (singleNode);
+            BuildingsHelper::MakeMobilityModelConsistent () ; 
         }
 
         //Install app
