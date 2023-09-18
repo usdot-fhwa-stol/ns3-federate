@@ -88,7 +88,7 @@ namespace ns3 {
 
                 // Required to use NIST 3GPP model
                 BuildingsHelper::Install (eNodeB);
-                BuildingsHelper::MakeMobilityModelConsistent () ; 
+                BuildingsHelper::MakeMobilityModelConsistent(); 
             }
             // Initialize LTE and V2X helper
             m_lteHelper = CreateObject<LteHelper>();
@@ -96,6 +96,7 @@ namespace ns3 {
             m_lteV2xHelper->SetLteHelper(m_lteHelper);
             m_epcHelper = CreateObject<PointToPointEpcHelper>();
             m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+            m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));   
         }
     }
 
@@ -139,6 +140,7 @@ namespace ns3 {
 
             // Consider buildings for propagation model
             BuildingsHelper::Install(singleNode);
+            BuildingsHelper::MakeMobilityModelConsistent(); 
             NS_LOG_DEBUG("BuildingsHelper installed.");
 
             // Attach the vehicle to the LTE network
@@ -154,7 +156,7 @@ namespace ns3 {
             NS_LOG_DEBUG("V2X communication setup on vehicle.");
 
             // Activate sidelink bearer for V2X communication
-            // Create a LteSlTft object for traffic flow template
+            // Create a LteSlTft object for slidelink traffic flow template
             Ipv4Address groupIp = Ipv4Address("225.0.0.1");         // TODO: IP address
             uint32_t groupL2 = 0x01;                                // TODO: MAC layer
             Ptr<LteSlTft> tft = CreateObject<LteSlTft>(LteSlTft::BIDIRECTIONAL, groupIp, groupL2); 
@@ -167,9 +169,6 @@ namespace ns3 {
             m_lteV2xHelper->InstallSidelinkV2xConfiguration(vehicleDev, m_ueSidelinkConfiguration);
             NS_LOG_DEBUG("V2X configured for vehicle.");
 
-            // Required to use NIST 3GPP model
-            BuildingsHelper::Install (singleNode);
-            BuildingsHelper::MakeMobilityModelConsistent () ; 
         }
 
         //Install app
