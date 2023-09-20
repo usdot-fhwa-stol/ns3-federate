@@ -166,7 +166,7 @@ namespace ns3 {
             // Configure V2X for the vehicle
             m_ueSidelinkConfiguration->SetSlEnabled(true);
             m_ueSidelinkConfiguration->SetV2xEnabled(true);
-            m_lteV2xHelper->InstallSidelinkV2xConfiguration(vehicleDev, m_ueSidelinkConfiguration);
+            m_lteHelper->InstallSidelinkV2xConfiguration(vehicleDev, m_ueSidelinkConfiguration);
             NS_LOG_DEBUG("V2X configured for vehicle.");
 
         }
