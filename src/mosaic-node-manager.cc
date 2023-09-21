@@ -67,36 +67,41 @@ namespace ns3 {
             m_channel = m_wifiChannelHelper.Create();
             m_wifiPhyHelper.SetChannel(m_channel);
         } else if (commType == LTE){
-            
-            {
-                // Create eNB Container
-                NodeContainer eNodeB;
-                eNodeB.Create(1); 
-
-                // Topology eNodeB
-                Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-                pos_eNB->Add(Vector(0, 0, 0));
-
-                //  Install mobility eNodeB
-                MobilityHelper mob_eNB;
-                mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-                mob_eNB.SetPositionAllocator(pos_eNB);
-                mob_eNB.Install(eNodeB);
-
-                // Install Service
-                NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(eNodeB);
-
-                // Required to use NIST 3GPP model
-                BuildingsHelper::Install (eNodeB);
-                BuildingsHelper::MakeMobilityModelConsistent(); 
-            }
-            // Initialize LTE and V2X helper
             m_lteHelper = CreateObject<LteHelper>();
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
-            m_lteV2xHelper->SetLteHelper(m_lteHelper);
             m_epcHelper = CreateObject<PointToPointEpcHelper>();
             m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
-            m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));   
+            m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
+            m_lteHelper->SetEpcHelper(m_epcHelper);
+            m_lteHelper->DisableNewEnbPhy();
+            m_lteV2xHelper->SetLteHelper(m_lteHelper);
+
+            m_ueSidelinkConfiguration->SetSlEnabled(true);
+            m_ueSidelinkConfiguration->SetV2xEnabled(true);
+
+            m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
+            
+            NodeContainer eNodeB;
+            eNodeB.Create(1); 
+
+            // Topology eNodeB
+            Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+            pos_eNB->Add(Vector(0, 0, 0));
+
+            //  Install mobility eNodeB
+            MobilityHelper mob_eNB;
+            mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+            mob_eNB.SetPositionAllocator(pos_eNB);
+            mob_eNB.Install(eNodeB);
+
+            NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
+
+            BuildingsHelper::Install (eNodeB);
+            BuildingsHelper::MakeMobilityModelConsistent();  
+
+            m_groupL2Address = 0x00;
+            Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
+            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
         }
     }
 
@@ -116,73 +121,64 @@ namespace ns3 {
             internet.Install(singleNode);
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
             m_ipAddressHelper.Assign(netDevices);
+
+            //Install app
+            NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetSockets();
+
+            //Install mobility model
+            NS_LOG_INFO("Install MosaicMobilityModel on node " << singleNode->GetId());
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+
         } else if (commType == LTE) {
-            NS_LOG_INFO ("Creating LTE and V2X helpers for the node...");
 
-            // Install LTE device
-            NetDeviceContainer vehicleDev = m_lteHelper->InstallUeDevice(singleNode);
-            NS_LOG_DEBUG("LTE device installed.");
+            // Create and set a mobility model for the node with the given position
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+            
+            // Associate the node with buildings for better radio propagation modeling
+            BuildingsHelper::Install (singleNode);
+            
+            // Ensure that the mobility models of all nodes are consistent with their positions
+            BuildingsHelper::MakeMobilityModelConsistent(); 
 
-            // Install IP stack
+            // Install an LTE device on the node
+            NetDeviceContainer vehDev = m_lteHelper->InstallUeDevice(singleNode);
+
+            // Install the internet stack on the node
             InternetStackHelper internet;
             internet.Install(singleNode);
-            NS_LOG_DEBUG("IP stack installed.");
 
-            // Assign IP address
-            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(vehicleDev);
-            NS_LOG_DEBUG("IP address assigned: " << vehicleIpIface.GetAddress(0));
+            // Assign an IPv4 address to the LTE device
+            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(vehDev);
 
-            // Set default gateway
+            // Set up static routing for the node to use the default gateway provided by the EPC helper
             Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
+            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(veh->GetObject<Ipv4>());
             vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
-            NS_LOG_DEBUG("Default gateway set.");
 
-            // Consider buildings for propagation model
-            BuildingsHelper::Install(singleNode);
-            BuildingsHelper::MakeMobilityModelConsistent(); 
-            NS_LOG_DEBUG("BuildingsHelper installed.");
+            // Attach the LTE device to the eNodeB (base station)
+            m_lteHelper->Attach(vehDev);
 
-            // Attach the vehicle to the LTE network
-            m_lteHelper->Attach(vehicleDev);
-            NS_LOG_DEBUG("Vehicle attached to LTE network.");
+            // Create and activate a sidelink bearer for V2X communication
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, m_clientRespondersAddress, m_groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), vehDev, tft);
+            
+            // Install the V2X sidelink configuration on the LTE device
+            m_lteHelper->InstallSidelinkV2xConfiguration(vehDev, m_ueSidelinkConfiguration);
 
-            // Set up V2X communication on the vehicle
-            Ptr<LteUeNetDevice> ueDevice = DynamicCast<LteUeNetDevice>(singleNode->GetDevice(0));
-            NS_ASSERT(ueDevice != nullptr);
-            Ptr<LteUeRrc> rrc = ueDevice->GetRrc();
-            NS_ASSERT(rrc != nullptr);
-            rrc->SetAttribute("SidelinkEnabled", BooleanValue(true));
-            NS_LOG_DEBUG("V2X communication setup on vehicle.");
-
-            // Activate sidelink bearer for V2X communication
-            // Create a LteSlTft object for slidelink traffic flow template
-            Ipv4Address groupIp = Ipv4Address("225.0.0.1");         // TODO: IP address
-            uint32_t groupL2 = 0x01;                                // TODO: MAC layer
-            Ptr<LteSlTft> tft = CreateObject<LteSlTft>(LteSlTft::BIDIRECTIONAL, groupIp, groupL2); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), vehicleDev, tft);
-            NS_LOG_DEBUG("Sidelink bearer activated.");
-
-            // Configure V2X for the vehicle
-            m_ueSidelinkConfiguration->SetSlEnabled(true);
-            m_ueSidelinkConfiguration->SetV2xEnabled(true);
-            m_lteHelper->InstallSidelinkV2xConfiguration(vehicleDev, m_ueSidelinkConfiguration);
-            NS_LOG_DEBUG("V2X configured for vehicle.");
+            // Store the group L2 address and increment it for the next node
+            m_groupL2Addresses.push_back(m_groupL2Address);
+            m_groupL2Address++;
 
         }
 
-        //Install app
-        NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-        Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-        app->SetNodeManager(this);
-        singleNode->AddApplication(app);
-        app->SetSockets();
-
-        //Install mobility model
-        NS_LOG_INFO("Install MosaicMobilityModel on node " << singleNode->GetId());
-        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-        mobModel->SetPosition(position);
-        singleNode->AggregateObject(mobModel);
 
         return;
     }
