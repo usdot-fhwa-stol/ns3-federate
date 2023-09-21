@@ -259,6 +259,7 @@ namespace ns3 {
         if (radioTurnedOn) {
             ssa->Enable();
             if (transmitPower > -1) {
+                double txDBm = 10 * log10((double) transmitPower);
                 if (commType == DSRC) {
                     Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
                     if (netDev == nullptr) {
@@ -267,12 +268,19 @@ namespace ns3 {
                     }                        
                     Ptr<YansWifiPhy> wavePhy = DynamicCast<YansWifiPhy> (netDev->GetPhy());
                     if (wavePhy != 0) {
-                        double txDBm = 10 * log10((double) transmitPower);
                         wavePhy->SetTxPowerStart(txDBm);
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (commType == LTE) {
-                    // TODO: Placeholder for LTE-specific power configuration
+                    Ptr<NetDevice> netDev = DynamicCast<NetDevice> (node->GetDevice(1));
+                    if (netDev == nullptr) {
+                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                        return;
+                    } 
+                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    if (uePhy != 0){
+                        uePhy->SetTxPower(txDBm);
+                    }
                 }
             }
         } else {
