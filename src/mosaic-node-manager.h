@@ -106,7 +106,6 @@ namespace ns3 {
 
         Ipv4AddressHelper m_ipAddressHelper;
 
-        std::vector<uint32_t> m_groupL2Addresses; 
         uint32_t m_groupL2Address;
         Ipv4Address m_clientRespondersAddress;
     };
