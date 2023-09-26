@@ -59,15 +59,56 @@ namespace ns3 {
     MosaicNodeManager::MosaicNodeManager() : m_ipAddressHelper("10.1.0.0", "255.255.0.0") {
     }
 
-    void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr) {
+    void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType=ClientServerChannelSpace::CommunicationType::DSRC) {
         m_serverPtr = serverPtr;
-        m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
-        m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
-        m_channel = m_wifiChannelHelper.Create();
-        m_wifiPhyHelper.SetChannel(m_channel);
+        if(commType == ClientServerChannelSpace::CommunicationType::DSRC){
+            m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
+            m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
+            m_channel = m_wifiChannelHelper.Create();
+            m_wifiPhyHelper.SetChannel(m_channel);
+        } else if (commType == ClientServerChannelSpace::CommunicationType::LTE){
+            m_lteHelper = CreateObject<LteHelper>();
+            m_lteV2xHelper = CreateObject<LteV2xHelper>();
+            m_epcHelper = CreateObject<PointToPointEpcHelper>();
+            m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+            m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
+            m_lteHelper->SetEpcHelper(m_epcHelper);
+            m_lteHelper->DisableNewEnbPhy();
+            m_lteV2xHelper->SetLteHelper(m_lteHelper);
+
+            m_ueSidelinkConfiguration->SetSlEnabled(true);
+            m_ueSidelinkConfiguration->SetV2xEnabled(true);
+
+            m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
+            
+            NodeContainer eNodeB;
+            eNodeB.Create(1); 
+
+            // Topology eNodeB
+            Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+            pos_eNB->Add(Vector(0, 0, 0));
+
+            //  Install mobility eNodeB
+            MobilityHelper mob_eNB;
+            mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+            mob_eNB.SetPositionAllocator(pos_eNB);
+            mob_eNB.Install(eNodeB);
+
+            NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
+
+            BuildingsHelper::Install (eNodeB);
+            BuildingsHelper::MakeMobilityModelConsistent();  
+
+            m_groupL2Address = 0x00;
+            Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
+            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+        }
+        else{
+            NS_LOG_ERROR("Unknown communication type:" << commType);
+        }
     }
 
-    void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
+    void MosaicNodeManager::CreateMosaicNode(int ID, Vector position, CommunicationType commType=ClientServerChannelSpace::CommunicationType::DSRC) {
         if (m_isDeactivated[ID]) {
             return;
         }
@@ -76,25 +117,73 @@ namespace ns3 {
         NS_LOG_INFO("Created node " << singleNode->GetId());
         m_mosaic2ns3ID[ID] = singleNode->GetId();
 
-        //Install Wave device
-        NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
-        InternetStackHelper internet;   
-        internet.Install(singleNode);
-        NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
-        m_ipAddressHelper.Assign(netDevices);
+        // Install the appropriate device based on communication type
+        if (commType == ClientServerChannelSpace::CommunicationType::DSRC) {
+            NS_LOG_INFO ("Creating wifi helpers for the node...");
+            InternetStackHelper internet;   
+            internet.Install(singleNode);
+            NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
+            m_ipAddressHelper.Assign(netDevices);
 
-        //Install app
-        NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-        Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-        app->SetNodeManager(this);
-        singleNode->AddApplication(app);
-        app->SetSockets();
+            //Install app
+            NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetSockets();
 
-        //Install mobility model
-        NS_LOG_INFO("Install MosaicMobilityModel on node " << singleNode->GetId());
-        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-        mobModel->SetPosition(position);
-        singleNode->AggregateObject(mobModel);
+            //Install mobility model
+            NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+
+        } else if (commType == ClientServerChannelSpace::CommunicationType::LTE) {
+
+            // Create and set a mobility model for the node with the given position
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+            
+            // Associate the node with buildings for better radio propagation modeling
+            BuildingsHelper::Install (singleNode);
+            
+            // Ensure that the mobility models of all nodes are consistent with their positions
+            BuildingsHelper::MakeMobilityModelConsistent(); 
+
+            // Install an LTE device on the node
+            NetDeviceContainer vehDev = m_lteHelper->InstallUeDevice(singleNode);
+
+            // Install the internet stack on the node
+            InternetStackHelper internet;
+            internet.Install(singleNode);
+
+            // Assign an IPv4 address to the LTE device
+            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(vehDev);
+
+            // Set up static routing for the node to use the default gateway provided by the EPC helper
+            Ipv4StaticRoutingHelper Ipv4RoutingHelper;
+            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(veh->GetObject<Ipv4>());
+            vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+
+            // Attach the LTE device to the eNodeB (base station)
+            m_lteHelper->Attach(vehDev);
+
+            // Create and activate a sidelink bearer for V2X communication
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, m_clientRespondersAddress, m_groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), vehDev, tft);
+            
+            // Install the V2X sidelink configuration on the LTE device
+            m_lteHelper->InstallSidelinkV2xConfiguration(vehDev, m_ueSidelinkConfiguration);
+            
+            m_groupL2Address++;
+        }
+        else{
+            NS_LOG_ERROR("Unknown communication type:" << commType);
+            m_mosaic2ns3ID.erase(singleNode->GetId);
+            singleNode = nullptr;
+        }
+
 
         return;
     }
@@ -159,7 +248,7 @@ namespace ns3 {
     /**
      * @brief Evaluates configuration message and applies it to the node
      */
-    void MosaicNodeManager::ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower) {
+    void MosaicNodeManager::ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType=ClientServerChannelSpace::CommunicationType::DSRC) {
         if (m_isDeactivated[nodeId]) {
             return;
         }
@@ -175,16 +264,31 @@ namespace ns3 {
         if (radioTurnedOn) {
             ssa->Enable();
             if (transmitPower > -1) {
-                Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
-                if (netDev == nullptr) {
-                    NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                    return;
-                }                        
-                Ptr<YansWifiPhy> wavePhy = DynamicCast<YansWifiPhy> (netDev->GetPhy());
-                if (wavePhy != 0) {
-                    double txDBm = 10 * log10((double) transmitPower);
-                    wavePhy->SetTxPowerStart(txDBm);
-                    wavePhy->SetTxPowerEnd(txDBm);
+                double txDBm = 10 * log10((double) transmitPower);
+                if (commType == ClientServerChannelSpace::CommunicationType::DSRC) {
+                    Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
+                    if (netDev == nullptr) {
+                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                        return;
+                    }                        
+                    Ptr<YansWifiPhy> wavePhy = DynamicCast<YansWifiPhy> (netDev->GetPhy());
+                    if (wavePhy != 0) {
+                        wavePhy->SetTxPowerStart(txDBm);
+                        wavePhy->SetTxPowerEnd(txDBm);
+                    }
+                } else if (commType == ClientServerChannelSpace::CommunicationType::LTE) {
+                    Ptr<NetDevice> netDev = DynamicCast<NetDevice> (node->GetDevice(1));
+                    if (netDev == nullptr) {
+                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                        return;
+                    } 
+                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    if (uePhy != 0){
+                        uePhy->SetTxPower(txDBm);
+                    }
+                }
+                else{
+                    NS_LOG_ERROR("Unknown communication type:" << commType);
                 }
             }
         } else {

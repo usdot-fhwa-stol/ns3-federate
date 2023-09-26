@@ -32,11 +32,24 @@
 #include "ns3/vector.h"
 #include "ns3/yans-wifi-channel.h"
 #include "ns3/yans-wifi-helper.h"
+#include "ns3/lte-helper.h"
+#include "ClientServerChannel.h"
+
+#include "ns3/lte-helper.h"
+#include "ns3/lte-v2x-helper.h"
+
+#include "ns3/point-to-point-epc-helper.h"
+
+#include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/mobility-helper.h"
+
 
 namespace ns3 {
 
     //Forward declaration to prevent circular dependency
     class MosaicNs3Server;
+
+    // Define the communication types
 
     /**
      * @class MosaicNodeManager
@@ -50,11 +63,11 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr);
+        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
 
-        void CreateMosaicNode(int ID, Vector position);
+        void CreateMosaicNode(int ID, Vector position, CommunicationType commType);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower);
+        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType);
         void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
         bool ActivateNode(uint32_t nodeId);
         void DeactivateNode(uint32_t nodeId);
@@ -85,7 +98,16 @@ namespace ns3 {
         //Assembler
         Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
 
+        // LTE Helper
+        Ptr<LteHelper> m_lteHelper;
+        Ptr<LteV2xHelper> m_lteV2xHelper;
+        Ptr<PointToPointEpcHelper> m_epcHelper;
+        Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
+
         Ipv4AddressHelper m_ipAddressHelper;
+
+        uint32_t m_groupL2Address;
+        Ipv4Address m_clientRespondersAddress;
     };
 }
 #endif

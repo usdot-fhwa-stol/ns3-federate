@@ -37,6 +37,12 @@ constexpr const int INVALID_SOCKET = -1;
  */
 namespace ClientServerChannelSpace {
 
+enum CommunicationType {
+	DSRC = 1,
+	LTE = 2
+};
+
+
 enum CMD {
 	CMD_UNDEF=-1,
 //--> Federation management
