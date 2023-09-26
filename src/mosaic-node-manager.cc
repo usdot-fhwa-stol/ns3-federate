@@ -27,6 +27,7 @@
 
 #include "ns3/wave-net-device.h"
 #include "mosaic-proxy-app.h"
+#include "mosaic-lte-proxy-app.h"
 #include "ns3/string.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/log.h"
@@ -177,6 +178,14 @@ namespace ns3 {
             m_lteHelper->InstallSidelinkV2xConfiguration(vehDev, m_ueSidelinkConfiguration);
             
             m_groupL2Address++;
+
+            //Install app
+            NS_LOG_INFO("Install MosaicLteProxyApp application on node " << singleNode->GetId());
+            Ptr<MosaicLteProxyApp> app = CreateObject<MosaicLteProxyApp>();
+            app->SetLteV2xHelper(m_lteV2xHelper);
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetSockets();
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << commType);
