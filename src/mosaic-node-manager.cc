@@ -140,15 +140,10 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (commType == ClientServerChannelSpace::CommunicationType::LTE) {
-
-            // Create and set a mobility model for the node with the given position
-            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-            mobModel->SetPosition(position);
-            singleNode->AggregateObject(mobModel);
             
             // Associate the node with buildings for better radio propagation modeling
-            BuildingsHelper::Install (singleNode);
-            
+            BuildingsHelper::Install(singleNode);
+
             // Ensure that the mobility models of all nodes are consistent with their positions
             BuildingsHelper::MakeMobilityModelConsistent(); 
 
@@ -164,7 +159,7 @@ namespace ns3 {
 
             // Set up static routing for the node to use the default gateway provided by the EPC helper
             Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(veh->GetObject<Ipv4>());
+            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
             vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
 
             // Attach the LTE device to the eNodeB (base station)
@@ -178,7 +173,7 @@ namespace ns3 {
             m_lteHelper->InstallSidelinkV2xConfiguration(vehDev, m_ueSidelinkConfiguration);
             
             m_groupL2Address++;
-
+            
             //Install app
             NS_LOG_INFO("Install MosaicLteProxyApp application on node " << singleNode->GetId());
             Ptr<MosaicLteProxyApp> app = CreateObject<MosaicLteProxyApp>();
@@ -186,6 +181,12 @@ namespace ns3 {
             app->SetNodeManager(this);
             singleNode->AddApplication(app);
             app->SetSockets();
+
+            //Install mobility model
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << commType);
