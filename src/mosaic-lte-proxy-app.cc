@@ -25,8 +25,9 @@ namespace ns3
     }
 
     void
-    MosaicLteProxyApp::SetLteV2xHelper(Ptr<LteV2xHelper> lteV2xHelper)
-    {
+    MosaicLteProxyApp::Configure(Ptr<LteV2xHelper> lteV2xHelper, Ipv4Address respondAddress, uint32_t groupL2Address){
+        m_respondAddress = respondAddress;
+        m_groupL2Address = groupL2Address;
         m_lteV2xHelper = lteV2xHelper;
     }
 
@@ -35,46 +36,50 @@ namespace ns3
     {
         NS_LOG_INFO("set sockets on node " << GetNode()->GetId());
 
-        if (m_lteV2xHelper)
+        if (!m_lteV2xHelper){
+            NS_LOG_ERROR("LTE V2X Helper must be configured");
+            return;
+        }
+        
+        if (!m_respondAddress){
+            NS_LOG_ERROR("Respond Address must be configured");
+            return;
+        }
+
+        if (!m_groupL2Address){
+            NS_LOG_ERROR("Group L2 Address must be configured");
+            return;
+        }
+        NetDeviceContainer txUe = NetDeviceContainer(GetNode()->GetDevice(0));
+        NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice(txUe, txUe.Get(0));
+        Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, m_respondAddress, m_groupL2Address);
+        m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
+        tft = Create<LteSlTft>(LteSlTft::RECEIVE, m_respondAddress, m_groupL2Address);
+        m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+
+        if (!m_host)
         {
-            NetDeviceContainer txUe = NetDeviceContainer(GetNode()->GetDevice(0));
-            Ipv4Address clientRespondersAddress = Ipv4Address("10.1.1.1"); // Example address, modify as needed
-            uint32_t groupL2Address = 1;                                   // Example address, modify as needed
-            uint16_t application_port = 12345;                             // Example port, modify as needed
+            m_host = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+            m_host->Bind();
+            m_host->Connect(InetSocketAddress(m_respondAddress, m_port));
+            m_host->SetAllowBroadcast(true);
+            m_host->ShutdownRecv();
 
-            NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice(txUe, txUe.Get(0));
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, groupL2Address);
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address);
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+            Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>(txUe.Get(0)->GetObject<LteUeNetDevice>()->GetMac());
+            //   ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&MosaicLteProxyApp::SidelinkV2xAnnouncementMacTrace, this));
+        }else{
+            NS_FATAL_ERROR("creation attempt of a host for MosaicLteProxyApp that has already a host active");
+        }
 
-            if (!m_host)
-            {
-                m_host = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
-                m_host->Bind();
-                m_host->Connect(InetSocketAddress(clientRespondersAddress, application_port));
-                m_host->SetAllowBroadcast(true);
-                m_host->ShutdownRecv();
-
-                Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>(txUe.Get(0)->GetObject<LteUeNetDevice>()->GetMac());
-                //   ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&MosaicLteProxyApp::SidelinkV2xAnnouncementMacTrace, this));
-            }else{
-                NS_FATAL_ERROR("creation attempt of a host for MosaicLteProxyApp that has already a host active");
-            }
-
-            if (!m_sink)
-            {
-                m_sink = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
-                InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), application_port);
-                m_sink->Bind(local);
-                m_sink->SetRecvCallback(MakeCallback(&MosaicLteProxyApp::Receive, this));
-            }
-            else{
-                NS_FATAL_ERROR("creation attempt of a sink for MosaicLteProxyApp that has already a sink active");
-            }
+        if (!m_sink)
+        {
+            m_sink = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+            InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), application_port);
+            m_sink->Bind(local);
+            m_sink->SetRecvCallback(MakeCallback(&MosaicLteProxyApp::Receive, this));
         }
         else{
-            NS_LOG_ERROR("LTE V2X helper must be setup firstly.");
+            NS_FATAL_ERROR("creation attempt of a sink for MosaicLteProxyApp that has already a sink active");
         }
     }
 

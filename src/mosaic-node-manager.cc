@@ -100,7 +100,7 @@ namespace ns3 {
             BuildingsHelper::Install (eNodeB);
             BuildingsHelper::MakeMobilityModelConsistent();  
 
-            m_groupL2Address = 0x00;
+            m_groupL2Address = 0x01;
             Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
         }
@@ -148,14 +148,15 @@ namespace ns3 {
             BuildingsHelper::MakeMobilityModelConsistent(); 
 
             // Install an LTE device on the node
-            NetDeviceContainer vehDev = m_lteHelper->InstallUeDevice(singleNode);
+            NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
+            m_ueDevs.Add(vehDev);
 
             // Install the internet stack on the node
             InternetStackHelper internet;
             internet.Install(singleNode);
 
             // Assign an IPv4 address to the LTE device
-            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(vehDev);
+            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
 
             // Set up static routing for the node to use the default gateway provided by the EPC helper
             Ipv4StaticRoutingHelper Ipv4RoutingHelper;
@@ -163,24 +164,26 @@ namespace ns3 {
             vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
 
             // Attach the LTE device to the eNodeB (base station)
-            m_lteHelper->Attach(vehDev);
+            m_lteHelper->Attach(ueDev);
 
-            // Create and activate a sidelink bearer for V2X communication
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, m_clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), vehDev, tft);
-            
+            // Update txGroups every time when a new node introduced 
+            m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, m_ueDevs.GetN());
+
             // Install the V2X sidelink configuration on the LTE device
-            m_lteHelper->InstallSidelinkV2xConfiguration(vehDev, m_ueSidelinkConfiguration);
+            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);
             
-            m_groupL2Address++;
             
-            //Install app
+            // Install app
             NS_LOG_INFO("Install MosaicLteProxyApp application on node " << singleNode->GetId());
             Ptr<MosaicLteProxyApp> app = CreateObject<MosaicLteProxyApp>();
-            app->SetLteV2xHelper(m_lteV2xHelper);
+            app->Configure(m_lteV2xHelper, m_clientRespondersAddress, m_groupL2Address);
             app->SetNodeManager(this);
             singleNode->AddApplication(app);
             app->SetSockets();
+
+            //
+            m_groupL2Address++;
+            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
             //Install mobility model
             Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();

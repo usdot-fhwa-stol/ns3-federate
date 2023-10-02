@@ -106,6 +106,9 @@ namespace ns3 {
 
         Ipv4AddressHelper m_ipAddressHelper;
 
+        NetDeviceContainer m_ueDevs;
+        std::vector<NetDeviceContainer> m_txGroups;
+
         uint32_t m_groupL2Address;
         Ipv4Address m_clientRespondersAddress;
     };

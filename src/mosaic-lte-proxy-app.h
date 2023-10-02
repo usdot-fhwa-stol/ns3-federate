@@ -21,7 +21,7 @@ namespace ns3
 
         static TypeId GetTypeId(void) override;
 
-        void SetLteV2xHelper(Ptr<LteV2xHelper> lteV2xHelper);
+        void Configure(Ptr<LteV2xHelper> lteV2xHelper, Ipv4Address respondAddress, uint32_t groupL2Address);
 
         void SetSockets(void) override;
 
@@ -35,9 +35,11 @@ namespace ns3
         Ptr<Socket> m_host;
         Ptr<Socket> m_sink;
         Ptr<LteV2xHelper> m_lteV2xHelper;
+        Ipv4Address m_respondAddress;
+        uint32_t m_groupL2Address;
         MosaicNodeManager *m_nodeManager;
         bool m_active;
-        uint16_t m_port;
+        uint16_t m_port = 8000;
     };
 
 } // namespace ns3
