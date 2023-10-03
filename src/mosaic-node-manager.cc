@@ -98,7 +98,7 @@ namespace ns3 {
             BuildingsHelper::Install (eNodeB);
             BuildingsHelper::MakeMobilityModelConsistent();  
 
-            m_groupL2Address = 0x01;
+            m_groupL2Address = 0x00;
             Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
