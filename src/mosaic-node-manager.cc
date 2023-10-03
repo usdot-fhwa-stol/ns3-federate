@@ -151,12 +151,6 @@ namespace ns3 {
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
             m_ipAddressHelper.Assign(netDevices);
 
-            //Install mobility model
-            NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
-            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-            mobModel->SetPosition(position);
-            singleNode->AggregateObject(mobModel);
-
         } else if (commType == ClientServerChannelSpace::CommunicationType::LTE) {
             
             // Associate the node with buildings for better radio propagation modeling
@@ -193,17 +187,17 @@ namespace ns3 {
             // Install the V2X sidelink configuration on the LTE device
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
-            //Install mobility model
-            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-            mobModel->SetPosition(position);
-            singleNode->AggregateObject(mobModel);
-
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << commType);
             m_mosaic2ns3ID.erase(singleNode->GetId);
             singleNode = nullptr;
         }
+
+        //Install mobility model
+        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+        mobModel->SetPosition(position);
+        singleNode->AggregateObject(mobModel);
 
         //Install app
         NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
