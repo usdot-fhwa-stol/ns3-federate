@@ -145,14 +145,15 @@ namespace ns3 {
 
         // Install the appropriate device based on communication type
         if (commType == ClientServerChannelSpace::CommunicationType::DSRC) {
-            NS_LOG_INFO ("Creating wifi helpers for the node...");
+            NS_LOG_INFO ("Creating helpers for the DSRC...");
             InternetStackHelper internet;   
             internet.Install(singleNode);
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
             m_ipAddressHelper.Assign(netDevices);
 
         } else if (commType == ClientServerChannelSpace::CommunicationType::LTE) {
-            
+
+            NS_LOG_INFO ("Creating helpers for the LTE...");
             // Associate the node with buildings for better radio propagation modeling
             BuildingsHelper::Install(singleNode);
 
@@ -195,6 +196,7 @@ namespace ns3 {
         }
 
         //Install mobility model
+        NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
         Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
         mobModel->SetPosition(position);
         singleNode->AggregateObject(mobModel);
