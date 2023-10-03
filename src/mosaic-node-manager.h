@@ -85,6 +85,7 @@ namespace ns3 {
     private:
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
+        std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
         //Channel

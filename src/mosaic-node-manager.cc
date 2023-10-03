@@ -186,7 +186,7 @@ namespace ns3 {
             // Create and activate a sidelink bearer for V2X communication
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
-
+            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
@@ -232,7 +232,18 @@ namespace ns3 {
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
-        app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
+        if (commType == ClientServerChannelSpace::CommunicationType::DSRC) {
+            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
+        }
+        else if (commType == ClientServerChannelSpace::CommunicationType::LTE) {
+            // For LTE communication, send message to sidelink
+            // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
+            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
+        }
+        else{
+            NS_LOG_ERROR("Unknown communication type:" << commType);
+            return;
+        }
     }
 
     void MosaicNodeManager::AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID) {
@@ -317,6 +328,7 @@ namespace ns3 {
                 }
                 else{
                     NS_LOG_ERROR("Unknown communication type:" << commType);
+                    return;
                 }
             }
         } else {
