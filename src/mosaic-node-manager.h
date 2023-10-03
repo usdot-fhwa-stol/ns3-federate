@@ -42,6 +42,7 @@
 
 #include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/mobility-helper.h"
+#include "ns3/sl-v2x-preconfig-pool-factory.h"
 
 
 namespace ns3 {
@@ -68,6 +69,7 @@ namespace ns3 {
         void CreateMosaicNode(int ID, Vector position, CommunicationType commType);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
         void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType);
+        void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
         void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
         bool ActivateNode(uint32_t nodeId);
         void DeactivateNode(uint32_t nodeId);
@@ -107,10 +109,10 @@ namespace ns3 {
         Ipv4AddressHelper m_ipAddressHelper;
 
         NetDeviceContainer m_ueDevs;
-        std::vector<NetDeviceContainer> m_txGroups;
 
         uint32_t m_groupL2Address;
         Ipv4Address m_clientRespondersAddress;
+
     };
 }
 #endif

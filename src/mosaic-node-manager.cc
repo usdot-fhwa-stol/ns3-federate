@@ -71,14 +71,12 @@ namespace ns3 {
             m_lteHelper = CreateObject<LteHelper>();
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
             m_epcHelper = CreateObject<PointToPointEpcHelper>();
-            m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+            
             m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
             m_lteHelper->SetEpcHelper(m_epcHelper);
             m_lteHelper->DisableNewEnbPhy();
             m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
-            m_ueSidelinkConfiguration->SetSlEnabled(true);
-            m_ueSidelinkConfiguration->SetV2xEnabled(true);
 
             m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
             
@@ -89,7 +87,7 @@ namespace ns3 {
             Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
             pos_eNB->Add(Vector(0, 0, 0));
 
-            //  Install mobility eNodeB
+            // Install mobility eNodeB
             MobilityHelper mob_eNB;
             mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
             mob_eNB.SetPositionAllocator(pos_eNB);
@@ -103,6 +101,33 @@ namespace ns3 {
             m_groupL2Address = 0x01;
             Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+
+            // Sidelink configuration
+            m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+            m_ueSidelinkConfiguration->SetSlEnabled(true);
+            m_ueSidelinkConfiguration->SetV2xEnabled(true);
+
+            LteRrcSap::SlV2xPreconfiguration preconfiguration;
+            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
+            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
+            
+            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
+            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
+
+            SlV2xPreconfigPoolFactory pFactory;
+            pFactory.SetHaveUeSelectedResourceConfig (true);
+            pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
+            pFactory.SetAdjacencyPscchPssch (true);
+            pFactory.SetSizeSubchannel (10);
+            pFactory.SetNumSubchannel (3);
+            pFactory.SetStartRbSubchannel (0);
+            pFactory.SetStartRbPscchPool (0);
+            pFactory.SetDataTxP0 (-4);
+            pFactory.SetDataTxAlpha (0.9);
+
+            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
+            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
+            m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << commType);
@@ -126,13 +151,6 @@ namespace ns3 {
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
             m_ipAddressHelper.Assign(netDevices);
 
-            //Install app
-            NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-            app->SetNodeManager(this);
-            singleNode->AddApplication(app);
-            app->SetSockets();
-
             //Install mobility model
             NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
             Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
@@ -149,8 +167,7 @@ namespace ns3 {
 
             // Install an LTE device on the node
             NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
-            m_ueDevs.Add(vehDev);
-
+            m_ueDevs.Add(ueDev);
             // Install the internet stack on the node
             InternetStackHelper internet;
             internet.Install(singleNode);
@@ -166,24 +183,15 @@ namespace ns3 {
             // Attach the LTE device to the eNodeB (base station)
             m_lteHelper->Attach(ueDev);
 
-            // Update txGroups every time when a new node introduced 
-            m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, m_ueDevs.GetN());
+            // Create and activate a sidelink bearer for V2X communication
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
 
-            // Install the V2X sidelink configuration on the LTE device
-            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);
-            
-            
-            // Install app
-            NS_LOG_INFO("Install MosaicLteProxyApp application on node " << singleNode->GetId());
-            Ptr<MosaicLteProxyApp> app = CreateObject<MosaicLteProxyApp>();
-            app->Configure(m_lteV2xHelper, m_clientRespondersAddress, m_groupL2Address);
-            app->SetNodeManager(this);
-            singleNode->AddApplication(app);
-            app->SetSockets();
-
-            //
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+
+            // Install the V2X sidelink configuration on the LTE device
+            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
             //Install mobility model
             Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
@@ -196,6 +204,13 @@ namespace ns3 {
             m_mosaic2ns3ID.erase(singleNode->GetId);
             singleNode = nullptr;
         }
+
+        //Install app
+        NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
+        Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+        app->SetNodeManager(this);
+        singleNode->AddApplication(app);
+        app->SetSockets();
 
 
         return;
@@ -307,5 +322,21 @@ namespace ns3 {
         } else {
             ssa->Disable();
         }
+    }
+
+    void MosaicNodeManager::ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration){
+        if (!m_ueSidelinkConfiguration){
+            NS_LOG_ERROR("Sidelink config has not initialized yet");
+            return;
+        }
+        if (!m_lteHelper){
+            NS_LOG_ERROR("LTE helper has not initialized yet");
+            return;
+        }
+        m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
+
+        // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
+        m_lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
+
     }
 }
