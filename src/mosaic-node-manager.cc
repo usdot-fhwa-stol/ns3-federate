@@ -215,7 +215,7 @@ namespace ns3 {
         return m_mosaic2ns3ID[nodeId];
     }
 
-    void MosaicNodeManager::SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address ipv4Add) {
+    void MosaicNodeManager::SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address ipv4Add, CommunicationType commType) {
         if (m_isDeactivated[nodeId]) {
             return;
         }

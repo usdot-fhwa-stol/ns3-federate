@@ -43,6 +43,7 @@
 #include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/sl-v2x-preconfig-pool-factory.h"
+#include "ns3/ipv4-address-generator.h"
 
 
 namespace ns3 {
