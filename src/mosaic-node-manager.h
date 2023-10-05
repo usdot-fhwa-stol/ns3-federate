@@ -73,7 +73,7 @@ namespace ns3 {
         void UpdateNodePosition(uint32_t nodeId, Vector position);
         void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType=DSRC);
         void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
-        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
+        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add, CommunicationType commType=DSRC);
         bool ActivateNode(uint32_t nodeId);
         void DeactivateNode(uint32_t nodeId);
 
