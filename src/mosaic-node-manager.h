@@ -117,7 +117,7 @@ namespace ns3 {
         uint32_t m_groupL2Address;
         Ipv4Address m_clientRespondersAddress;
 
-        CommunicationType m_commType = 0;
+        CommunicationType m_commType;
 
     };
 }
