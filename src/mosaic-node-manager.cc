@@ -191,7 +191,7 @@ namespace ns3 {
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << commType);
-            m_mosaic2ns3ID.erase(singleNode->GetId);
+            m_mosaic2ns3ID.erase(singleNode->GetId());
             singleNode = nullptr;
         }
 
@@ -312,13 +312,14 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (commType == LTE) {
-                    Ptr<NetDevice> netDev = DynamicCast<NetDevice> (node->GetDevice(1));
+                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
                     if (netDev == nullptr) {
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
                         return;
                     } 
                     Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     if (uePhy != 0){
+                        
                         uePhy->SetTxPower(txDBm);
                     }
                 }
