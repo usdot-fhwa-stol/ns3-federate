@@ -47,7 +47,7 @@
 
 namespace ns3 {
 
-    using ClientServerChannelSpace::CommunicationType;
+    using namespace ClientServerChannelSpace;
 
     //Forward declaration to prevent circular dependency
     class MosaicNs3Server;
