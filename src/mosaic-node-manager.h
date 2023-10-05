@@ -47,6 +47,8 @@
 
 namespace ns3 {
 
+    using ClientServerChannelSpace::CommunicationType;
+
     //Forward declaration to prevent circular dependency
     class MosaicNs3Server;
 
@@ -64,11 +66,11 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
+        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
 
-        void CreateMosaicNode(int ID, Vector position, CommunicationType commType);
+        void CreateMosaicNode(int ID, Vector position, CommunicationType commType=DSRC);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType);
+        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType=DSRC);
         void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
         void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
         bool ActivateNode(uint32_t nodeId);
