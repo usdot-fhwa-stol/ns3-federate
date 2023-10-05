@@ -61,12 +61,13 @@ namespace ns3 {
 
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType) {
         m_serverPtr = serverPtr;
-        if(commType == DSRC){
+        m_commType = commType;
+        if(m_commType == DSRC){
             m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
             m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
             m_channel = m_wifiChannelHelper.Create();
             m_wifiPhyHelper.SetChannel(m_channel);
-        } else if (commType == LTE){
+        } else if (m_commType == LTE){
             m_lteHelper = CreateObject<LteHelper>();
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
             m_epcHelper = CreateObject<PointToPointEpcHelper>();
@@ -129,11 +130,11 @@ namespace ns3 {
             m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
         }
         else{
-            NS_LOG_ERROR("Unknown communication type:" << commType);
+            NS_LOG_ERROR("Unknown communication type:" << m_commType);
         }
     }
 
-    void MosaicNodeManager::CreateMosaicNode(int ID, Vector position, CommunicationType commType) {
+    void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
         if (m_isDeactivated[ID]) {
             return;
         }
@@ -143,14 +144,14 @@ namespace ns3 {
         m_mosaic2ns3ID[ID] = singleNode->GetId();
 
         // Install the appropriate device based on communication type
-        if (commType == DSRC) {
+        if (m_commType == DSRC) {
             NS_LOG_INFO ("Creating helpers for the DSRC...");
             InternetStackHelper internet;   
             internet.Install(singleNode);
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
             m_ipAddressHelper.Assign(netDevices);
 
-        } else if (commType == LTE) {
+        } else if (m_commType == LTE) {
 
             NS_LOG_INFO ("Creating helpers for the LTE...");
             // Associate the node with buildings for better radio propagation modeling
@@ -189,7 +190,7 @@ namespace ns3 {
 
         }
         else{
-            NS_LOG_ERROR("Unknown communication type:" << commType);
+            NS_LOG_ERROR("Unknown communication type:" << m_commType);
             m_mosaic2ns3ID.erase(singleNode->GetId());
             singleNode = nullptr;
         }
@@ -215,7 +216,7 @@ namespace ns3 {
         return m_mosaic2ns3ID[nodeId];
     }
 
-    void MosaicNodeManager::SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address ipv4Add, CommunicationType commType) {
+    void MosaicNodeManager::SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address ipv4Add) {
         if (m_isDeactivated[nodeId]) {
             return;
         }
@@ -227,16 +228,16 @@ namespace ns3 {
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
-        if (commType == DSRC) {
+        if (m_commType == DSRC) {
             app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
         }
-        else if (commType == LTE) {
+        else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
             app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
         }
         else{
-            NS_LOG_ERROR("Unknown communication type:" << commType);
+            NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return;
         }
     }
@@ -282,7 +283,7 @@ namespace ns3 {
     /**
      * @brief Evaluates configuration message and applies it to the node
      */
-    void MosaicNodeManager::ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType) {
+    void MosaicNodeManager::ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower) {
         if (m_isDeactivated[nodeId]) {
             return;
         }
@@ -299,7 +300,7 @@ namespace ns3 {
             ssa->Enable();
             if (transmitPower > -1) {
                 double txDBm = 10 * log10((double) transmitPower);
-                if (commType == DSRC) {
+                if (m_commType == DSRC) {
                     Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
                     if (netDev == nullptr) {
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
@@ -310,7 +311,7 @@ namespace ns3 {
                         wavePhy->SetTxPowerStart(txDBm);
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
-                } else if (commType == LTE) {
+                } else if (m_commType == LTE) {
                     Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
                     if (netDev == nullptr) {
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
@@ -323,7 +324,7 @@ namespace ns3 {
                     }
                 }
                 else{
-                    NS_LOG_ERROR("Unknown communication type:" << commType);
+                    NS_LOG_ERROR("Unknown communication type:" << m_commType);
                     return;
                 }
             }

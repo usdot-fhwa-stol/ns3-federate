@@ -69,11 +69,11 @@ namespace ns3 {
 
         void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
 
-        void CreateMosaicNode(int ID, Vector position, CommunicationType commType=DSRC);
+        void CreateMosaicNode(int ID, Vector position);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType=DSRC);
+        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower);
         void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
-        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add, CommunicationType commType=DSRC);
+        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
         bool ActivateNode(uint32_t nodeId);
         void DeactivateNode(uint32_t nodeId);
 
@@ -116,6 +116,8 @@ namespace ns3 {
 
         uint32_t m_groupL2Address;
         Ipv4Address m_clientRespondersAddress;
+
+        CommunicationType m_commType = 0;
 
     };
 }
