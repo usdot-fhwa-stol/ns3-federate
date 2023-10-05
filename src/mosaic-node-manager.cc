@@ -27,7 +27,6 @@
 
 #include "ns3/wave-net-device.h"
 #include "mosaic-proxy-app.h"
-#include "mosaic-lte-proxy-app.h"
 #include "ns3/string.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/log.h"
