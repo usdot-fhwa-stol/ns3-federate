@@ -42,9 +42,13 @@
 
 #include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/mobility-helper.h"
+#include "ns3/sl-v2x-preconfig-pool-factory.h"
+#include "ns3/ipv4-address-generator.h"
 
 
 namespace ns3 {
+
+    using namespace ClientServerChannelSpace;
 
     //Forward declaration to prevent circular dependency
     class MosaicNs3Server;
@@ -63,11 +67,12 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
+        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
 
-        void CreateMosaicNode(int ID, Vector position, CommunicationType commType);
+        void CreateMosaicNode(int ID, Vector position);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower, CommunicationType commType);
+        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower);
+        void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
         void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
         bool ActivateNode(uint32_t nodeId);
         void DeactivateNode(uint32_t nodeId);
@@ -83,6 +88,7 @@ namespace ns3 {
     private:
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
+        std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
         //Channel
@@ -106,8 +112,13 @@ namespace ns3 {
 
         Ipv4AddressHelper m_ipAddressHelper;
 
+        NetDeviceContainer m_ueDevs;
+
         uint32_t m_groupL2Address;
         Ipv4Address m_clientRespondersAddress;
+
+        CommunicationType m_commType;
+
     };
 }
 #endif
