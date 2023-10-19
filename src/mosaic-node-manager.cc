@@ -69,17 +69,12 @@ namespace ns3 {
             m_wifiPhyHelper.SetChannel(m_channel);
         } else if (m_commType == LTE){
             m_lteHelper = CreateObject<LteHelper>();
-            std::cout << "---------------0---------------" << "\n";
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
-            std::cout << "---------------01---------------" << "\n";
             m_epcHelper = CreateObject<PointToPointEpcHelper>();
             
-            std::cout << "---------------02---------------" << "\n";
             m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
             m_lteHelper->SetEpcHelper(m_epcHelper);
-            std::cout << "---------------03---------------" << "\n";
             m_lteHelper->DisableNewEnbPhy();
-            std::cout << "---------------04---------------" << "\n";
             m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
 
