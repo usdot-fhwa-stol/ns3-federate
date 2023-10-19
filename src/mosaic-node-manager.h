@@ -38,6 +38,7 @@
 #include "ns3/lte-helper.h"
 #include "ns3/lte-v2x-helper.h"
 
+#include "ns3/point-to-point-helper.h"
 #include "ns3/point-to-point-epc-helper.h"
 
 #include "ns3/ipv4-static-routing-helper.h"
@@ -45,6 +46,24 @@
 #include "ns3/sl-v2x-preconfig-pool-factory.h"
 #include "ns3/ipv4-address-generator.h"
 
+#include "ns3/lte-helper.h"
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/ipv4-global-routing-helper.h"
+#include "ns3/internet-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/lte-module.h"
+#include "ns3/applications-module.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/lte-v2x-helper.h"
+#include "ns3/config-store.h"
+#include "ns3/lte-hex-grid-enb-topology-helper.h"
+#include <ns3/buildings-helper.h>
+#include <ns3/cni-urbanmicrocell-propagation-loss-model.h>
+#include <ns3/constant-position-mobility-model.h>
+#include <ns3/spectrum-analyzer-helper.h>
+#include <ns3/multi-model-spectrum-channel.h>
+#include "ns3/ns2-mobility-helper.h"
 
 namespace ns3 {
 
