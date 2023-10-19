@@ -80,15 +80,18 @@ namespace ns3 {
             m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
 
+            std::cout << "---------------1---------------" << "\n";
             m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
             
             NodeContainer eNodeB;
             eNodeB.Create(1); 
 
+            std::cout << "---------------2---------------" << "\n";
             // Topology eNodeB
             Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
             pos_eNB->Add(Vector(0, 0, 0));
 
+            std::cout << "---------------3---------------" << "\n";
             // Install mobility eNodeB
             MobilityHelper mob_eNB;
             mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -104,6 +107,7 @@ namespace ns3 {
             Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
+            std::cout << "---------------4---------------" << "\n";
             // Sidelink configuration
             m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
             m_ueSidelinkConfiguration->SetSlEnabled(true);
@@ -127,6 +131,7 @@ namespace ns3 {
             pFactory.SetDataTxP0 (-4);
             pFactory.SetDataTxAlpha (0.9);
 
+            std::cout << "---------------5---------------" << "\n";
             preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
             preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
             m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
