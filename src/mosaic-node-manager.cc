@@ -73,11 +73,11 @@ namespace ns3 {
             m_lteHelper = CreateObject<LteHelper>();
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
             std::cout << "Init PointToPointEpcHelper" << "\n";
-            m_epcHelper = CreateObject<PointToPointEpcHelper>();
+            Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
             
             std::cout << "Set attribute" << "\n";
             m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-            m_lteHelper->SetEpcHelper(m_epcHelper);
+            m_lteHelper->SetEpcHelper(epcHelper);
             m_lteHelper->DisableNewEnbPhy();
             m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
