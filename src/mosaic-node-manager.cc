@@ -63,15 +63,19 @@ namespace ns3 {
         m_serverPtr = serverPtr;
         m_commType = commType;
         if(m_commType == DSRC){
+            std::cout << "Init DSRC" << "\n";
             m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
             m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
             m_channel = m_wifiChannelHelper.Create();
             m_wifiPhyHelper.SetChannel(m_channel);
         } else if (m_commType == LTE){
+            std::cout << "Init LTE" << "\n";
             m_lteHelper = CreateObject<LteHelper>();
             m_lteV2xHelper = CreateObject<LteV2xHelper>();
+            std::cout << "Init PointToPointEpcHelper" << "\n";
             m_epcHelper = CreateObject<PointToPointEpcHelper>();
             
+            std::cout << "Set attribute" << "\n";
             m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
             m_lteHelper->SetEpcHelper(m_epcHelper);
             m_lteHelper->DisableNewEnbPhy();
