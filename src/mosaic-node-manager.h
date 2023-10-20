@@ -76,7 +76,7 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
+        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=LTE);
 
         void CreateMosaicNode(int ID, Vector position);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
