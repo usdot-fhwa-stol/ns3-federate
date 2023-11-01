@@ -618,7 +618,8 @@ void ClientServerChannel::writeCommand(CMD cmd) {
   LOG_DEBUG << "writeCommand" << std::endl;
   CommandMessage commandMessage;
   LOG_DEBUG << "DEBUG: write command: " << cmd << std::endl;
-  commandMessage.set_command_type(cmdToProtoCMD(cmd));
+  auto val = cmdToProtoCMD(cmd);
+  commandMessage.set_command_type(val);
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(commandMessage.ByteSize());
   LOG_DEBUG << "DEBUG: write command varint size: " << varintsize << std::endl;
   int buffer_size = varintsize+commandMessage.ByteSize();
