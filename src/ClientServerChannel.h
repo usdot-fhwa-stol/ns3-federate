@@ -140,7 +140,7 @@ struct CSC_send_message{
 	CSC_topo_address topo_address;
 };
 
-static CommandMessage_CommandType ClientServerChannelSpace::testFunctionLogic(CMD cmd);
+static CommandMessage_CommandType testFunctionLogic(CMD cmd);
 
 class ClientServerChannel {
 

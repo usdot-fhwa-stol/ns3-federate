@@ -618,7 +618,7 @@ void ClientServerChannel::writeCommand(CMD cmd) {
   LOG_DEBUG << "writeCommand" << std::endl;
   CommandMessage commandMessage;
   LOG_DEBUG << "DEBUG: write command: " << cmd << std::endl;
-  auto val1 = ClientServerChannelSpace::testFunctionLogic(cmd);
+  auto val1 = testFunctionLogic(cmd);
   //auto val2 = cmdToProtoCMD(cmd);
   commandMessage.set_command_type(val1);
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(commandMessage.ByteSize());
@@ -766,7 +766,7 @@ std::shared_ptr < uint32_t > ClientServerChannel::readVarintPrefix(SOCKET sock) 
   return std::make_shared < uint32_t > ( return_value );
 }
 
-static CommandMessage_CommandType ClientServerChannelSpace::testFunctionLogic(CMD cmd) {
+static CommandMessage_CommandType testFunctionLogic(CMD cmd) {
   switch(cmd) {
     case CMD_UNDEF: return CommandMessage_CommandType_UNDEF;
     case CMD_SUCCESS: return CommandMessage_CommandType_SUCCESS;
