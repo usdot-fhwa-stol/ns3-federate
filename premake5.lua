@@ -71,6 +71,7 @@ project "ns3-federate"
       defines { "DEBUG" }
       symbols "On"
       buildoptions { "-Wall", "-Wpedantic", "-Wconversion", "-fsanitize=undefined" }
+      linkoptions { "-fsanitize=undefined" }
       links { "ns" .. ns3version .. "-antenna-debug"
            , "ns" .. ns3version .. "-aodv-debug"
             , "ns" .. ns3version .. "-applications-debug"
