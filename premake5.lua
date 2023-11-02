@@ -70,7 +70,8 @@ project "ns3-federate"
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
-      buildoptions { "-Wall", "-Wpedantic", "-Wconversion" }
+      buildoptions { "-Wall", "-Wpedantic", "-Wconversion", "-fsanitize=undefined", "-fno-sanitize=vptr" }
+      linkoptions { "-fsanitize=undefined", "-fno-sanitize=vptr" }
       links { "ns" .. ns3version .. "-antenna-debug"
            , "ns" .. ns3version .. "-aodv-debug"
             , "ns" .. ns3version .. "-applications-debug"
