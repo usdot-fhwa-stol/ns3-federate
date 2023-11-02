@@ -70,6 +70,7 @@ project "ns3-federate"
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
+      warnings { "all", "pedantic", "conversion", "error" }
       links { "ns" .. ns3version .. "-antenna-debug"
            , "ns" .. ns3version .. "-aodv-debug"
             , "ns" .. ns3version .. "-applications-debug"
