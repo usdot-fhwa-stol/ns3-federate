@@ -93,8 +93,7 @@ enum RADIO_CHANNEL {
 
 struct CSC_init_return{
     int64_t start_time;
-    int64_t end_time;
-};
+    int64_t end_time; };
 
 struct CSC_node_data{
 	int id;
@@ -141,7 +140,7 @@ struct CSC_send_message{
 	CSC_topo_address topo_address;
 };
 
-static CommandMessage_CommandType testFunctionLogic(CMD cmd);
+static CommandMessage_CommandType ClientServerChannelSpace::testFunctionLogic(CMD cmd);
 
 class ClientServerChannel {
 
