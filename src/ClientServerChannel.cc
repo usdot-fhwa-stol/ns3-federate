@@ -618,8 +618,9 @@ void ClientServerChannel::writeCommand(CMD cmd) {
   LOG_DEBUG << "writeCommand" << std::endl;
   CommandMessage commandMessage;
   LOG_DEBUG << "DEBUG: write command: " << cmd << std::endl;
-  auto val = cmdToProtoCMD(cmd);
-  commandMessage.set_command_type(val);
+  auto val1 = testFunctionLogic(cmd);
+  //auto val2 = cmdToProtoCMD(cmd);
+  commandMessage.set_command_type(val1);
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(commandMessage.ByteSize());
   LOG_DEBUG << "DEBUG: write command varint size: " << varintsize << std::endl;
   int buffer_size = varintsize+commandMessage.ByteSize();
@@ -765,8 +766,50 @@ std::shared_ptr < uint32_t > ClientServerChannel::readVarintPrefix(SOCKET sock) 
   return std::make_shared < uint32_t > ( return_value );
 }
 
+static CommandMessage_CommandType testFunctionLogic(CMD cmd) {
+  switch(cmd) {
+    case CMD_UNDEF: return CommandMessage_CommandType_UNDEF;
+    case CMD_SUCCESS: return CommandMessage_CommandType_SUCCESS;
+    case CMD_INIT: return CommandMessage_CommandType_INIT;
+    case CMD_SHUT_DOWN: return CommandMessage_CommandType_SHUT_DOWN;
+
+    case CMD_UPDATE_NODE: return CommandMessage_CommandType_UPDATE_NODE;
+    case CMD_REMOVE_NODE: return CommandMessage_CommandType_REMOVE_NODE;
+
+    case CMD_ADVANCE_TIME: return CommandMessage_CommandType_ADVANCE_TIME;
+    case CMD_NEXT_EVENT: return CommandMessage_CommandType_NEXT_EVENT;
+    case CMD_MSG_RECV: return CommandMessage_CommandType_MSG_RECV;
+
+    case CMD_MSG_SEND: return CommandMessage_CommandType_MSG_SEND;
+    case CMD_CONF_RADIO: return CommandMessage_CommandType_CONF_RADIO;
+
+    case CMD_END: return CommandMessage_CommandType_END;
+
+    default: return CommandMessage_CommandType_UNDEF;
+  }
+}
+
 CommandMessage_CommandType ClientServerChannel::cmdToProtoCMD(CMD cmd) {
-    return CommandMessage_CommandType_NEXT_EVENT;
+  switch(cmd) {
+    case CMD_UNDEF: return CommandMessage_CommandType_UNDEF;
+    case CMD_SUCCESS: return CommandMessage_CommandType_SUCCESS;
+    case CMD_INIT: return CommandMessage_CommandType_INIT;
+    case CMD_SHUT_DOWN: return CommandMessage_CommandType_SHUT_DOWN;
+
+    case CMD_UPDATE_NODE: return CommandMessage_CommandType_UPDATE_NODE;
+    case CMD_REMOVE_NODE: return CommandMessage_CommandType_REMOVE_NODE;
+
+    case CMD_ADVANCE_TIME: return CommandMessage_CommandType_ADVANCE_TIME;
+    case CMD_NEXT_EVENT: return CommandMessage_CommandType_NEXT_EVENT;
+    case CMD_MSG_RECV: return CommandMessage_CommandType_MSG_RECV;
+
+    case CMD_MSG_SEND: return CommandMessage_CommandType_MSG_SEND;
+    case CMD_CONF_RADIO: return CommandMessage_CommandType_CONF_RADIO;
+
+    case CMD_END: return CommandMessage_CommandType_END;
+
+    default: return CommandMessage_CommandType_UNDEF;
+  }
 }
 
 CMD ClientServerChannel::protoCMDToCMD(CommandMessage_CommandType cmd) {
