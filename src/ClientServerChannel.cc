@@ -766,7 +766,7 @@ std::shared_ptr < uint32_t > ClientServerChannel::readVarintPrefix(SOCKET sock) 
   return std::make_shared < uint32_t > ( return_value );
 }
 
-static CommandMessage_CommandType testFunctionLogic(CMD cmd) {
+static CommandMessage_CommandType ClientServerChannelSpace::testFunctionLogic(CMD cmd) {
   switch(cmd) {
     case CMD_UNDEF: return CommandMessage_CommandType_UNDEF;
     case CMD_SUCCESS: return CommandMessage_CommandType_SUCCESS;
