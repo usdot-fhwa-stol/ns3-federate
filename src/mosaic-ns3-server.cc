@@ -37,8 +37,9 @@ namespace ns3 {
      * @param port  port for receiving the commands from MOSAIC
      * @param MosaicNodeManger MosaicNodeManger given from the NS3 starter script
      */
-    MosaicNs3Server::MosaicNs3Server(int port, int cmdPort) {
+    MosaicNs3Server::MosaicNs3Server(int port, int cmdPort, CommunicationType commType) {
         std::cout << "Starting federate on port " << port << "\n";
+        m_commType = commType;
 
         if (cmdPort > 0) {
             std::cout << "Once connected, federate will listen to commands on port " << cmdPort << "\n";
@@ -120,6 +121,30 @@ namespace ns3 {
      * @return commandId the Id of the last command
      */
     int MosaicNs3Server::dispatchCommand() {
+
+        if (m_commType == CommunicationType::DSRC){
+            if (!m_dsrc_init_complete){
+                std::cout << "DEBUG: Initialization DSRC" << std::endl;
+                m_nodeManager->InitDsrc();
+                m_dsrc_init_complete = true;
+                std::cout << "DEBUG: Completed Initialization of DSRC" << std::endl;
+            }
+        }else if (m_commType == CommunicationType::LTE){
+            if (!m_lte_init_complete){
+                std::cout << "DEBUG: Initialization LTE" << std::endl;
+                Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+
+                NodeContainer eNodeB;
+                eNodeB.Create(1); 
+                m_nodeManager->InitLte(epcHelper, eNodeB);
+                m_lte_init_complete = true;
+                std::cout << "DEBUG: Completed Initialization of LTE" << std::endl;
+            }
+        }else{
+            NS_LOG_ERROR("Unknown communication type:" << m_commType);
+            return 0;
+        }
+
         //gets the pointer of the simulator
         Ptr<MosaicSimulatorImpl> sim = DynamicCast<MosaicSimulatorImpl> (Simulator::GetImplementation());
         if (nullptr == sim) {

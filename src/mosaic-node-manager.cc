@@ -62,76 +62,74 @@ namespace ns3 {
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType) {
         m_serverPtr = serverPtr;
         m_commType = commType;
-        if(m_commType == DSRC){
-            m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
-            m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
-            m_channel = m_wifiChannelHelper.Create();
-            m_wifiPhyHelper.SetChannel(m_channel);
-        } else if (m_commType == LTE){
-            m_lteHelper = CreateObject<LteHelper>();
-            m_lteV2xHelper = CreateObject<LteV2xHelper>();
-            m_epcHelper = CreateObject<PointToPointEpcHelper>();
-            
-            m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-            m_lteHelper->SetEpcHelper(m_epcHelper);
-            m_lteHelper->DisableNewEnbPhy();
-            m_lteV2xHelper->SetLteHelper(m_lteHelper);
+    }
 
+    void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB){
+        m_lteHelper = CreateObject<LteHelper>();
+        m_lteV2xHelper = CreateObject<LteV2xHelper>();
+        std::cout << "DEBUG: Initialize LTE NS-3 node" << std::endl;
+        m_epcHelper = epcHelper;
+        
+        m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
+        m_lteHelper->SetEpcHelper(m_epcHelper);
+        m_lteHelper->DisableNewEnbPhy();
+        m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
-            m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
-            
-            NodeContainer eNodeB;
-            eNodeB.Create(1); 
+        m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
+        
+        // Topology eNodeB
+        Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+        pos_eNB->Add(Vector(0, 0, 0));
 
-            // Topology eNodeB
-            Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-            pos_eNB->Add(Vector(0, 0, 0));
+        // Install mobility eNodeB
+        MobilityHelper mob_eNB;
+        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mob_eNB.SetPositionAllocator(pos_eNB);
+        mob_eNB.Install(eNodeB);
 
-            // Install mobility eNodeB
-            MobilityHelper mob_eNB;
-            mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-            mob_eNB.SetPositionAllocator(pos_eNB);
-            mob_eNB.Install(eNodeB);
+        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
-            NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
+        BuildingsHelper::Install (eNodeB);
+        BuildingsHelper::MakeMobilityModelConsistent();  
 
-            BuildingsHelper::Install (eNodeB);
-            BuildingsHelper::MakeMobilityModelConsistent();  
+        m_groupL2Address = 0x00;
+        Ipv4AddressGenerator::Init(Ipv4Address ("10.2.0.0"), Ipv4Mask("255.255.0.0"));
+        m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
-            m_groupL2Address = 0x00;
-            Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+        // Sidelink configuration
+        m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+        m_ueSidelinkConfiguration->SetSlEnabled(true);
+        m_ueSidelinkConfiguration->SetV2xEnabled(true);
 
-            // Sidelink configuration
-            m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
-            m_ueSidelinkConfiguration->SetSlEnabled(true);
-            m_ueSidelinkConfiguration->SetV2xEnabled(true);
+        LteRrcSap::SlV2xPreconfiguration preconfiguration;
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
+        
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
 
-            LteRrcSap::SlV2xPreconfiguration preconfiguration;
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
-            
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
+        SlV2xPreconfigPoolFactory pFactory;
+        pFactory.SetHaveUeSelectedResourceConfig (true);
+        pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
+        pFactory.SetAdjacencyPscchPssch (true);
+        pFactory.SetSizeSubchannel (10);
+        pFactory.SetNumSubchannel (3);
+        pFactory.SetStartRbSubchannel (0);
+        pFactory.SetStartRbPscchPool (0);
+        pFactory.SetDataTxP0 (-4);
+        pFactory.SetDataTxAlpha (0.9);
 
-            SlV2xPreconfigPoolFactory pFactory;
-            pFactory.SetHaveUeSelectedResourceConfig (true);
-            pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
-            pFactory.SetAdjacencyPscchPssch (true);
-            pFactory.SetSizeSubchannel (10);
-            pFactory.SetNumSubchannel (3);
-            pFactory.SetStartRbSubchannel (0);
-            pFactory.SetStartRbPscchPool (0);
-            pFactory.SetDataTxP0 (-4);
-            pFactory.SetDataTxAlpha (0.9);
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
+        m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
+    }
 
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
-            m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
-        }
-        else{
-            NS_LOG_ERROR("Unknown communication type:" << m_commType);
-        }
+    void MosaicNodeManager::InitDsrc(){
+        std::cout << "DEBUG: Initialize DSRC NS-3 node" << std::endl;
+        m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
+        m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
+        m_channel = m_wifiChannelHelper.Create();
+        m_wifiPhyHelper.SetChannel(m_channel);
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {

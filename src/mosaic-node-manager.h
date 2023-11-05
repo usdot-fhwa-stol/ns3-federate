@@ -45,7 +45,6 @@
 #include "ns3/sl-v2x-preconfig-pool-factory.h"
 #include "ns3/ipv4-address-generator.h"
 
-
 namespace ns3 {
 
     using namespace ClientServerChannelSpace;
@@ -68,6 +67,8 @@ namespace ns3 {
         virtual ~MosaicNodeManager() = default;
 
         void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
+        void InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB);
+        void InitDsrc();
 
         void CreateMosaicNode(int ID, Vector position);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
