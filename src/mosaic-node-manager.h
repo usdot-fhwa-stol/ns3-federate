@@ -66,7 +66,7 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
+        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
         void InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB);
         void InitDsrc();
 
