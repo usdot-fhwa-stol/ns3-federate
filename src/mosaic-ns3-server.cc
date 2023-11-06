@@ -45,7 +45,7 @@ namespace ns3 {
             std::cout << "Once connected, federate will listen to commands on port " << cmdPort << "\n";
         }
         m_nodeManager = CreateObject<MosaicNodeManager>();
-        m_nodeManager->Configure(this);
+        m_nodeManager->Configure(this, m_commType);
         m_closeConnection = false;
 
         std::cout << "Trying to prepare federateAmbassadorChannel on port " << port << " " << std::endl;
