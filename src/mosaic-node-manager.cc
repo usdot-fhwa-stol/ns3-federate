@@ -141,6 +141,13 @@ namespace ns3 {
         NS_LOG_INFO("Created node " << singleNode->GetId());
         m_mosaic2ns3ID[ID] = singleNode->GetId();
 
+        //Install mobility model
+        NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
+        std::cout << "Install ConstantVelocityMobilityModel on node" << std::endl;
+        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+        mobModel->SetPosition(position);
+        singleNode->AggregateObject(mobModel);
+        
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
             NS_LOG_INFO ("Creating helpers for the DSRC...");
@@ -204,12 +211,6 @@ namespace ns3 {
             singleNode = nullptr;
         }
 
-        //Install mobility model
-        NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
-        std::cout << "Install ConstantVelocityMobilityModel on node" << std::endl;
-        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-        mobModel->SetPosition(position);
-        singleNode->AggregateObject(mobModel);
 
         //Install app
         NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
