@@ -130,21 +130,21 @@ namespace ns3 {
                 std::cout << "DEBUG: Completed Initialization of DSRC" << std::endl;
             }
         }else if (m_commType == CommunicationType::LTE){
-            
+            if (!m_lte_init_complete){
+                std::cout << "DEBUG: Initialization LTE" << std::endl;
+                Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+
+                NodeContainer eNodeB;
+                eNodeB.Create(1); 
+                m_nodeManager->InitLte(epcHelper, eNodeB);
+                m_lte_init_complete = true;
+                std::cout << "DEBUG: Completed Initialization of LTE" << std::endl;
+            }
         }else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return 0;
         }
-        if (!m_lte_init_complete){
-            std::cout << "DEBUG: Initialization LTE" << std::endl;
-            Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
-            NodeContainer eNodeB;
-            eNodeB.Create(1); 
-            m_nodeManager->InitLte(epcHelper, eNodeB);
-            m_lte_init_complete = true;
-            std::cout << "DEBUG: Completed Initialization of LTE" << std::endl;
-        }
         //gets the pointer of the simulator
         Ptr<MosaicSimulatorImpl> sim = DynamicCast<MosaicSimulatorImpl> (Simulator::GetImplementation());
         if (nullptr == sim) {
