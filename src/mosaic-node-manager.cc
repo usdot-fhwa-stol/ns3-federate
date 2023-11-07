@@ -151,9 +151,16 @@ namespace ns3 {
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
             NS_LOG_INFO ("Creating helpers for the DSRC...");
+            std::cout << "FEDERATE DEBUG: Creating helpers for the DSRC" << std::endl;
+
             InternetStackHelper internet;   
+            
+            std::cout << "FEDERATE DEBUG: install node" << std::endl;
             internet.Install(singleNode);
+
+            std::cout << "FEDERATE DEBUG: install node to wifi" << std::endl;
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
+            std::cout << "FEDERATE DEBUG: assign node" << std::endl;
             m_ipAddressHelper.Assign(netDevices);
 
         } else if (m_commType == LTE) {
@@ -193,7 +200,7 @@ namespace ns3 {
             m_lteHelper->Attach(ueDev);
 
             // Create and activate a sidelink bearer for V2X communication
-            std::cout << "Create and activate a sidelink bearer for V2X communication" << std::endl;
+            std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
             m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
@@ -201,7 +208,7 @@ namespace ns3 {
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
             // Install the V2X sidelink configuration on the LTE device
-            std::cout << "Install the V2X sidelink configuration on the LTE device" << std::endl;
+            std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
         }
@@ -214,7 +221,7 @@ namespace ns3 {
 
         //Install app
         NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-        std::cout << "Install MosaicProxyApp application on node " << std::endl;
+        std::cout << "FEDERATE DEBUG: Install MosaicProxyApp application on node " << std::endl;
         Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
         app->SetNodeManager(this);
         singleNode->AddApplication(app);
