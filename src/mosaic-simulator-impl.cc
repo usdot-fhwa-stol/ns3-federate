@@ -156,6 +156,7 @@ namespace ns3 {
         ev.key.m_uid = m_uid;
         m_uid++;
         m_unscheduledEvents++;
+        std::cout << "FEDERATE DEBUG: current unscheduled events number:" << m_unscheduledEvents << std::endl;
         m_events->Insert(ev);
         m_server->writeNextTime(ev.key.m_ts);
 
