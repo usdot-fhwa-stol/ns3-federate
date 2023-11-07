@@ -170,17 +170,17 @@ namespace ns3 {
                 for (std::vector<CSC_node_data>::iterator it = update_node_message.properties.begin(); it != update_node_message.properties.end(); ++it) {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
-                        std::cout << ("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext)std::endl;
+                        std::cout << "Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
-                        std::cout << ("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext)std::endl;
+                        std::cout << "Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_MOVE_NODE) {
-                        std::cout << ("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext)std::endl;
+                        std::cout << "Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
@@ -189,7 +189,7 @@ namespace ns3 {
                         //It is not allowed to delete a node during the simulation step -> the node will be deactivated
                         //void (std::vector<int>::*fctptr)(const int&) = &std::vector<int>::push_back;
                         //sim->ScheduleAtTime(tNext, MakeEvent(fctptr, &m_deactivatedNodes, it->id));
-                        std::cout << ("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext)std::endl;
+                        std::cout << "Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::DeactivateNode, m_nodeManager, it->id));
                         NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                     }
