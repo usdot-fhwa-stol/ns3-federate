@@ -67,7 +67,7 @@ namespace ns3 {
     void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB){
         m_lteHelper = CreateObject<LteHelper>();
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
-        std::cout << "DEBUG: Initialize LTE NS-3 node" << std::endl;
+        std::cout << "FEDERATE DEBUG: Initialize LTE NS-3 node" << std::endl;
         m_epcHelper = epcHelper;
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
@@ -93,7 +93,7 @@ namespace ns3 {
         BuildingsHelper::MakeMobilityModelConsistent();  
 
         m_groupL2Address = 0x00;
-        Ipv4AddressGenerator::Init(Ipv4Address ("10.2.0.0"), Ipv4Mask("255.255.0.0"));
+        Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
         // Sidelink configuration
@@ -125,7 +125,7 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitDsrc(){
-        std::cout << "DEBUG: Initialize DSRC NS-3 node" << std::endl;
+        std::cout << "FEDERATE DEBUG: Initialize DSRC NS-3 node" << std::endl;
         m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
         m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
         m_channel = m_wifiChannelHelper.Create();
@@ -161,35 +161,35 @@ namespace ns3 {
             NS_LOG_INFO ("Creating helpers for the LTE...");
             
             // Associate the node with buildings for better radio propagation modeling
-            std::cout << "DEBUG: install node" << std::endl;
+            std::cout << "FEDERATE DEBUG: install node" << std::endl;
             BuildingsHelper::Install(singleNode);
 
             // Ensure that the mobility models of all nodes are consistent with their positions
-            std::cout << "DEBUG: node pos consistent" << std::endl;
+            std::cout << "FEDERATE DEBUG: node pos consistent" << std::endl;
             BuildingsHelper::MakeMobilityModelConsistent(); 
 
             // Install an LTE device on the node
-            std::cout << "DEBUG: install lte device on node" << std::endl;
+            std::cout << "FEDERATE DEBUG: install lte device on node" << std::endl;
             NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
             m_ueDevs.Add(ueDev);
 
             // Install the internet stack on the node
-            std::cout << "DEBUG: install internet stack on node" << std::endl;
+            std::cout << "FEDERATE DEBUG: install internet stack on node" << std::endl;
             InternetStackHelper internet;
             internet.Install(singleNode);
 
             // Assign an IPv4 address to the LTE device
-            std::cout << "DEBUG: assign IP to the device" << std::endl;
+            std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
             Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
 
             // Set up static routing for the node to use the default gateway provided by the EPC helper
-            std::cout << "DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
+            std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
             Ipv4StaticRoutingHelper Ipv4RoutingHelper;
             Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
             vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
 
             // Attach the LTE device to the eNodeB (base station)
-            std::cout << "DEBUG: attach lte device to the eNodeB" << std::endl;
+            std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
             m_lteHelper->Attach(ueDev);
 
             // Create and activate a sidelink bearer for V2X communication
