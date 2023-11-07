@@ -147,7 +147,7 @@ namespace ns3 {
         Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
         mobModel->SetPosition(position);
         singleNode->AggregateObject(mobModel);
-        
+
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
             NS_LOG_INFO ("Creating helpers for the DSRC...");
@@ -220,8 +220,6 @@ namespace ns3 {
         singleNode->AddApplication(app);
         app->SetSockets();
 
-
-        return;
     }
 
     uint32_t MosaicNodeManager::GetNs3NodeId(uint32_t nodeId) {

@@ -122,6 +122,14 @@ namespace ns3 {
      */
     int MosaicNs3Server::dispatchCommand() {
 
+        //gets the pointer of the simulator
+        Ptr<MosaicSimulatorImpl> sim = DynamicCast<MosaicSimulatorImpl> (Simulator::GetImplementation());
+        if (nullptr == sim) {
+            NS_LOG_INFO("Could not find Mosaic simulator implementation \n");
+            m_closeConnection = true;
+            return 0;
+        }
+
         if (m_commType == CommunicationType::DSRC){
             if (!m_dsrc_init_complete){
                 std::cout << "DEBUG: Initialization DSRC" << std::endl;
@@ -142,14 +150,6 @@ namespace ns3 {
             }
         }else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
-            return 0;
-        }
-
-        //gets the pointer of the simulator
-        Ptr<MosaicSimulatorImpl> sim = DynamicCast<MosaicSimulatorImpl> (Simulator::GetImplementation());
-        if (nullptr == sim) {
-            NS_LOG_INFO("Could not find Mosaic simulator implementation \n");
-            m_closeConnection = true;
             return 0;
         }
 
