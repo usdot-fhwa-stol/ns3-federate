@@ -162,7 +162,6 @@ namespace ns3 {
                 break;
             case CMD_UPDATE_NODE:
             {
-                NS_LOG_DEBUG("Received CMD_UPDATE_NODE command");
                 CSC_update_node_return update_node_message;
                 ambassadorFederateChannel.readUpdateNode(update_node_message);
                 Time tNext = NanoSeconds(update_node_message.time);
@@ -170,28 +169,27 @@ namespace ns3 {
                 for (std::vector<CSC_node_data>::iterator it = update_node_message.properties.begin(); it != update_node_message.properties.end(); ++it) {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
-                        NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
+
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        
+                        NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
-                        NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
+
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        
+                        NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_MOVE_NODE) {
-                        NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
+
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        
+                        NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_REMOVE_NODE) {
 
                         //It is not allowed to delete a node during the simulation step -> the node will be deactivated
                         //void (std::vector<int>::*fctptr)(const int&) = &std::vector<int>::push_back;
                         //sim->ScheduleAtTime(tNext, MakeEvent(fctptr, &m_deactivatedNodes, it->id));
-                        NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::DeactivateNode, m_nodeManager, it->id));
-                        
+                        NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                     }
                 }
                 ambassadorFederateChannel.writeCommand(CMD_SUCCESS);
@@ -200,7 +198,6 @@ namespace ns3 {
 
                 // advance the next time step and run the simulation read the next time step
             case CMD_ADVANCE_TIME:
-                NS_LOG_DEBUG("Received CMD_ADVANCE_TIME command");
                 uint64_t advancedTime;
                 advancedTime = ambassadorFederateChannel.readTimeMessage();
 
@@ -217,8 +214,8 @@ namespace ns3 {
                 break;
 
             case CMD_CONF_RADIO:
+
                 try {
-                    NS_LOG_DEBUG("Received CMD_CONF_RADIO command");
                     CSC_config_message config_message;
                     ambassadorFederateChannel.readConfigurationMessage(config_message);
                     Time tNext = NanoSeconds(config_message.time);
@@ -240,7 +237,6 @@ namespace ns3 {
 
             case CMD_MSG_SEND:
             {
-                NS_LOG_DEBUG("Received CMD_MSG_SEND command");
                 try {
                     CSC_send_message send_message;
                     ambassadorFederateChannel.readSendMessage(send_message);
@@ -263,13 +259,12 @@ namespace ns3 {
                 break;
             }
             case CMD_SHUT_DOWN:
-                NS_LOG_DEBUG("Received CMD_SHUT_DOWN command");
                 m_closeConnection = true;
                 Simulator::Destroy();
                 break;
 
             default:
-                NS_LOG_DEBUG("Command not implemented in ns3 " << commandId << "\n");
+                NS_LOG_INFO("Command not implemented in ns3 " << commandId << "\n");
                 m_closeConnection = true;
         }
 
