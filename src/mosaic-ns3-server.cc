@@ -132,21 +132,21 @@ namespace ns3 {
 
         if (m_commType == CommunicationType::DSRC){
             if (!m_dsrc_init_complete){
-                std::cout << "DEBUG: Initialization DSRC" << std::endl;
+                std::cout << "FEDERATE DEBUG: Initialization DSRC" << std::endl;
                 m_nodeManager->InitDsrc();
                 m_dsrc_init_complete = true;
-                std::cout << "DEBUG: Completed Initialization of DSRC" << std::endl;
+                std::cout << "FEDERATE DEBUG: Completed Initialization of DSRC" << std::endl;
             }
         }else if (m_commType == CommunicationType::LTE){
             if (!m_lte_init_complete){
-                std::cout << "DEBUG: Initialization LTE" << std::endl;
+                std::cout << "FEDERATE DEBUG: Initialization LTE" << std::endl;
                 Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
                 NodeContainer eNodeB;
                 eNodeB.Create(1); 
                 m_nodeManager->InitLte(epcHelper, eNodeB);
                 m_lte_init_complete = true;
-                std::cout << "DEBUG: Completed Initialization of LTE" << std::endl;
+                std::cout << "FEDERATE DEBUG: Completed Initialization of LTE" << std::endl;
             }
         }else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
@@ -162,7 +162,7 @@ namespace ns3 {
                 break;
             case CMD_UPDATE_NODE:
             {
-                std::cout << "DEBUG: CMD_UPDATE_NODE" << std::endl;
+                std::cout << "FEDERATE DEBUG: CMD_UPDATE_NODE" << std::endl;
                 CSC_update_node_return update_node_message;
                 ambassadorFederateChannel.readUpdateNode(update_node_message);
                 Time tNext = NanoSeconds(update_node_message.time);
@@ -200,7 +200,7 @@ namespace ns3 {
 
                 // advance the next time step and run the simulation read the next time step
             case CMD_ADVANCE_TIME:
-                std::cout << "DEBUG: CMD_ADVANCE_TIME" << std::endl;
+                std::cout << "FEDERATE DEBUG: CMD_ADVANCE_TIME" << std::endl;
                 uint64_t advancedTime;
                 advancedTime = ambassadorFederateChannel.readTimeMessage();
 
@@ -220,7 +220,7 @@ namespace ns3 {
 
                 try {
 
-                    std::cout << "DEBUG: CMD_CONF_RADIO" << std::endl;
+                    std::cout << "FEDERATE DEBUG: CMD_CONF_RADIO" << std::endl;
                     CSC_config_message config_message;
                     ambassadorFederateChannel.readConfigurationMessage(config_message);
                     Time tNext = NanoSeconds(config_message.time);
@@ -243,7 +243,7 @@ namespace ns3 {
             case CMD_MSG_SEND:
             {
                 try {
-                    std::cout << "DEBUG: CMD_MSG_SEND" << std::endl;
+                    std::cout << "FEDERATE DEBUG: CMD_MSG_SEND" << std::endl;
                     CSC_send_message send_message;
                     ambassadorFederateChannel.readSendMessage(send_message);
                     //Convert the IP address
@@ -265,7 +265,7 @@ namespace ns3 {
                 break;
             }
             case CMD_SHUT_DOWN:
-                std::cout << "DEBUG: CMD_SHUT_DOWN" << std::endl;
+                std::cout << "FEDERATE DEBUG: CMD_SHUT_DOWN" << std::endl;
                 m_closeConnection = true;
                 Simulator::Destroy();
                 break;
