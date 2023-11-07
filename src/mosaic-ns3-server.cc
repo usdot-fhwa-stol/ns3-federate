@@ -208,6 +208,7 @@ namespace ns3 {
                 //run the simulation (function RunSimStep) while the time of the next event is smaller than the next time step
                 m_eventSentUp = false;
                 while (!Simulator::IsFinished() && NanoSeconds(advancedTime) >= sim->Next().GetNanoSeconds()) {
+                    std::cout << "FEDERATE DEBUG: CMD_ADVANCE_TIME, looping" << std::endl;
                     sim->RunOneEvent();
                 }
 
