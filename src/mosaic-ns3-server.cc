@@ -162,6 +162,7 @@ namespace ns3 {
                 break;
             case CMD_UPDATE_NODE:
             {
+                std::cout << "DEBUG: CMD_UPDATE_NODE" << std::endl;
                 CSC_update_node_return update_node_message;
                 ambassadorFederateChannel.readUpdateNode(update_node_message);
                 Time tNext = NanoSeconds(update_node_message.time);
@@ -169,17 +170,17 @@ namespace ns3 {
                 for (std::vector<CSC_node_data>::iterator it = update_node_message.properties.begin(); it != update_node_message.properties.end(); ++it) {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
-
+                        std::cout << ("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext)std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
-
+                        std::cout << ("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext)std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_MOVE_NODE) {
-
+                        std::cout << ("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext)std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
@@ -188,6 +189,7 @@ namespace ns3 {
                         //It is not allowed to delete a node during the simulation step -> the node will be deactivated
                         //void (std::vector<int>::*fctptr)(const int&) = &std::vector<int>::push_back;
                         //sim->ScheduleAtTime(tNext, MakeEvent(fctptr, &m_deactivatedNodes, it->id));
+                        std::cout << ("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext)std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::DeactivateNode, m_nodeManager, it->id));
                         NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                     }
@@ -198,6 +200,7 @@ namespace ns3 {
 
                 // advance the next time step and run the simulation read the next time step
             case CMD_ADVANCE_TIME:
+                std::cout << "DEBUG: CMD_ADVANCE_TIME" << std::endl;
                 uint64_t advancedTime;
                 advancedTime = ambassadorFederateChannel.readTimeMessage();
 
@@ -216,6 +219,8 @@ namespace ns3 {
             case CMD_CONF_RADIO:
 
                 try {
+
+                    std::cout << "DEBUG: CMD_CONF_RADIO" << std::endl;
                     CSC_config_message config_message;
                     ambassadorFederateChannel.readConfigurationMessage(config_message);
                     Time tNext = NanoSeconds(config_message.time);
@@ -238,6 +243,7 @@ namespace ns3 {
             case CMD_MSG_SEND:
             {
                 try {
+                    std::cout << "DEBUG: CMD_MSG_SEND" << std::endl;
                     CSC_send_message send_message;
                     ambassadorFederateChannel.readSendMessage(send_message);
                     //Convert the IP address
@@ -259,6 +265,7 @@ namespace ns3 {
                 break;
             }
             case CMD_SHUT_DOWN:
+                std::cout << "DEBUG: CMD_SHUT_DOWN" << std::endl;
                 m_closeConnection = true;
                 Simulator::Destroy();
                 break;
