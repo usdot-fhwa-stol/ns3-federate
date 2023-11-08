@@ -211,6 +211,7 @@ namespace ns3 {
 
         EventId id(Ptr<EventImpl> (event, false), m_currentTs, 0xffffffff, 2);
         m_destroyEvents.push_back(id);
+        std::cout << "FEDERATE DEBUG: (ScheduleDestroy)" << std::endl;
         m_uid++;
 
         return id;
