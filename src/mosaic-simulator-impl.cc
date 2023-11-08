@@ -98,7 +98,7 @@ namespace ns3 {
         Scheduler::Event next = m_events->RemoveNext();
         NS_ASSERT(next.key.m_ts >= m_currentTs);
         m_unscheduledEvents--;
-        std::cout << "handle " << next.key.m_ts << std::endl;
+        std::cout << "FEDERATE DEBUG: Process event with event time stamp: " << next.key.m_ts << std::endl;
         NS_LOG_LOGIC("handle " << next.key.m_ts);
         m_currentTs = next.key.m_ts;
         m_currentContext = next.key.m_context;
