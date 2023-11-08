@@ -65,7 +65,9 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB){
+        std::cout << "FEDERATE DEBUG: Initialize lte helper" << std::endl;
         m_lteHelper = CreateObject<LteHelper>();
+        std::cout << "FEDERATE DEBUG: Initialize lte v2x helper" << std::endl;
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
         std::cout << "FEDERATE DEBUG: Initialize LTE NS-3 node" << std::endl;
         m_epcHelper = epcHelper;
