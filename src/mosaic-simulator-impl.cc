@@ -160,7 +160,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: (Schedule)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
-        std::cout << "FEDERATE DEBUG: current unscheduled events number:" << m_unscheduledEvents << std::endl;
+        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents << std::endl;
         m_events->Insert(ev);
         m_server->writeNextTime(ev.key.m_ts);
 
@@ -181,6 +181,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
+        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents << std::endl;
         m_events->Insert(ev);
         m_server->writeNextTime(ev.key.m_ts);
     }
@@ -198,6 +199,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
+        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents << std::endl;
         m_events->Insert(ev);
 
         return EventId(event, ev.key.m_ts, ev.key.m_context, ev.key.m_uid);
