@@ -269,7 +269,6 @@ namespace ns3 {
 
     bool MosaicSimulatorImpl::IsExpired(const EventId &ev) const {
 
-        std::cout << "FEDERATE DEBUG: Checking event uid:" << ev.GetUid() << std::endl;
         if (ev.GetUid() == 2) {
             if (ev.PeekEventImpl() == 0 ||
                     ev.PeekEventImpl()->IsCancelled()) {
@@ -288,7 +287,7 @@ namespace ns3 {
                 (ev.GetTs() == m_currentTs &&
                 ev.GetUid() <= m_currentUid) ||
                 ev.PeekEventImpl()->IsCancelled()) {
-            std::cout << "FEDERATE DEBUG: Checking event uid:" << ev.GetUid() << " is expired" << std::endl;
+            std::cout << "FEDERATE DEBUG: Event uid:" << ev.GetUid() << " is expired" << std::endl;
             return true;
         } else {
             return false;
