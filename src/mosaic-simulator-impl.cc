@@ -81,6 +81,7 @@ namespace ns3 {
         if (m_events != 0) {
             while (!m_events->IsEmpty()) {
                 Scheduler::Event next = m_events->RemoveNext();
+                std::cout << "FEDERATE DEBUG: (SetScheduler)" << std::endl;                
                 scheduler->Insert(next);
             }
         }
@@ -97,7 +98,8 @@ namespace ns3 {
         Scheduler::Event next = m_events->RemoveNext();
         NS_ASSERT(next.key.m_ts >= m_currentTs);
         m_unscheduledEvents--;
-
+        next.impl.
+        std::cout << "handle " << next.key.m_ts << std::endl;
         NS_LOG_LOGIC("handle " << next.key.m_ts);
         m_currentTs = next.key.m_ts;
         m_currentContext = next.key.m_context;
@@ -154,6 +156,9 @@ namespace ns3 {
         ev.key.m_ts = (uint64_t) tAbsolute.GetTimeStep();
         ev.key.m_context = GetContext();
         ev.key.m_uid = m_uid;
+        std::cout << "FEDERATE DEBUG: (Schedule)adding an event at time:" << ev.key.m_ts << std::endl;
+        std::cout << "FEDERATE DEBUG: (Schedule)adding an event with uid:" << m_uid << std::endl;
+        std::cout << "FEDERATE DEBUG: (Schedule)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
         std::cout << "FEDERATE DEBUG: current unscheduled events number:" << m_unscheduledEvents << std::endl;
@@ -171,6 +176,10 @@ namespace ns3 {
         ev.key.m_ts = m_currentTs + time.GetTimeStep();
         ev.key.m_context = context;
         ev.key.m_uid = m_uid;
+
+        std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event at time:" << ev.key.m_ts << std::endl;
+        std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event with uid:" << m_uid << std::endl;
+        std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
@@ -184,6 +193,10 @@ namespace ns3 {
         ev.key.m_ts = m_currentTs;
         ev.key.m_context = GetContext();
         ev.key.m_uid = m_uid;
+
+        std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event at time:" << ev.key.m_ts << std::endl;
+        std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with uid:" << m_uid << std::endl;
+        std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
