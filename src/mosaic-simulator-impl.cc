@@ -195,7 +195,8 @@ namespace ns3 {
         ev.key.m_ts = m_currentTs;
         ev.key.m_context = GetContext();
         ev.key.m_uid = m_uid;
-
+        if (ev.key.m_context >= 4294967295)
+            ev.key.m_context--;
         std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event at time:" << ev.key.m_ts << std::endl;
         std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with uid:" << m_uid << std::endl;
         std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with context:" << ev.key.m_context << std::endl;
