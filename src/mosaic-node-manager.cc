@@ -128,7 +128,11 @@ namespace ns3 {
 
         std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
         NodeContainer temp_node;
-        temp_node.Create(10); 
+        temp_node.Create(10);
+        for (uint16_t i=0; i<temp_node.GetN();i++)
+        {
+            std::cout << temp_node.Get(i)->GetId() << std::endl;
+        }
 
         std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
         MobilityHelper mobility;
