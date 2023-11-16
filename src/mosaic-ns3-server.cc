@@ -48,6 +48,10 @@ namespace ns3 {
         m_nodeManager->Configure(this, m_commType);
         m_closeConnection = false;
 
+        std::cout << "Creating node" << std::endl;
+        NodeContainer eNodeB;
+        eNodeB.Create(1);
+
         std::cout << "Trying to prepare federateAmbassadorChannel on port " << port << " " << std::endl;
         uint16_t actPort = federateAmbassadorChannel.prepareConnection("0.0.0.0", port);
         std::cout << "Mosaic-NS3-Server connecting on OutPort=" << actPort << std::endl;
