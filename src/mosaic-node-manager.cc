@@ -179,7 +179,7 @@ namespace ns3 {
             Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position);
             singleNode->AggregateObject(mobModel);
-            retuen;
+            return;
         } else if (m_commType == LTE) {
 
             // NS_LOG_INFO ("Creating helpers for the LTE...");
