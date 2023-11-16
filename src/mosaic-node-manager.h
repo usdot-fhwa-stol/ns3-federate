@@ -92,19 +92,22 @@ namespace ns3 {
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
-        //Channel
+        // DSRC
+        // Channel
         YansWifiChannelHelper m_wifiChannelHelper;
         Ptr<YansWifiChannel> m_channel;
 
-        //PHY
+        // PHY
         YansWifiPhyHelper m_wifiPhyHelper = YansWifiPhyHelper::Default();
 
-        //MAC
+        // MAC
         NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
 
-        //Assembler
+        // Assembler
         Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
+        // DSRC End
 
+        // LTE
         // LTE Helper
         Ptr<LteHelper> m_lteHelper;
         Ptr<LteV2xHelper> m_lteV2xHelper;
@@ -119,6 +122,9 @@ namespace ns3 {
         Ipv4Address m_clientRespondersAddress;
 
         CommunicationType m_commType;
+        std::vector<uint32_t> m_preDefineNodeIds;
+        // LTE End
+
 
     };
 }

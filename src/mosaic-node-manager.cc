@@ -129,15 +129,18 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
         NodeContainer temp_node;
         temp_node.Create(10);
+        
         for (uint16_t i=0; i<temp_node.GetN();i++)
         {
             std::cout << "FEDERATE DEBUG: temp node ID: " << temp_node.Get(i)->GetId() << std::endl;
+            m_preDefineNodeIds.push_back(temp_node.Get(i)->GetId());
         }
 
         std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
         mobility.Install(temp_node);
+        
 
         std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
         NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
@@ -184,6 +187,7 @@ namespace ns3 {
             Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position);
             singleNode->AggregateObject(mobModel);
+
             return;
         } else if (m_commType == LTE) {
 
