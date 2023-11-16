@@ -231,8 +231,7 @@ namespace ns3 {
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
-            m_mosaic2ns3ID.erase(singleNode->GetId());
-            singleNode = nullptr;
+            return;
         }
 
 
