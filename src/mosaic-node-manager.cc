@@ -78,10 +78,6 @@ namespace ns3 {
         m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
         m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
-
-        NodeContainer ueNodes;
-        ueNodes.Create(10); // Create 10 UE nodes, but only use a subset initially
-        NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(ueNodes);
         
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
