@@ -149,12 +149,13 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
-        if (m_isDeactivated[ID]) {
-            return;
-        }
+
 
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
+            if (m_isDeactivated[ID]) {
+                return;
+            }
             Ptr<Node> singleNode = CreateObject<Node>();
             
             NS_LOG_INFO("Created node " << singleNode->GetId());
