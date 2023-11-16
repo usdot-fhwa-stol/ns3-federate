@@ -152,80 +152,81 @@ namespace ns3 {
         if (m_isDeactivated[ID]) {
             return;
         }
-        Ptr<Node> singleNode = CreateObject<Node>();
-        
-        NS_LOG_INFO("Created node " << singleNode->GetId());
-        m_mosaic2ns3ID[ID] = singleNode->GetId();
-
-        //Install mobility model
-        NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
-        std::cout << "Install ConstantVelocityMobilityModel on node" << std::endl;
-        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-        mobModel->SetPosition(position);
-        singleNode->AggregateObject(mobModel);
 
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
-            NS_LOG_INFO ("Creating helpers for the DSRC...");
-            std::cout << "FEDERATE DEBUG: Creating helpers for the DSRC" << std::endl;
-
-            InternetStackHelper internet;   
+            Ptr<Node> singleNode = CreateObject<Node>();
             
-            std::cout << "FEDERATE DEBUG: install node" << std::endl;
-            internet.Install(singleNode);
+            NS_LOG_INFO("Created node " << singleNode->GetId());
+            m_mosaic2ns3ID[ID] = singleNode->GetId();
 
-            std::cout << "FEDERATE DEBUG: install node to wifi" << std::endl;
+            //Install Wave device
+            NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
+            InternetStackHelper internet;   
+            internet.Install(singleNode);
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
-            std::cout << "FEDERATE DEBUG: assign node" << std::endl;
             m_ipAddressHelper.Assign(netDevices);
 
+            //Install app
+            NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetSockets();
+
+            //Install mobility model
+            NS_LOG_INFO("Install MosaicMobilityModel on node " << singleNode->GetId());
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+            retuen;
         } else if (m_commType == LTE) {
 
-            NS_LOG_INFO ("Creating helpers for the LTE...");
+            // NS_LOG_INFO ("Creating helpers for the LTE...");
             
-            // Associate the node with buildings for better radio propagation modeling
-            std::cout << "FEDERATE DEBUG: install node" << std::endl;
-            BuildingsHelper::Install(singleNode);
+            // // Associate the node with buildings for better radio propagation modeling
+            // std::cout << "FEDERATE DEBUG: install node" << std::endl;
+            // BuildingsHelper::Install(singleNode);
 
-            // Ensure that the mobility models of all nodes are consistent with their positions
-            std::cout << "FEDERATE DEBUG: node pos consistent" << std::endl;
-            BuildingsHelper::MakeMobilityModelConsistent(); 
+            // // Ensure that the mobility models of all nodes are consistent with their positions
+            // std::cout << "FEDERATE DEBUG: node pos consistent" << std::endl;
+            // BuildingsHelper::MakeMobilityModelConsistent(); 
 
-            // Install an LTE device on the node
-            std::cout << "FEDERATE DEBUG: install lte device on node" << std::endl;
-            NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
-            m_ueDevs.Add(ueDev);
+            // // Install an LTE device on the node
+            // std::cout << "FEDERATE DEBUG: install lte device on node" << std::endl;
+            // NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
+            // m_ueDevs.Add(ueDev);
 
-            // Install the internet stack on the node
-            std::cout << "FEDERATE DEBUG: install internet stack on node" << std::endl;
-            InternetStackHelper internet;
-            internet.Install(singleNode);
+            // // Install the internet stack on the node
+            // std::cout << "FEDERATE DEBUG: install internet stack on node" << std::endl;
+            // InternetStackHelper internet;
+            // internet.Install(singleNode);
 
-            // Assign an IPv4 address to the LTE device
-            std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
+            // // Assign an IPv4 address to the LTE device
+            // std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
+            // Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
 
-            // Set up static routing for the node to use the default gateway provided by the EPC helper
-            std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
-            Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
-            vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+            // // Set up static routing for the node to use the default gateway provided by the EPC helper
+            // std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
+            // Ipv4StaticRoutingHelper Ipv4RoutingHelper;
+            // Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
+            // vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
 
-            // Attach the LTE device to the eNodeB (base station)
-            std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-            m_lteHelper->Attach(ueDev);
+            // // Attach the LTE device to the eNodeB (base station)
+            // std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
+            // m_lteHelper->Attach(ueDev);
 
-            // Create and activate a sidelink bearer for V2X communication
-            std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
-            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
-            m_groupL2Address++;
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+            // // Create and activate a sidelink bearer for V2X communication
+            // std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
+            // Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
+            // m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
+            // m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
+            // m_groupL2Address++;
+            // m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
-            // Install the V2X sidelink configuration on the LTE device
-            std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
-            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
+            // // Install the V2X sidelink configuration on the LTE device
+            // std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
+            // m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
         }
         else{
@@ -235,13 +236,13 @@ namespace ns3 {
         }
 
 
-        //Install app
-        NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-        std::cout << "FEDERATE DEBUG: Install MosaicProxyApp application on node " << std::endl;
-        Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-        app->SetNodeManager(this);
-        singleNode->AddApplication(app);
-        app->SetSockets();
+        // //Install app
+        // NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
+        // std::cout << "FEDERATE DEBUG: Install MosaicProxyApp application on node " << std::endl;
+        // Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+        // app->SetNodeManager(this);
+        // singleNode->AddApplication(app);
+        // app->SetSockets();
 
     }
 
