@@ -90,19 +90,6 @@ namespace ns3 {
         mob_eNB.SetPositionAllocator(pos_eNB);
         mob_eNB.Install(eNodeB);
 
-        // std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
-        // NodeContainer temp_node;
-        // temp_node.Create(10); 
-
-        // std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
-        // MobilityHelper mobility;
-        // mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        // mobility.Install(temp_node);
-
-        // std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
-        // NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
-
-        std::cout << "FEDERATE DEBUG: install temp node end" << std::endl;
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         BuildingsHelper::Install (eNodeB);
@@ -138,6 +125,19 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
+
+        std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
+        NodeContainer temp_node;
+        temp_node.Create(10); 
+
+        std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
+        MobilityHelper mobility;
+        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+        mobility.Install(temp_node);
+
+        std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
+        NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
+        std::cout << "FEDERATE DEBUG: install temp node end" << std::endl;
     }
 
     void MosaicNodeManager::InitDsrc(){
