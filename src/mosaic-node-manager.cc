@@ -34,6 +34,7 @@
 #include "ns3/log.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/node-list.h"
+#include "ns3/mobility-module.h"
 
 NS_LOG_COMPONENT_DEFINE("MosaicNodeManager");
 
@@ -92,6 +93,11 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
         NodeContainer temp_node;
         temp_node.Create(10); 
+
+        std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
+        MobilityHelper mobility;
+        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+        mobility.Install(temp_node);
 
         std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
         NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
