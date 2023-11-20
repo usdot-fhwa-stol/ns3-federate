@@ -65,7 +65,7 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB){
+    void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB, int numOfNodes){
         std::cout << "FEDERATE DEBUG: Initialize lte helper" << std::endl;
         m_lteHelper = CreateObject<LteHelper>();
         std::cout << "FEDERATE DEBUG: Initialize lte v2x helper" << std::endl;
@@ -93,7 +93,6 @@ namespace ns3 {
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         BuildingsHelper::Install (eNodeB);
-        BuildingsHelper::MakeMobilityModelConsistent();  
 
         m_groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
@@ -127,24 +126,27 @@ namespace ns3 {
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
         std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
-        NodeContainer temp_node;
-        temp_node.Create(10);
+        NodeContainer predefineNode;
+        predefineNode.Create(numOfNodes);
         
-        for (uint16_t i=0; i<temp_node.GetN();i++)
+        for (uint16_t i=0; i<predefineNode.GetN();i++)
         {
-            std::cout << "FEDERATE DEBUG: temp node ID: " << temp_node.Get(i)->GetId() << std::endl;
-            m_preDefineNodeIds.push_back(temp_node.Get(i)->GetId());
+            std::cout << "FEDERATE DEBUG: temp node ID: " << predefineNode.Get(i)->GetId() << std::endl;
+            m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
         }
 
         std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        mobility.Install(temp_node);
+        mobility.Install(predefineNode);
         
 
         std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
-        NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
+        NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode);
         std::cout << "FEDERATE DEBUG: install temp node end" << std::endl;
+
+        BuildingsHelper::Install (predefineNode);
+        BuildingsHelper::MakeMobilityModelConsistent();  
     }
 
     void MosaicNodeManager::InitDsrc(){
@@ -191,8 +193,9 @@ namespace ns3 {
             return;
         } else if (m_commType == LTE) {
 
-            // NS_LOG_INFO ("Creating helpers for the LTE...");
+            NS_LOG_INFO ("Creating helpers for the LTE...");
             
+            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.pop_back();
             // // Associate the node with buildings for better radio propagation modeling
             // std::cout << "FEDERATE DEBUG: install node" << std::endl;
             // BuildingsHelper::Install(singleNode);
