@@ -145,8 +145,8 @@ namespace ns3 {
         NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode);
         std::cout << "FEDERATE DEBUG: install predefine node end" << std::endl;
 
-        BuildingsHelper::Install (predefineNode);
-        BuildingsHelper::MakeMobilityModelConsistent();  
+        // BuildingsHelper::Install (predefineNode);
+        // BuildingsHelper::MakeMobilityModelConsistent();  
     }
 
     void MosaicNodeManager::InitDsrc(){
