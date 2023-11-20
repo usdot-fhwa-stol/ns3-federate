@@ -190,10 +190,9 @@ namespace ns3 {
 
             return;
         } else if (m_commType == LTE) {
-
-            NS_LOG_INFO ("Creating helpers for the LTE...");
-            // m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
-            // m_preDefineNodeIds.pop_back();
+            std::cout << "Created node " << m_preDefineNodeIds.back() << std::endl;
+            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
+            m_preDefineNodeIds.pop_back();
             
             // // Associate the node with buildings for better radio propagation modeling
             // std::cout << "FEDERATE DEBUG: install node" << std::endl;
