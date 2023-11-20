@@ -93,6 +93,7 @@ namespace ns3 {
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         BuildingsHelper::Install (eNodeB);
+        BuildingsHelper::MakeMobilityModelConsistent();  
 
         m_groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
