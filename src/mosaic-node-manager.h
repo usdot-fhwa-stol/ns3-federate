@@ -67,7 +67,7 @@ namespace ns3 {
         virtual ~MosaicNodeManager() = default;
 
         void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
-        void InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB, int numOfNodes=10);
+        void InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB, int numOfNodes=50);
         void InitDsrc();
 
         void CreateMosaicNode(int ID, Vector position);
