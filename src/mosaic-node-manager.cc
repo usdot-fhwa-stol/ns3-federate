@@ -127,6 +127,7 @@ namespace ns3 {
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
         predefineNode.Create(numOfNodes);
@@ -145,6 +146,16 @@ namespace ns3 {
             std::cout << "FEDERATE DEBUG: temp node ID: " << temp_node.Get(i)->GetId() << std::endl;
             m_preDefineNodeIds.push_back(temp_node.Get(i)->GetId());
 >>>>>>> parent of 0248709 (commit)
+=======
+        std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
+        NodeContainer temp_node;
+        temp_node.Create(10);
+        
+        for (uint16_t i=0; i<temp_node.GetN();i++)
+        {
+            std::cout << "FEDERATE DEBUG: temp node ID: " << temp_node.Get(i)->GetId() << std::endl;
+            m_preDefineNodeIds.push_back(temp_node.Get(i)->GetId());
+>>>>>>> parent of 0248709 (commit)
         }
 
         std::cout << "FEDERATE DEBUG: Create mobility helper for predefine node" << std::endl;
@@ -154,12 +165,18 @@ namespace ns3 {
         
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         std::cout << "FEDERATE DEBUG: install predefine node " << std::endl;
         NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode);
         std::cout << "FEDERATE DEBUG: install predefine node end" << std::endl;
 
         // BuildingsHelper::Install (predefineNode);
         // BuildingsHelper::MakeMobilityModelConsistent();  
+=======
+        std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
+        NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
+        std::cout << "FEDERATE DEBUG: install temp node end" << std::endl;
+>>>>>>> parent of 0248709 (commit)
 =======
         std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
         NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(temp_node);
@@ -214,8 +231,11 @@ namespace ns3 {
             // NS_LOG_INFO ("Creating helpers for the LTE...");
             
 <<<<<<< HEAD
+<<<<<<< HEAD
             m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
             m_preDefineNodeIds.pop_back();
+=======
+>>>>>>> parent of 0248709 (commit)
 =======
 >>>>>>> parent of 0248709 (commit)
             // // Associate the node with buildings for better radio propagation modeling
