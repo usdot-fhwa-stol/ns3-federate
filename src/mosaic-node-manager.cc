@@ -125,25 +125,25 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
-        std::cout << "FEDERATE DEBUG: Create temp node" << std::endl;
+        std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
         predefineNode.Create(numOfNodes);
         
         for (uint16_t i=0; i<predefineNode.GetN();i++)
         {
-            std::cout << "FEDERATE DEBUG: temp node ID: " << predefineNode.Get(i)->GetId() << std::endl;
+            std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
             m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
         }
 
-        std::cout << "FEDERATE DEBUG: Create mobility helper for temp node" << std::endl;
+        std::cout << "FEDERATE DEBUG: Create mobility helper for predefine node" << std::endl;
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
         mobility.Install(predefineNode);
         
 
-        std::cout << "FEDERATE DEBUG: install temp node " << std::endl;
+        std::cout << "FEDERATE DEBUG: install predefine node " << std::endl;
         NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode);
-        std::cout << "FEDERATE DEBUG: install temp node end" << std::endl;
+        std::cout << "FEDERATE DEBUG: install predefine node end" << std::endl;
 
         BuildingsHelper::Install (predefineNode);
         BuildingsHelper::MakeMobilityModelConsistent();  
@@ -195,7 +195,8 @@ namespace ns3 {
 
             NS_LOG_INFO ("Creating helpers for the LTE...");
             
-            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.pop_back();
+            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
+            m_preDefineNodeIds.pop_back();
             // // Associate the node with buildings for better radio propagation modeling
             // std::cout << "FEDERATE DEBUG: install node" << std::endl;
             // BuildingsHelper::Install(singleNode);
