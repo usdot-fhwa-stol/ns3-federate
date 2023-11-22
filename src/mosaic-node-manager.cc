@@ -88,19 +88,31 @@ namespace ns3 {
         NodeContainer predefineNode;
         predefineNode.Create(numOfNode);
         
-        for (uint16_t i=0; i<predefineNode.GetN();i++)
-        {
-            std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
-            m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
-        }
-
-        // std::cout << "FEDERATE DEBUG: Create mobility helper for predefine node" << std::endl;
+        std::cout << "FEDERATE DEBUG: Create mobility helper for predefine node" << std::endl;
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        mobility.Install(predefineNode);        
+        mobility.Install(predefineNode);      
 
-        std::cout << "FEDERATE DEBUG: install predefine node " << std::endl;
-        NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode);\
+        
+
+        for (uint16_t i=0; i<predefineNode.GetN();i++)
+        {
+            std::cout << "FEDERATE DEBUG: install UEDevice to predefine node " << std::endl;
+            NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode.Get(i));
+            m_ueDevs.Add(ueDev);
+
+
+            std::cout << "FEDERATE DEBUG: index test:" << m_ueDevs.Get(i) == ueDev << std::endl;
+            m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
+
+            std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
+            m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
+
+        }
+
+  
+
+
 
         // Install mobility eNodeB
         MobilityHelper mob_eNB;
