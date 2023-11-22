@@ -232,7 +232,7 @@ namespace ns3 {
             // // Set up static routing for the node to use the default gateway provided by the EPC helper
             std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
             Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
+            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode.Get(0)->GetObject<Ipv4>());
             vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
 
             // // Attach the LTE device to the eNodeB (base station)
