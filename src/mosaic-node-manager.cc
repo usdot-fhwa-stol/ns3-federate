@@ -206,6 +206,7 @@ namespace ns3 {
 
             NetDeviceContainer ueDev;
             ueDev.Add(m_ueDevs.Get(netDeviceId));
+            std::cout << "FEDERATE DEBUG: add UE Device to container; UE DEV:" << m_ueDevs.Get(netDeviceId) << std::endl;
 
             // // Associate the node with buildings for better radio propagation modeling
             // std::cout << "FEDERATE DEBUG: install node" << std::endl;
