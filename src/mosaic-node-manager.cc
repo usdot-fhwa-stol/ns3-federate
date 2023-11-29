@@ -241,11 +241,14 @@ namespace ns3 {
             uint32_t ns3Id = m_mosaic2ns3ID[ID];
             uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
 
+            // pick up the node from pool and set the new coordinates
+            singleNode.Get(0)->GetObject<ConstantPositionMobilityModel>();
+            mobilityModel->SetPosition(position); 
+
             NetDeviceContainer ueDev;
             ueDev.Add(m_ueDevs.Get(netDeviceId));
-            std::cout << "FEDERATE DEBUG: add UE Device to container; UE DEV:" << m_ueDevs.Get(netDeviceId) << std::endl;
 
-            // // Create and activate a sidelink bearer for V2X communication
+            // Create and activate a sidelink bearer for V2X communication
             std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
@@ -253,7 +256,7 @@ namespace ns3 {
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
-            // // Install the V2X sidelink configuration on the LTE device
+            // Install the V2X sidelink configuration on the LTE device
             std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
@@ -374,16 +377,16 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
-                    if (netDev == nullptr) {
-                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                        return;
-                    } 
-                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
-                    if (uePhy != 0){
+                    // Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
+                    // if (netDev == nullptr) {
+                    //     NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                    //     return;
+                    // } 
+                    // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    // if (uePhy != 0){
                         
-                        uePhy->SetTxPower(txDBm);
-                    }
+                    //     uePhy->SetTxPower(txDBm);
+                    // }
                 }
                 else{
                     NS_LOG_ERROR("Unknown communication type:" << m_commType);
