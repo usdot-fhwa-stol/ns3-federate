@@ -123,7 +123,7 @@ namespace ns3 {
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
+        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
@@ -137,7 +137,7 @@ namespace ns3 {
 
         // // Attach the LTE device to the eNodeB (base station)
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-        m_lteHelper->Attach(ueDev);
+        m_lteHelper->Attach(ueDevs);
 
         // std::cout << "FEDERATE DEBUG: install UE Device to predefine node " << std::endl;
         // m_ueDevs.Add(m_lteHelper->InstallUeDevice(predefineNode));
