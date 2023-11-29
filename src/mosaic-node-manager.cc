@@ -242,8 +242,9 @@ namespace ns3 {
             uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
 
             // pick up the node from pool and set the new coordinates
-            singleNode.Get(0)->GetObject<ConstantPositionMobilityModel>();
+            Ptr<ConstantPositionMobilityModel> mobModel = singleNode.Get(0)->GetObject<ConstantPositionMobilityModel>();
             mobilityModel->SetPosition(position); 
+
 
             NetDeviceContainer ueDev;
             ueDev.Add(m_ueDevs.Get(netDeviceId));
