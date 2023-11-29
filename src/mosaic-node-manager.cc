@@ -243,8 +243,7 @@ namespace ns3 {
 
             // pick up the node from pool and set the new coordinates
             Ptr<ConstantPositionMobilityModel> mobModel = singleNode.Get(0)->GetObject<ConstantPositionMobilityModel>();
-            mobilityModel->SetPosition(position); 
-
+            mobModel->SetPosition(position); 
 
             NetDeviceContainer ueDev;
             ueDev.Add(m_ueDevs.Get(netDeviceId));
