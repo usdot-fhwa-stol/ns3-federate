@@ -66,11 +66,9 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB, int numOfNode){
-        std::cout << "FEDERATE DEBUG: Initialize lte helper" << std::endl;
+        
         m_lteHelper = CreateObject<LteHelper>();
-        std::cout << "FEDERATE DEBUG: Initialize lte v2x helper" << std::endl;
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
-        std::cout << "FEDERATE DEBUG: Initialize LTE NS-3 node" << std::endl;
         m_epcHelper = epcHelper;
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
@@ -80,6 +78,11 @@ namespace ns3 {
 
         m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
         
+        m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
+        Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
+        //Config::SetDefault ("ns3::CniUrbanmicrocellPropagationLossModel::Frequency", DoubleValue(5800e6));
+        m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
+
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
         pos_eNB->Add(Vector(0, 0, 0));
@@ -88,23 +91,14 @@ namespace ns3 {
         NodeContainer predefineNode;
         predefineNode.Create(numOfNode);
         
-        std::cout << "FEDERATE DEBUG: Create mobility helper for predefine node" << std::endl;
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        mobility.Install(predefineNode);      
+        Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
 
-        std::cout << "FEDERATE DEBUG: install UE Device to predefine node " << std::endl;
-        m_ueDevs.Add(m_lteHelper->InstallUeDevice(predefineNode));
-
-        for (uint16_t i=0; i<predefineNode.GetN();i++)
-        {
-            m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
-
-            std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
-            m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
-
-        }
-
+        // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
+        positionAlloc->Add(Vector(10000, 10000, 0));
+        mobility.SetPositionAllocator(positionAlloc);
+        mobility.Install(predefineNode);
 
         // Install mobility eNodeB
         MobilityHelper mob_eNB;
@@ -118,6 +112,46 @@ namespace ns3 {
         BuildingsHelper::Install (predefineNode);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
+        NetDeviceContainer ueDevs = m_lteHelper->InstallUeDevice (predefineNode);
+
+        // Install the IP stack on the UEs
+        NS_LOG_INFO ("Installing IP stack..."); 
+        InternetStackHelper internet;
+        internet.Install (predefineNode); 
+
+        // Assign IP adress to UEs
+
+        // Assign an IPv4 address to the LTE device
+        std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
+        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
+        Ipv4StaticRoutingHelper Ipv4RoutingHelper;
+
+        // Set up static routing for the node to use the default gateway provided by the EPC helper
+        for(uint32_t i = 0; i < predefineNode.GetN(); ++i)
+        {
+            Ptr<Node> ueNode = predefineNode.Get(i);
+            // Set the default gateway for the UE
+            Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+            ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+        }
+
+        // // Attach the LTE device to the eNodeB (base station)
+        std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
+        m_lteHelper->Attach(ueDev);
+
+        // std::cout << "FEDERATE DEBUG: install UE Device to predefine node " << std::endl;
+        // m_ueDevs.Add(m_lteHelper->InstallUeDevice(predefineNode));
+
+        // for (uint16_t i=0; i<predefineNode.GetN();i++)
+        // {
+        //     m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
+
+        //     std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
+        //     m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
+
+        // }
+
+
         m_groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
@@ -208,37 +242,24 @@ namespace ns3 {
             ueDev.Add(m_ueDevs.Get(netDeviceId));
             std::cout << "FEDERATE DEBUG: add UE Device to container; UE DEV:" << m_ueDevs.Get(netDeviceId) << std::endl;
 
-            // // Associate the node with buildings for better radio propagation modeling
-            // std::cout << "FEDERATE DEBUG: install node" << std::endl;
-            // BuildingsHelper::Install(singleNode);
+            // // // Install the internet stack on the node
+            // std::cout << "FEDERATE DEBUG: install internet stack on node" << std::endl;
+            // InternetStackHelper internet;
+            // internet.Install(singleNode);
 
-            // // Ensure that the mobility models of all nodes are consistent with their positions
-            // std::cout << "FEDERATE DEBUG: node pos consistent" << std::endl;
-            // BuildingsHelper::MakeMobilityModelConsistent(); 
+            // // // Assign an IPv4 address to the LTE device
+            // std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
+            // Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
 
-            // // Install an LTE device on the node
-            // std::cout << "FEDERATE DEBUG: install lte device on node" << std::endl;
-            // NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
-            // m_ueDevs.Add(ueDev);
+            // // // Set up static routing for the node to use the default gateway provided by the EPC helper
+            // std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
+            // Ipv4StaticRoutingHelper Ipv4RoutingHelper;
+            // Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode.Get(0)->GetObject<Ipv4>());
+            // vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
 
-            // // Install the internet stack on the node
-            std::cout << "FEDERATE DEBUG: install internet stack on node" << std::endl;
-            InternetStackHelper internet;
-            internet.Install(singleNode);
-
-            // // Assign an IPv4 address to the LTE device
-            std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
-
-            // // Set up static routing for the node to use the default gateway provided by the EPC helper
-            std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
-            Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode.Get(0)->GetObject<Ipv4>());
-            vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
-
-            // // Attach the LTE device to the eNodeB (base station)
-            std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-            m_lteHelper->Attach(ueDev);
+            // // // Attach the LTE device to the eNodeB (base station)
+            // std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
+            // m_lteHelper->Attach(ueDev);
 
             // // Create and activate a sidelink bearer for V2X communication
             std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
