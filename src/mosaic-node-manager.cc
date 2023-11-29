@@ -139,19 +139,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
         m_lteHelper->Attach(ueDevs);
 
-        // std::cout << "FEDERATE DEBUG: install UE Device to predefine node " << std::endl;
-        // m_ueDevs.Add(m_lteHelper->InstallUeDevice(predefineNode));
-
-        // for (uint16_t i=0; i<predefineNode.GetN();i++)
-        // {
-        //     m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
-
-        //     std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
-        //     m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
-
-        // }
-
-
+        std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
