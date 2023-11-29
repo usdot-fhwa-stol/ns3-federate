@@ -217,49 +217,30 @@ namespace ns3 {
 
             return;
         } else if (m_commType == LTE) {
-            std::cout << "FEDERATE DEBUG: Created node " << m_preDefineNodeIds.back() << std::endl;
-            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
-            m_preDefineNodeIds.pop_back();
+            // std::cout << "FEDERATE DEBUG: Created node " << m_preDefineNodeIds.back() << std::endl;
+            // m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
+            // m_preDefineNodeIds.pop_back();
 
-            NodeContainer singleNode;
-            singleNode.Add(NodeList::GetNode(m_mosaic2ns3ID[ID]));
-            uint32_t ns3Id = m_mosaic2ns3ID[ID];
-            uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
+            // NodeContainer singleNode;
+            // singleNode.Add(NodeList::GetNode(m_mosaic2ns3ID[ID]));
+            // uint32_t ns3Id = m_mosaic2ns3ID[ID];
+            // uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
 
-            NetDeviceContainer ueDev;
-            ueDev.Add(m_ueDevs.Get(netDeviceId));
-            std::cout << "FEDERATE DEBUG: add UE Device to container; UE DEV:" << m_ueDevs.Get(netDeviceId) << std::endl;
+            // NetDeviceContainer ueDev;
+            // ueDev.Add(m_ueDevs.Get(netDeviceId));
+            // std::cout << "FEDERATE DEBUG: add UE Device to container; UE DEV:" << m_ueDevs.Get(netDeviceId) << std::endl;
 
-            // // // Install the internet stack on the node
-            // std::cout << "FEDERATE DEBUG: install internet stack on node" << std::endl;
-            // InternetStackHelper internet;
-            // internet.Install(singleNode);
+            // // // Create and activate a sidelink bearer for V2X communication
+            // std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
+            // Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
+            // m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
+            // m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
+            // m_groupL2Address++;
+            // m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
-            // // // Assign an IPv4 address to the LTE device
-            // std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-            // Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
-
-            // // // Set up static routing for the node to use the default gateway provided by the EPC helper
-            // std::cout << "FEDERATE DEBUG: Set up static routing for the node to use the default gateway provided by the EPC helper" << std::endl;
-            // Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            // Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode.Get(0)->GetObject<Ipv4>());
-            // vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
-
-            // // // Attach the LTE device to the eNodeB (base station)
-            // std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-            // m_lteHelper->Attach(ueDev);
-
-            // // Create and activate a sidelink bearer for V2X communication
-            std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
-            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
-            m_groupL2Address++;
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
-
-            // // Install the V2X sidelink configuration on the LTE device
-            std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
-            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
+            // // // Install the V2X sidelink configuration on the LTE device
+            // std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
+            // m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
         }
         else{
