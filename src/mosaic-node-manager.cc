@@ -120,8 +120,6 @@ namespace ns3 {
             NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode.Get(i));
             m_ueDevs.Add(ueDev);
 
-
-            std::cout << "FEDERATE DEBUG: index test:" << m_ueDevs.Get(i) == ueDev << std::endl;
             m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
 
             std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
