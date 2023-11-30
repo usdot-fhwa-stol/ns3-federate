@@ -230,7 +230,6 @@ namespace ns3 {
             mobModel->SetPosition(position);
             singleNode->AggregateObject(mobModel);
 
-            return;
         } else if (m_commType == LTE) {
             std::cout << "FEDERATE DEBUG: Created node " << m_preDefineNodeIds.back() << std::endl;
             m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
@@ -285,11 +284,13 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
+        std::cout << "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << std::endl;
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
 
         Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
+            std::cout << "FEDERATE DEBUG: Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing" << std::endl;
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
@@ -299,6 +300,8 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
+
+            std::cout << "FEDERATE DEBUG: Send to address" << m_ns3ID2UniqueAddress[nodeId] << std::endl;
             app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
         }
         else{
