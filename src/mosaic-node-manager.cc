@@ -284,9 +284,8 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << std::endl;
+        std::cout << "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << m_mosaic2ns3ID[nodeId] << std::endl;
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
-
         Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
