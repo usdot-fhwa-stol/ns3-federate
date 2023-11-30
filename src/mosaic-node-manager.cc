@@ -234,14 +234,13 @@ namespace ns3 {
             std::cout << "FEDERATE DEBUG: Created node " << m_preDefineNodeIds.back() << std::endl;
             m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
             m_preDefineNodeIds.pop_back();
-
-            NodeContainer singleNode;
-            singleNode.Add(NodeList::GetNode(m_mosaic2ns3ID[ID]));
+            Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
+            
             uint32_t ns3Id = m_mosaic2ns3ID[ID];
             uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
-
+            
             // pick up the node from pool and set the new coordinates
-            Ptr<ConstantVelocityMobilityModel> mobModel = singleNode.Get(0)->GetObject<ConstantVelocityMobilityModel>();
+            Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
 
             NetDeviceContainer ueDev;
@@ -259,6 +258,14 @@ namespace ns3 {
             std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
+            //Install app
+            std::cout << "Install MosaicMobilityModel on node " << singleNode->GetId() << std::endl;
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetSockets();
+
+            std::cout << "Completed Creating LTE Node" << std::endl;
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
@@ -284,9 +291,11 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << m_mosaic2ns3ID[nodeId] << std::endl;
+        std::cout << "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << std::endl;
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
         Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
+        std::cout << "FEDERATE DEBUG: Retrieved Node ID " << m_mosaic2ns3ID[nodeId] << " with node " << node << std::endl;
+        
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
             std::cout << "FEDERATE DEBUG: Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing" << std::endl;
