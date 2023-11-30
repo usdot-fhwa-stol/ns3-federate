@@ -150,7 +150,7 @@ namespace ns3 {
 
         // // Attach the LTE device to the eNodeB (base station)
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-        m_lteHelper->Attach(m_ueDevs);
+        // m_lteHelper->Attach(m_ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
@@ -242,12 +242,8 @@ namespace ns3 {
             uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
 
             // pick up the node from pool and set the new coordinates
-
-            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-            mobModel->SetPosition(position);
-            NodeList::GetNode(m_mosaic2ns3ID[ID])->AggregateObject(mobModel);
-            // Ptr<ConstantPositionMobilityModel> mobModel = singleNode.Get(0)->GetObject<ConstantPositionMobilityModel>();
-            // mobModel->SetPosition(position); 
+            Ptr<ConstantPositionMobilityModel> mobModel = singleNode.Get(0)->GetObject<ConstantPositionMobilityModel>();
+            mobModel->SetPosition(position); 
 
             NetDeviceContainer ueDev;
             ueDev.Add(m_ueDevs.Get(netDeviceId));
