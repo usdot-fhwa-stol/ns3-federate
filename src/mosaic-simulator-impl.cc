@@ -80,8 +80,7 @@ namespace ns3 {
 
         if (m_events != 0) {
             while (!m_events->IsEmpty()) {
-                Scheduler::Event next = m_events->RemoveNext();
-                std::cout << "FEDERATE DEBUG: (SetScheduler)" << std::endl;                
+                Scheduler::Event next = m_events->RemoveNext();          
                 scheduler->Insert(next);
             }
         }
@@ -95,13 +94,9 @@ namespace ns3 {
     }
 
     void MosaicSimulatorImpl::ProcessOneEvent(void) {
-        std::cout << "FEDERATE DEBUG: -----------------ProcessOneEvent-----------------" << std::endl;
         Scheduler::Event next = m_events->RemoveNext();
         NS_ASSERT(next.key.m_ts >= m_currentTs);
         m_unscheduledEvents--;
-        std::cout << "FEDERATE DEBUG: Process event with event time stamp: " << next.key.m_ts << std::endl;
-        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents+1 << " - 1 (" << m_unscheduledEvents << ")" << std::endl;
-        std::cout << "FEDERATE DEBUG: Process event with uid:" << next.key.m_uid << std::endl;
         NS_LOG_LOGIC("handle " << next.key.m_ts);
         m_currentTs = next.key.m_ts;
         m_currentContext = next.key.m_context;
@@ -110,7 +105,6 @@ namespace ns3 {
             return;
         next.impl->Invoke();
         next.impl->Unref();
-        std::cout << "FEDERATE DEBUG: -----------------End ProcessOneEvent-----------------" << std::endl;
     }
 
     bool MosaicSimulatorImpl::IsFinished(void) const {
@@ -151,8 +145,7 @@ namespace ns3 {
     }
 
     EventId MosaicSimulatorImpl::Schedule(Time const &time, EventImpl *event) {
-        std::cout << "FEDERATE DEBUG: -----------------Schedule-----------------" << std::endl;
-
+        
         Time tAbsolute = time + TimeStep(m_currentTs);
 
         NS_ASSERT(tAbsolute.IsPositive());
@@ -162,21 +155,15 @@ namespace ns3 {
         ev.key.m_ts = (uint64_t) tAbsolute.GetTimeStep();
         ev.key.m_context = GetContext();
         ev.key.m_uid = m_uid;
-        std::cout << "FEDERATE DEBUG: (Schedule)adding an event at time:" << ev.key.m_ts << std::endl;
-        std::cout << "FEDERATE DEBUG: (Schedule)adding an event with uid:" << m_uid << std::endl;
-        std::cout << "FEDERATE DEBUG: (Schedule)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
-        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents - 1 << " + 1 (" << m_unscheduledEvents << ")" << std::endl;
         m_events->Insert(ev);
         m_server->writeNextTime(ev.key.m_ts);
-        std::cout << "FEDERATE DEBUG: -----------------End Schedule-----------------" << std::endl;
 
         return EventId(event, ev.key.m_ts, ev.key.m_context, ev.key.m_uid);
     }
 
     void MosaicSimulatorImpl::ScheduleWithContext(uint32_t context, Time const &time, EventImpl *event) {
-        std::cout << "FEDERATE DEBUG: -----------------ScheduleWithContext-----------------" << std::endl;
         NS_LOG_FUNCTION(this << context << time.GetTimeStep() << m_currentTs << event);
 
         Scheduler::Event ev;
@@ -185,20 +172,15 @@ namespace ns3 {
         ev.key.m_context = context;
         ev.key.m_uid = m_uid;
 
-        std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event at time:" << ev.key.m_ts << std::endl;
-        std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event with uid:" << m_uid << std::endl;
-        std::cout << "FEDERATE DEBUG: (ScheduleWithContext)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
-        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents - 1 << " + 1 (" << m_unscheduledEvents << ")" << std::endl;
         m_events->Insert(ev);
         m_server->writeNextTime(ev.key.m_ts);
-        std::cout << "FEDERATE DEBUG: -----------------End ScheduleWithContext-----------------" << std::endl;
+        
     }
 
     EventId MosaicSimulatorImpl::ScheduleNow(EventImpl *event) {
 
-        std::cout << "FEDERATE DEBUG: -----------------ScheduleNow-----------------" << std::endl;
         Scheduler::Event ev;
         ev.impl = event;
         ev.key.m_ts = m_currentTs;
@@ -206,16 +188,11 @@ namespace ns3 {
         ev.key.m_uid = m_uid;
         if (ev.key.m_context >= 4294967295)
             ev.key.m_context--;
-        std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event at time:" << ev.key.m_ts << std::endl;
-        std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with uid:" << m_uid << std::endl;
-        std::cout << "FEDERATE DEBUG: (ScheduleNow)adding an event with context:" << ev.key.m_context << std::endl;
         m_uid++;
         m_unscheduledEvents++;
-        std::cout << "FEDERATE DEBUG: current unprocessed events number:" << m_unscheduledEvents - 1 << " + 1 (" << m_unscheduledEvents << ")" << std::endl;
         m_events->Insert(ev);
 
-        std::cout << "FEDERATE DEBUG: -----------------End ScheduleNow-----------------" << std::endl;
-
+        
         return EventId(event, ev.key.m_ts, ev.key.m_context, ev.key.m_uid);
     }
 
@@ -223,7 +200,6 @@ namespace ns3 {
 
         EventId id(Ptr<EventImpl> (event, false), m_currentTs, 0xffffffff, 2);
         m_destroyEvents.push_back(id);
-        std::cout << "FEDERATE DEBUG: (ScheduleDestroy)" << std::endl;
         m_uid++;
 
         return id;
@@ -302,7 +278,6 @@ namespace ns3 {
                 (ev.GetTs() == m_currentTs &&
                 ev.GetUid() <= m_currentUid) ||
                 ev.PeekEventImpl()->IsCancelled()) {
-            std::cout << "FEDERATE DEBUG: Event uid:" << ev.GetUid() << " is expired" << std::endl;
             return true;
         } else {
             return false;
