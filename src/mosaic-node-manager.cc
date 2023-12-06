@@ -358,10 +358,13 @@ namespace ns3 {
             return;
         }
         std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << std::endl;
-        if (nodeId == 0)
-            return;
-        Ptr<Node> node = NodeList::GetNode(nodeId);
 
+        Ptr<Node> node = NodeList::GetNode(nodeId);
+        if (node->GetNApplications() > 0) {
+            Ptr<Application> app = node->GetApplication(0);
+        } else {
+            return;
+        }
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
