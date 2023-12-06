@@ -271,16 +271,6 @@ namespace ns3 {
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return;
         }
-
-
-        // //Install app
-        // NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-        // std::cout << "FEDERATE DEBUG: Install MosaicProxyApp application on node " << std::endl;
-        // Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-        // app->SetNodeManager(this);
-        // singleNode->AddApplication(app);
-        // app->SetSockets();
-
     }
 
     uint32_t MosaicNodeManager::GetNs3NodeId(uint32_t nodeId) {
@@ -363,7 +353,9 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        
+        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << std::endl;
+        if (nodeId == 0)
+            return;
         Ptr<Node> node = NodeList::GetNode(nodeId);
 
         Ptr<Application> app = node->GetApplication(0);
