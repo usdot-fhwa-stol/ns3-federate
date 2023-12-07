@@ -357,7 +357,6 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << std::endl;
 
         Ptr<Node> node = NodeList::GetNode(nodeId);
         if (node->GetNApplications() > 0) {
@@ -365,6 +364,7 @@ namespace ns3 {
         } else {
             return;
         }
+        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << std::endl;
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
