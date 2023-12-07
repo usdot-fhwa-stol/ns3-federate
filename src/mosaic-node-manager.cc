@@ -153,7 +153,7 @@ namespace ns3 {
             ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);
             
             //Install app
-            std::cout << "Install MosaicProxyApp on node " << singleNode->GetId() << std::endl;
+            std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
