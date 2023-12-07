@@ -155,7 +155,7 @@ namespace ns3 {
 
         // // Attach the LTE device to the eNodeB (base station)
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-        // m_lteHelper->Attach(m_ueDevs);
+        m_lteHelper->Attach(m_ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
@@ -263,13 +263,6 @@ namespace ns3 {
             // Install the V2X sidelink configuration on the LTE device
             std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
-
-            //Install app
-            std::cout << "Install MosaicMobilityModel on node " << singleNode->GetId() << std::endl;
-            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-            app->SetNodeManager(this);
-            singleNode->AddApplication(app);
-            app->SetSockets();
 
             std::cout << "Completed Creating LTE Node" << std::endl;
         }
