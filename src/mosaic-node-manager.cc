@@ -264,6 +264,13 @@ namespace ns3 {
             std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
+            //Install app
+            std::cout << "Install MosaicProxyApp on node " << singleNode->GetId() << std::endl;
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetSockets();
+
             std::cout << "Completed Creating LTE Node" << std::endl;
         }
         else{
