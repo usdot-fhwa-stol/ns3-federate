@@ -139,13 +139,8 @@ namespace ns3 {
             }
         }else if (m_commType == CommunicationType::LTE){
             if (!m_lte_init_complete){
-                std::cout << "FEDERATE DEBUG: Initialization LTE" << std::endl;
-                std::cout << "FEDERATE DEBUG: Initialization P2PEPC Helper" << std::endl;
-                Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
                 std::cout << "FEDERATE DEBUG: Initialization eNodeB" << std::endl;
-                NodeContainer eNodeB;
-                eNodeB.Create(1); 
-                m_nodeManager->InitLte(epcHelper, eNodeB);
+                m_nodeManager->InitLte();
                 m_lte_init_complete = true;
                 std::cout << "FEDERATE DEBUG: Completed Initialization of LTE" << std::endl;
             }

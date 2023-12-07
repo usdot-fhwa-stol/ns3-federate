@@ -65,11 +65,13 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, NodeContainer eNodeB, int numOfNode){
-        
+    void MosaicNodeManager::InitLte(int numOfNode){
+        Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
+        NodeContainer eNodeB;
+        eNodeB.Create(1); 
+
         m_lteHelper = CreateObject<LteHelper>();
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
-        m_epcHelper = epcHelper;
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
         m_lteHelper->SetEpcHelper(m_epcHelper);
