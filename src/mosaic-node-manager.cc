@@ -151,6 +151,13 @@ namespace ns3 {
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
             ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+            
+            //Install app
+            std::cout << "Install MosaicProxyApp on node " << singleNode->GetId() << std::endl;
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            ueNode->AddApplication(app);
+            app->SetSockets();            
         }
 
         // // Attach the LTE device to the eNodeB (base station)
@@ -162,6 +169,7 @@ namespace ns3 {
         Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
+        
 
 
         // Sidelink configuration
@@ -263,13 +271,6 @@ namespace ns3 {
             // Install the V2X sidelink configuration on the LTE device
             std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
             m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
-
-            //Install app
-            std::cout << "Install MosaicProxyApp on node " << singleNode->GetId() << std::endl;
-            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-            app->SetNodeManager(this);
-            singleNode->AddApplication(app);
-            app->SetSockets();
 
             std::cout << "Completed Creating LTE Node" << std::endl;
         }
