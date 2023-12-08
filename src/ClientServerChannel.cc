@@ -615,14 +615,10 @@ void ClientServerChannel::writeCommand(CMD cmd) {
 #ifdef USE_OMNET_CLOG_H
   using namespace omnetpp;
 #endif
-  LOG_DEBUG << "writeCommand" << std::endl;
   CommandMessage commandMessage;
-  LOG_DEBUG << "DEBUG: write command: " << cmd << std::endl;
   commandMessage.set_command_type(cmdToProtoCMD(cmd));
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(commandMessage.ByteSize());
-  LOG_DEBUG << "DEBUG: write command varint size: " << varintsize << std::endl;
   int buffer_size = varintsize+commandMessage.ByteSize();
-  LOG_DEBUG << "DEBUG: write command buffer size: " << buffer_size << std::endl;
   char message_buffer[buffer_size];
 
   google::protobuf::io::ArrayOutputStream arrayOut ( message_buffer, buffer_size );
@@ -631,7 +627,6 @@ void ClientServerChannel::writeCommand(CMD cmd) {
   codedOut.WriteVarint32(commandMessage.ByteSize());
   commandMessage.SerializeToCodedStream(&codedOut);
   const size_t count = send ( sock, message_buffer, buffer_size, 0 );
-  LOG_DEBUG << "DEBUG: write command send bytes: " << count << std::endl;
 }
 
 /**
@@ -647,7 +642,6 @@ void ClientServerChannel::writeReceiveMessage(uint64_t time, int node_id, int me
 #ifdef USE_OMNET_CLOG_H
   using namespace omnetpp;
 #endif
-  LOG_DEBUG << "writeReceiveMessage" << std::endl;
   ReceiveMessage receive_message;
   receive_message.set_time(time);
   receive_message.set_node_id(node_id);
@@ -655,9 +649,7 @@ void ClientServerChannel::writeReceiveMessage(uint64_t time, int node_id, int me
   receive_message.set_channel_id(channelToProtoChannel(channel));
   receive_message.set_rssi(rssi);
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(receive_message.ByteSize());
-  LOG_DEBUG << "DEBUG: write receive message varint size: " << varintsize << std::endl;
   int buffer_size = varintsize+receive_message.ByteSize();
-  LOG_DEBUG << "DEBUG: write receive message buffer size: " << buffer_size << std::endl;
   char message_buffer[buffer_size];
 
   google::protobuf::io::ArrayOutputStream arrayOut ( message_buffer, buffer_size );
@@ -666,7 +658,6 @@ void ClientServerChannel::writeReceiveMessage(uint64_t time, int node_id, int me
   codedOut.WriteVarint32 ( receive_message.ByteSize() );
   receive_message.SerializeToCodedStream ( &codedOut );
   const size_t count = send ( sock, message_buffer, buffer_size, 0 );
-  LOG_DEBUG << "DEBUG: write receive message send bytes: " << count << std::endl;
 }
 
 /**
@@ -678,13 +669,10 @@ void ClientServerChannel::writeTimeMessage(int64_t time) {
 #ifdef USE_OMNET_CLOG_H
   using namespace omnetpp;
 #endif
-  LOG_DEBUG << "DEBUG: write time message: " << time << std::endl;
   TimeMessage time_message;
   time_message.set_time ( time );
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32 ( time_message.ByteSize() );
-  LOG_DEBUG << "DEBUG: write time message varint size: " << varintsize << std::endl;
   int buffer_size = varintsize+time_message.ByteSize();
-  LOG_DEBUG << "DEBUG: write time message buffer size: " << buffer_size << std::endl;
   char message_buffer[buffer_size];
 
   google::protobuf::io::ArrayOutputStream arrayOut ( message_buffer, buffer_size );
@@ -693,7 +681,6 @@ void ClientServerChannel::writeTimeMessage(int64_t time) {
   codedOut.WriteVarint32 ( time_message.ByteSize() );
   time_message.SerializeToCodedStream ( &codedOut );
   const size_t count = send ( sock, message_buffer, buffer_size, 0 );
-  LOG_DEBUG << "DEBUG: write time message send bytes: " << count << std::endl;
 }
 
 /**
@@ -705,14 +692,10 @@ void ClientServerChannel::writePort(uint32_t port) {
 #ifdef USE_OMNET_CLOG_H
   using namespace omnetpp;
 #endif
-  LOG_DEBUG << "writePort port: " << port << std::endl;
   PortExchange port_exchange;
   port_exchange.set_port_number ( port );
-  LOG_DEBUG << "DEBUG: write port exchange: " << port_exchange.port_number() << std::endl;
   int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(port_exchange.ByteSize());
-  LOG_DEBUG << "DEBUG: write port message varint size: " << varintsize << std::endl;
   int buffer_size = varintsize+port_exchange.ByteSize();
-  LOG_DEBUG << "DEBUG: write port message buffer size: " << buffer_size << std::endl;
   char message_buffer[buffer_size];
 
   google::protobuf::io::ArrayOutputStream arrayOut ( message_buffer, buffer_size );
@@ -760,7 +743,6 @@ std::shared_ptr < uint32_t > ClientServerChannel::readVarintPrefix(SOCKET sock) 
     }
     return_value |= ( current_byte & 0x7F ) << ( 7 * (num_bytes - 1 ) );    //Add the next 7 bits
     }
-  LOG_DEBUG << "DEBUG: read VarintPrefix value: " << return_value << std::endl;
   return std::make_shared < uint32_t > ( return_value );
 }
 
