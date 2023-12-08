@@ -113,6 +113,7 @@ namespace ns3 {
             return;
         }
 
+        std::cout << "FEDERATE DEBUG: Receive Packet" << std::endl;
         Ptr<Packet> packet;
         NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
         packet = socket->Recv();
