@@ -390,16 +390,16 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    // Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
-                    // if (netDev == nullptr) {
-                    //     NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                    //     return;
-                    // } 
-                    // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
-                    // if (uePhy != 0){
+                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
+                    if (netDev == nullptr) {
+                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                        return;
+                    } 
+                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    if (uePhy != 0){
                         
-                    //     uePhy->SetTxPower(txDBm);
-                    // }
+                        uePhy->SetTxPower(txDBm);
+                    }
                 }
                 else{
                     NS_LOG_ERROR("Unknown communication type:" << m_commType);
