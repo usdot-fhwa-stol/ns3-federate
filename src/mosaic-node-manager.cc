@@ -371,14 +371,15 @@ namespace ns3 {
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
-            std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;
-                        
+            std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;                        
             NS_LOG_ERROR("No app found on node " << nodeId << " !");
             return;
         }
         if (radioTurnedOn) {
             ssa->Enable();
+            std::cout << "FEDERATE DEBUG: radioTurnedOn: " << radioTurnedOn << std::endl;
             if (transmitPower > -1) {
+                std::cout << "FEDERATE DEBUG: transmitPower: " << transmitPower << std::endl;
                 double txDBm = 10 * log10((double) transmitPower);
                 if (m_commType == DSRC) {
                     Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
