@@ -371,6 +371,8 @@ namespace ns3 {
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
+            std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;
+                        
             NS_LOG_ERROR("No app found on node " << nodeId << " !");
             return;
         }
