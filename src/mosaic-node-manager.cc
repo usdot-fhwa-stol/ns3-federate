@@ -151,14 +151,7 @@ namespace ns3 {
             Ptr<Node> ueNode = predefineNode.Get(i);
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);
-            
-            //Install app
-            std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
-            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-            app->SetNodeManager(this);
-            ueNode->AddApplication(app);
-            app->SetSockets();            
+            ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);       
         }
 
         // // Attach the LTE device to the eNodeB (base station)
@@ -170,6 +163,32 @@ namespace ns3 {
         Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
+
+        std::vector<NetDeviceContainer> txGroups = lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
+
+        for(gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
+
+            Ptr<NetDevice> ueDev = gIt->Get(0);
+            Ptr<Node> ueNode = ueDev->GetNode();
+
+            // Create and activate a sidelink bearer for V2X communication
+            std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), ueDev, tft);
+            
+            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
+            m_groupL2Address++;
+            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+
+            //Install app
+            std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            ueNode->AddApplication(app);
+            app->SetSockets();     
+        }
+            
+        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
         
         // Sidelink configuration
         m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
@@ -256,21 +275,21 @@ namespace ns3 {
             Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
 
-            NetDeviceContainer ueDev;
-            ueDev.Add(m_ueDevs.Get(netDeviceId));
+            // NetDeviceContainer ueDev;
+            // ueDev.Add(m_ueDevs.Get(netDeviceId));
 
-            // Create and activate a sidelink bearer for V2X communication
-            std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
+            // // Create and activate a sidelink bearer for V2X communication
+            // std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
+            // Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
+            // m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
             
-            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
-            m_groupL2Address++;
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+            // m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
+            // m_groupL2Address++;
+            // m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
-            // Install the V2X sidelink configuration on the LTE device
-            std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
-            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
+            // // Install the V2X sidelink configuration on the LTE device
+            // std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
+            // m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
             std::cout << "Completed Creating LTE Node" << std::endl;
         }
