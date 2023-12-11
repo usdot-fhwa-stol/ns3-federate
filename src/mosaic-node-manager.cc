@@ -170,8 +170,6 @@ namespace ns3 {
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
         
-
-
         // Sidelink configuration
         m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
         m_ueSidelinkConfiguration->SetSlEnabled(true);
@@ -252,7 +250,7 @@ namespace ns3 {
             
             uint32_t ns3Id = m_mosaic2ns3ID[ID];
             uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
-            
+
             // pick up the node from pool and set the new coordinates
             Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
@@ -305,7 +303,6 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-
             std::cout << "FEDERATE DEBUG: Send to address" << m_ns3ID2UniqueAddress[nodeId] << std::endl;
             app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
         }
@@ -393,17 +390,18 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
-                    if (netDev == nullptr) {
-                        std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
-                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                        return;
-                    } 
-                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
-                    if (uePhy != 0){
-                        std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
-                        uePhy->SetTxPower(txDBm);
-                    }
+                    
+                    // Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
+                    // if (netDev == nullptr) {
+                    //     std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
+                    //     NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                    //     return;
+                    // } 
+                    // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    // if (uePhy != 0){
+                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
+                    //     uePhy->SetTxPower(txDBm);
+                    // }
                 }
                 else{
                     NS_LOG_ERROR("Unknown communication type:" << m_commType);
