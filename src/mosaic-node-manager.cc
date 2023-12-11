@@ -82,7 +82,7 @@ namespace ns3 {
         
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
         Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (30));
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (500));
         //Config::SetDefault ("ns3::CniUrbanmicrocellPropagationLossModel::Frequency", DoubleValue(5800e6));
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
@@ -344,6 +344,7 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
+        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << nodeId << " to: " << position << std::endl;
         
         Ptr<Node> node = NodeList::GetNode(nodeId);
         Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel> ();
