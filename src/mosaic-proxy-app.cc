@@ -99,10 +99,11 @@ namespace ns3 {
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         std::cout << "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         //call the socket of this node to send the packet
-        InetSocketAddress ipSA = InetSocketAddress(address, m_port);
+        // InetSocketAddress ipSA = InetSocketAddress(address, m_port);
 
-        std::cout << ipSA << std::endl;
-        m_socket->SendTo(packet, 0, ipSA);
+        // std::cout << ipSA << std::endl;
+        // m_socket->SendTo(packet, 0, ipSA);
+        m_socket->Send();
     }
 
     /*

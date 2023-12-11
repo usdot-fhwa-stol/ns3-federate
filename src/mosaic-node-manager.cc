@@ -82,6 +82,7 @@ namespace ns3 {
         
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
         Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (30));
         //Config::SetDefault ("ns3::CniUrbanmicrocellPropagationLossModel::Frequency", DoubleValue(5800e6));
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
@@ -90,6 +91,12 @@ namespace ns3 {
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
         pos_eNB->Add(Vector(0, 0, 0));
+
+        // Install mobility eNodeB
+        MobilityHelper mob_eNB;
+        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mob_eNB.SetPositionAllocator(pos_eNB);
+        mob_eNB.Install(eNodeB)
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
@@ -104,12 +111,7 @@ namespace ns3 {
         positionAlloc->Add(Vector(10000, 10000, 0));
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(predefineNode);
-
-        // Install mobility eNodeB
-        MobilityHelper mob_eNB;
-        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-        mob_eNB.SetPositionAllocator(pos_eNB);
-        mob_eNB.Install(eNodeB);
+;
 
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
@@ -262,6 +264,7 @@ namespace ns3 {
             std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
+            
             m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
@@ -364,7 +367,7 @@ namespace ns3 {
         } else {
             return;
         }
-        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << std::endl;
+        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << " transmitPower: " << transmitPower << std::endl;
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
