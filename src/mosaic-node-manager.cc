@@ -178,7 +178,7 @@ namespace ns3 {
             
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
-
+            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
             //Install app
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
@@ -323,8 +323,8 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            std::cout << "FEDERATE DEBUG: Send to address" << m_ns3ID2UniqueAddress[nodeId] << std::endl;
-            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
+            std::cout << "FEDERATE DEBUG: Send to address " << m_ns3ID2UniqueAddress[nodeId] << std::endl;
+            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
