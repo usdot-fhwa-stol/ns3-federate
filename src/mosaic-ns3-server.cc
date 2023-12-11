@@ -245,6 +245,7 @@ namespace ns3 {
                     //Convert the IP address
                     Ipv4Address ip(send_message.topo_address.ip_address);
                     int id = m_nodeManager->GetNs3NodeId(send_message.node_id);
+                    std::cout << "Received V2X_MESSAGE_TRANSMISSION id: " << id << " sendTime: " << send_message.time << " length: " << send_message.length << std::endl;
                     NS_LOG_DEBUG("Received V2X_MESSAGE_TRANSMISSION id: " << id << " sendTime: " << send_message.time << " length: " << send_message.length);
 
                     //create a sending jitter to avoid concurrently sending
