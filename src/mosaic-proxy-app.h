@@ -62,7 +62,7 @@ namespace ns3 {
         uint16_t m_sendCount = 0;
         uint64_t m_recvCount = 0;
 
-        bool m_active = false;
+        bool m_active = true;
 
         MosaicNodeManager* m_nodeManager;
     };
