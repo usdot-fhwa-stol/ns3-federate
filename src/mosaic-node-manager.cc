@@ -321,7 +321,7 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID) {
-        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
+        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeID];
         if (m_isDeactivated[ns3NodeId]) {
             return;
         }
