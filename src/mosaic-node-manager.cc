@@ -361,18 +361,19 @@ namespace ns3 {
             return;
         }
 
-        Ptr<Node> node = NodeList::GetNode(nodeId);
+        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
+        Ptr<Node> node = NodeList::GetNode(ns3NodeId);
         if (node->GetNApplications() > 0) {
             Ptr<Application> app = node->GetApplication(0);
         } else {
             return;
         }
-        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << " transmitPower: " << transmitPower << std::endl;
+        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << ns3NodeId << " transmitPower: " << transmitPower << std::endl;
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
             std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;                        
-            NS_LOG_ERROR("No app found on node " << nodeId << " !");
+            NS_LOG_ERROR("No app found on node " << ns3NodeId << " !");
             return;
         }
         if (radioTurnedOn) {
@@ -402,7 +403,7 @@ namespace ns3 {
                     // } 
                     // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     // if (uePhy != 0){
-                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
+                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
                     //     uePhy->SetTxPower(txDBm);
                     // }
                 }
