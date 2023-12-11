@@ -306,7 +306,7 @@ namespace ns3 {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
             std::cout << "FEDERATE DEBUG: Send to address" << m_ns3ID2UniqueAddress[nodeId] << std::endl;
-            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
+            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
