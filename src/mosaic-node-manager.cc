@@ -82,8 +82,17 @@ namespace ns3 {
         
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
         Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (500));
-        //Config::SetDefault ("ns3::CniUrbanmicrocellPropagationLossModel::Frequency", DoubleValue(5800e6));
+        // Set the UEs power in dBm
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
+        // Enable V2X communication on PHY layer
+        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
+
+        // Set power
+        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
+        
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
         std::cout << "1)Current number of nodes: " << NodeList::GetNNodes() << std::endl;
@@ -137,8 +146,6 @@ namespace ns3 {
         NS_LOG_INFO ("Installing IP stack..."); 
         InternetStackHelper internet;
         internet.Install (predefineNode); 
-
-        // Assign IP adress to UEs
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
@@ -314,7 +321,8 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID) {
-        if (m_isDeactivated[nodeID]) {
+        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
+        if (m_isDeactivated[ns3NodeId]) {
             return;
         }
         
