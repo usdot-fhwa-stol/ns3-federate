@@ -178,7 +178,7 @@ namespace ns3 {
             
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
-            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
+            m_ns3ID2UniqueAddress[ueNode->GetId()] = m_clientRespondersAddress;
             //Install app
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
