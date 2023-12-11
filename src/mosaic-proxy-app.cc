@@ -85,9 +85,9 @@ namespace ns3 {
     void MosaicProxyApp::TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address) {
         NS_LOG_FUNCTION(protocolID << msgID << payLength << address);
         std::cout << protocolID << ", " << msgID << ", " << payLength << ", " << address << std::endl;
-        if (!m_active) {
-            return;
-        }
+        // if (!m_active) {
+        //     return;
+        // }
 
         Ptr<Packet> packet = Create<Packet> (payLength);
         //Flow tag is used to match the sent message
