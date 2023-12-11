@@ -176,7 +176,6 @@ namespace ns3 {
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), ueDev, tft);
             
-            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
