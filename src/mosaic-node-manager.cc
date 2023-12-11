@@ -166,7 +166,7 @@ namespace ns3 {
 
         std::vector<NetDeviceContainer> txGroups = lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
 
-        for(gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
+        for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
