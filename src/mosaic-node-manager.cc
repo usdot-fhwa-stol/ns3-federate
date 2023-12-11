@@ -164,7 +164,7 @@ namespace ns3 {
         m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
 
-        std::vector<NetDeviceContainer> txGroups = lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
+        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
