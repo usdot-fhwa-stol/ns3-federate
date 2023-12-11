@@ -262,33 +262,14 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (m_commType == LTE) {
-            std::cout << "FEDERATE DEBUG: Created node " << m_preDefineNodeIds.back() << std::endl;
+            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_preDefineNodeIds.back() << " from node pool, set position to : " << position << std::endl;
             m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
             m_preDefineNodeIds.pop_back();
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
-            uint32_t ns3Id = m_mosaic2ns3ID[ID];
-            uint32_t netDeviceId = m_ns3Id2DeviceId[m_mosaic2ns3ID[ID]];
-
             // pick up the node from pool and set the new coordinates
             Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
-
-            // NetDeviceContainer ueDev;
-            // ueDev.Add(m_ueDevs.Get(netDeviceId));
-
-            // // Create and activate a sidelink bearer for V2X communication
-            // std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            // Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
-            // m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
-            
-            // m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
-            // m_groupL2Address++;
-            // m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
-
-            // // Install the V2X sidelink configuration on the LTE device
-            // std::cout << "FEDERATE DEBUG: Install the V2X sidelink configuration on the LTE device" << std::endl;
-            // m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
 
             std::cout << "Completed Creating LTE Node" << std::endl;
         }
@@ -344,9 +325,10 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << nodeId << " to: " << position << std::endl;
+        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
+        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << ns3NodeId << " to: " << position << std::endl;
         
-        Ptr<Node> node = NodeList::GetNode(nodeId);
+        Ptr<Node> node = NodeList::GetNode(ns3NodeId);
         Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel> ();
         mobModel->SetPosition(position);
     }
