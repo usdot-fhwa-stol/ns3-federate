@@ -96,7 +96,7 @@ namespace ns3 {
         MobilityHelper mob_eNB;
         mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         mob_eNB.SetPositionAllocator(pos_eNB);
-        mob_eNB.Install(eNodeB)
+        mob_eNB.Install(eNodeB);
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
@@ -111,7 +111,6 @@ namespace ns3 {
         positionAlloc->Add(Vector(10000, 10000, 0));
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(predefineNode);
-;
 
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
