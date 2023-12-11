@@ -187,7 +187,6 @@ namespace ns3 {
             app->SetSockets();     
         }
             
-        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
         
         // Sidelink configuration
         m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
@@ -216,6 +215,7 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
+        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
 
         std::cout << "3)Current number of nodes: " << NodeList::GetNNodes() << std::endl;
     }
