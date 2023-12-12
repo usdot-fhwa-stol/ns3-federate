@@ -222,7 +222,7 @@ namespace ns3 {
 
         m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
 
-        lteHelper->EnableTraces();
+        m_lteHelper->EnableTraces();
 
     }
 
