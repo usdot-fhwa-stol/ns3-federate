@@ -101,8 +101,8 @@ namespace ns3 {
         m_currentTs = next.key.m_ts;
         m_currentContext = next.key.m_context;
         m_currentUid = next.key.m_uid;
-        if (m_currentContext == 4294967294)
-            return;
+        // if (m_currentContext == 4294967294)
+        //     return;
         next.impl->Invoke();
         next.impl->Unref();
     }
