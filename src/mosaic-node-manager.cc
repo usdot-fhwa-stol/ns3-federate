@@ -98,7 +98,7 @@ namespace ns3 {
         enbPositionAlloc->Add(Vector(0, 0, 0));
         MobilityHelper enbMobilityHelper;
         enbMobilityHelper.SetPositionAllocator(enbPositionAlloc);
-        enbMobilityHelper.SetMobilityModel("ConstantPositionMobilityModel");
+        enbMobilityHelper.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         enbMobilityHelper.Install(enbNodes);
         NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(enbNodes);
 
@@ -109,7 +109,7 @@ namespace ns3 {
         uePositionAlloc->Add(Vector(10000, 10000, 0));
         MobilityHelper ueMobilityHelper;
         ueMobilityHelper.SetPositionAllocator(uePositionAlloc);
-        ueMobilityHelper.SetMobilityModel("ConstantVelocityMobilityModel");
+        ueMobilityHelper.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
         ueMobilityHelper.Install(ueNodes);
         NetDeviceContainer ueDevs = lteHelper->InstallUeDevice (ueNodes);
 
