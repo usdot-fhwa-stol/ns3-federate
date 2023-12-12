@@ -103,7 +103,7 @@ namespace ns3 {
         Ipv4Address multicastAddress("224.0.0.1");
         InetSocketAddress multicastSA = InetSocketAddress(multicastAddress, m_port);
    
-        m_socket->SendTo(packet, 0, ipSA);
+        m_socket->SendTo(packet, 0, multicastSA);
     }
 
     /*
