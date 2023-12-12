@@ -84,7 +84,6 @@ namespace ns3 {
 
     void MosaicProxyApp::TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address) {
         NS_LOG_FUNCTION(protocolID << msgID << payLength << address);
-        std::cout << protocolID << ", " << msgID << ", " << payLength << ", " << address << std::endl;
         if (!m_active) {
             return;
         }
@@ -116,14 +115,16 @@ namespace ns3 {
             // Convert end address to integer
             uint32_t endInt = end.Get();
 
-            // Loop from start to end
-            for (uint32_t addrInt = startInt; addrInt <= endInt; addrInt++) {
-                Ipv4Address current(addrInt);
-                if (current != address){
-                    InetSocketAddress ipSA = InetSocketAddress(current, m_port);
-                    m_socket->SendTo(packet, 0, ipSA);
-                }
+        // Loop from start to end
+        for (uint32_t addrInt = startInt; addrInt <= endInt; addrInt++) {
+            Ipv4Address current(addrInt);
+            if (current != address){
+                InetSocketAddress ipSA = InetSocketAddress(current, m_port);
+                m_socket->SendTo(packet, 0, ipSA);
+                std::cout << "From " << address << " sending to " << current << " port " << m_port << std::endl;
+        
             }
+        }
         // }
     }
 
