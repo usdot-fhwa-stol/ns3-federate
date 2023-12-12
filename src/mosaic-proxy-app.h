@@ -60,7 +60,7 @@ namespace ns3 {
         void Receive(Ptr<Socket> socket);
 
         Ptr<Socket> m_socket{nullptr};
-        Pte<Socket> m_hostSocket{nullptr};
+        Ptr<Socket> m_hostSocket{nullptr};
                 
         uint16_t m_sendCount = 0;
         uint64_t m_recvCount = 0;
