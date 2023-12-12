@@ -57,12 +57,28 @@ namespace ns3 {
         Application::DoDispose();
     }
 
+    void MosaicProxyApp::SetCommType(CommunicationType commType){
+        m_commType = commType;
+    }
+
     void MosaicProxyApp::Enable(void) {
         m_active = true;
     }
 
     void MosaicProxyApp::Disable(void) {
         m_active = false;
+    }
+    
+    void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress){
+        if (!m_hostSocket){
+            m_hostSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+            m_hostSocket->Bind();
+            m_hostSocket->Connect(InetSocketAddress(clientRespondersAddress,m_port));
+            m_hostSocket->SetAllowBroadcast(true);
+            m_hostSocket->ShutdownRecv();
+        }else{
+            return;
+        }
     }
 
     void MosaicProxyApp::SetSockets(void) {
@@ -98,10 +114,14 @@ namespace ns3 {
         m_sendCount++;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         std::cout << "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
-
-        //call the socket of this node to send the packet
-        InetSocketAddress ipSA = InetSocketAddress(address, m_port);
-        m_socket->SendTo(packet, 0, ipSA);
+        if (m_commType == DSRC){
+            //call the socket of this node to send the packet
+            InetSocketAddress ipSA = InetSocketAddress(address, m_port);
+            m_socket->SendTo(packet, 0, ipSA);
+        }
+        else if (m_commType == LTE){
+            m_hostSocket->Send(packet);
+        }
     }
 
     /*

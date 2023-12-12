@@ -164,6 +164,7 @@ namespace ns3 {
 
 
         std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
+        NetDeviceContainer activeTxUes;
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
@@ -172,8 +173,16 @@ namespace ns3 {
 
             // Create and activate a sidelink bearer for V2X communication
             std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), ueDev, tft);
+            
+            NetDeviceContainer txUe ((*gIt).Get(0));
+            activeTxUes.Add(txUe);
+            NetDeviceContainer rxUes = lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
+
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, m_clientRespondersAddress, m_groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
+            tft = Create<LteSlTft>(LteSlTft::RECEIVE, m_clientRespondersAddress, m_groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << m_clientRespondersAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = m_clientRespondersAddress;
             m_groupL2Address++;
@@ -183,7 +192,8 @@ namespace ns3 {
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
-            app->SetSockets();     
+            app->SetSockets(m_clientRespondersAddress);
+            app->SetSockets();
         }
             
         

@@ -26,9 +26,11 @@
 #include "ns3/application.h"
 #include "mosaic-node-manager.h"
 #include "ns3/data-rate.h"
+#include "ClientServerChannel.h"
 
 namespace ns3 {
 
+    using namespace ClientServerChannelSpace;
     class MosaicProxyApp : public Application {
     public:
 
@@ -67,6 +69,7 @@ namespace ns3 {
 
         bool m_active = false;
 
+        CommunicationType m_commType;
         MosaicNodeManager* m_nodeManager;
     };
 } // namespace ns3
