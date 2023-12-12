@@ -100,9 +100,10 @@ namespace ns3 {
         std::cout << "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         //call the socket of this node to send the packet
 
-        //call the socket of this node to send the packet
-        InetSocketAddress ipSA = InetSocketAddress(address, m_port);
-        m_socket->SendTo(packet, 0, ipSA);
+        Ipv4Address multicastAddress("224.0.0.1");
+        InetSocketAddress multicastSA = InetSocketAddress(multicastAddress, m_port);
+   
+        m_socket->SendTo(packet, 0, multicastSA);
     }
 
     /*
