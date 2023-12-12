@@ -126,7 +126,7 @@ namespace ns3 {
             }
             catch(const std::exception& e)
             {
-                std::cout << e << std::endl;
+                std::cout << e.what() << std::endl;
             }
             
         }
