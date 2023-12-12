@@ -99,34 +99,11 @@ namespace ns3 {
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         std::cout << "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         //call the socket of this node to send the packet
-        // if (m_nodeManager->m_commType == DSRC){
 
-        //     InetSocketAddress ipSA = InetSocketAddress(address, m_port);
-        //     m_socket->SendTo(packet, 0, ipSA);
-        // }
-        // else if (m_nodeManager->m_commType == LTE){
-        Ipv4Address start("255.0.0.1");
-
-        // Convert start address to integer
-        uint32_t startInt = start.Get();
-
-        // End address
-        Ipv4Address end("255.0.0.50");
-
-        // Convert end address to integer
-        uint32_t endInt = end.Get();
-
-        // Loop from start to end
-        for (uint32_t addrInt = startInt; addrInt <= endInt; addrInt++) {
-            Ipv4Address current(addrInt);
-            if (current != address){
-                InetSocketAddress ipSA = InetSocketAddress(current, m_port);
-                m_socket->SendTo(packet, 0, ipSA);
-                std::cout << GetNode()->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << " From " << address << " sending to " << current << " port " << m_port << std::endl;
-        
-            }
-        }
-        // }
+        Ipv4Address multicastAddress("224.0.0.1");
+        InetSocketAddress multicastSA = InetSocketAddress(multicastAddress, m_port);
+   
+        m_socket->SendTo(packet, 0, ipSA);
     }
 
     /*
