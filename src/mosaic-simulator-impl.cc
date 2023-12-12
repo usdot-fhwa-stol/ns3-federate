@@ -101,8 +101,6 @@ namespace ns3 {
         m_currentTs = next.key.m_ts;
         m_currentContext = next.key.m_context;
         m_currentUid = next.key.m_uid;
-        // if (m_currentContext == 4294967294)
-        //     return;
         next.impl->Invoke();
         next.impl->Unref();
     }
@@ -186,8 +184,6 @@ namespace ns3 {
         ev.key.m_ts = m_currentTs;
         ev.key.m_context = GetContext();
         ev.key.m_uid = m_uid;
-        if (ev.key.m_context >= 4294967295)
-            ev.key.m_context--;
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
