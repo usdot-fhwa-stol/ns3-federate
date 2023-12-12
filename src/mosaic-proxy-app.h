@@ -41,6 +41,8 @@ namespace ns3 {
         void SetNodeManager(MosaicNodeManager* nodeManager);
 
         void SetSockets(void);
+
+        void SetSockets(Ipv4Address clientRespondersAddress);
         
         void TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address);
         
@@ -58,6 +60,7 @@ namespace ns3 {
         void Receive(Ptr<Socket> socket);
 
         Ptr<Socket> m_socket{nullptr};
+        Pte<Socket> m_hostSocket{nullptr};
                 
         uint16_t m_sendCount = 0;
         uint64_t m_recvCount = 0;
