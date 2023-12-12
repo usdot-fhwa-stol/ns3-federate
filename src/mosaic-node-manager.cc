@@ -182,7 +182,7 @@ namespace ns3 {
             std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), ueDev, tft);
-            
+            std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << m_clientRespondersAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = m_clientRespondersAddress;
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
