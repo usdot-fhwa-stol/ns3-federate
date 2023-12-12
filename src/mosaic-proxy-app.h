@@ -42,6 +42,8 @@ namespace ns3 {
 
         void SetNodeManager(MosaicNodeManager* nodeManager);
 
+        void SetCommType(CommunicationType commType);
+
         void SetSockets(void);
 
         void SetSockets(Ipv4Address clientRespondersAddress);
