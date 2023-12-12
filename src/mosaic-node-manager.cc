@@ -183,9 +183,9 @@ namespace ns3 {
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), ueDev, tft);
             
+            m_ns3ID2UniqueAddress[ueNode->GetId()] = m_clientRespondersAddress;
             m_groupL2Address++;
             m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
-            m_ns3ID2UniqueAddress[ueNode->GetId()] = m_clientRespondersAddress;
             //Install app
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
@@ -312,7 +312,7 @@ namespace ns3 {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
             std::cout << "FEDERATE DEBUG: Send to address " << ipv4Add << std::endl;
-            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
+            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
