@@ -122,7 +122,7 @@ namespace ns3 {
             if (current != address){
                 InetSocketAddress ipSA = InetSocketAddress(current, m_port);
                 m_socket->SendTo(packet, 0, ipSA);
-                std::cout << GetNode()->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal << " From " << address << " sending to " << current << " port " << m_port << std::endl;
+                std::cout << GetNode()->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << " From " << address << " sending to " << current << " port " << m_port << std::endl;
         
             }
         }
