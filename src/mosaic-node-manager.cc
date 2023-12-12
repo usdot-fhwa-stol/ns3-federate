@@ -95,7 +95,6 @@ namespace ns3 {
         
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
-        std::cout << "1)Current number of nodes: " << NodeList::GetNNodes() << std::endl;
 
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
@@ -110,7 +109,6 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
         predefineNode.Create(numOfNode);
-        std::cout << "2)Current number of nodes: " << NodeList::GetNNodes() << std::endl;
         
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
@@ -224,7 +222,8 @@ namespace ns3 {
 
         m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
 
-        std::cout << "3)Current number of nodes: " << NodeList::GetNNodes() << std::endl;
+        lteHelper->EnableTraces();
+
     }
 
     void MosaicNodeManager::InitDsrc(){
