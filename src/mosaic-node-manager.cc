@@ -105,6 +105,8 @@ namespace ns3 {
         mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         mob_eNB.SetPositionAllocator(pos_eNB);
         mob_eNB.Install(eNodeB);
+        
+        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
@@ -119,25 +121,17 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(predefineNode);
 
-        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         BuildingsHelper::Install (eNodeB);
         BuildingsHelper::Install (predefineNode);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
-        // NetDeviceContainer ueDevs = m_lteHelper->InstallUeDevice (predefineNode);
-
+        NetDeviceContainer m_ueDevs = m_lteHelper->InstallUeDevice (predefineNode);
+        
         for (uint16_t i=0; i<predefineNode.GetN();i++)
         {
-            std::cout << "FEDERATE DEBUG: install UEDevice to predefine node " << std::endl;
-            NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(predefineNode.Get(i));
-            m_ueDevs.Add(ueDev);
-
             m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
-
-            std::cout << "FEDERATE DEBUG: predefine node ID: " << predefineNode.Get(i)->GetId() << std::endl;
             m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
-
         }
 
         // Install the IP stack on the UEs
