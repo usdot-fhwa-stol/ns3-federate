@@ -76,6 +76,7 @@ namespace ns3 {
             m_socket->SetAllowBroadcast(true);
 
             m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
+            std::cout<< "set sockets on node " << GetNode()->GetId() << " with port " << m_port << std::endl;
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
             return;
@@ -104,16 +105,16 @@ namespace ns3 {
         //     m_socket->SendTo(packet, 0, ipSA);
         // }
         // else if (m_nodeManager->m_commType == LTE){
-            Ipv4Address start("255.0.0.1");
+        Ipv4Address start("255.0.0.1");
 
-            // Convert start address to integer
-            uint32_t startInt = start.Get();
+        // Convert start address to integer
+        uint32_t startInt = start.Get();
 
-            // End address
-            Ipv4Address end("255.0.0.50");
+        // End address
+        Ipv4Address end("255.0.0.50");
 
-            // Convert end address to integer
-            uint32_t endInt = end.Get();
+        // Convert end address to integer
+        uint32_t endInt = end.Get();
 
         // Loop from start to end
         for (uint32_t addrInt = startInt; addrInt <= endInt; addrInt++) {
