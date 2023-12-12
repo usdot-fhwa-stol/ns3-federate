@@ -99,8 +99,19 @@ namespace ns3 {
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         std::cout << "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         //call the socket of this node to send the packet
-        InetSocketAddress ipSA = InetSocketAddress(address, m_port);
-        m_socket->SendTo(packet, 0, ipSA);
+        if (m_nodeManager->m_commType == DSRC){
+
+            InetSocketAddress ipSA = InetSocketAddress(address, m_port);
+            m_socket->SendTo(packet, 0, ipSA);
+        }
+        else if (m_nodeManager->m_commType == LTE){
+            for (const auto& pair : m_nodeManager->m_ns3ID2UniqueAddress) {
+                uint32_t key = pair.first;
+                Ipv4Address value = pair.second;
+                std::cout << "key " << key << "; ipaddress" << value << std::endl;
+                // Process key and value
+            }
+        }
     }
 
     /*
