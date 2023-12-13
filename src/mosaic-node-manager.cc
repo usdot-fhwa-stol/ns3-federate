@@ -194,7 +194,7 @@ namespace ns3 {
             app->SetCommType(m_commType);
             app->SetSockets(clientRespondersAddress);
             app->SetSockets();
-            
+
             clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
             //Install app
             
@@ -276,9 +276,9 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (m_commType == LTE) {
-            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_preDefineNodeIds.back() << " from node pool, set position to : " << position << std::endl;
-            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.back();
-            m_preDefineNodeIds.pop_back();
+            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_preDefineNodeIds.front() << " from node pool, set position to : " << position << std::endl;
+            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.front();
+            m_preDefineNodeIds.erase(m_preDefineNodeIds.begin());
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
             // pick up the node from pool and set the new coordinates
