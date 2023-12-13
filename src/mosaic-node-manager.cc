@@ -412,7 +412,7 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    std::cout << "FEDERATE DEBUG: " << node->GetDevice(0) == nullptr << std::endl;
+                    std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
                     Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
                     if (netDev == nullptr) {
                         std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
