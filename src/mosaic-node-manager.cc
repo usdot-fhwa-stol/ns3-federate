@@ -160,7 +160,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
-        m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
 
         std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
@@ -178,23 +178,26 @@ namespace ns3 {
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
 
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, m_clientRespondersAddress, m_groupL2Address); 
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft>(LteSlTft::RECEIVE, m_clientRespondersAddress, m_groupL2Address); 
+            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, m_groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
-            std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << m_clientRespondersAddress << std::endl;
-            m_ns3ID2UniqueAddress[ueNode->GetId()] = m_clientRespondersAddress;
+            std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
+            m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
             m_groupL2Address++;
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
-            //Install app
+            
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
             app->SetCommType(m_commType);
-            app->SetSockets(m_clientRespondersAddress);
+            app->SetSockets(clientRespondersAddress);
             app->SetSockets();
+            
+            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+            //Install app
+            
         }
             
         
@@ -298,7 +301,6 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << std::endl;
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
         Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
         std::cout << "FEDERATE DEBUG: Retrieved Node ID " << m_mosaic2ns3ID[nodeId] << " with node " << node << std::endl;

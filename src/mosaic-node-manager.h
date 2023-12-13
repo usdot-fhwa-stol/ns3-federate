@@ -120,7 +120,6 @@ namespace ns3 {
         NetDeviceContainer m_ueDevs;
 
         uint32_t m_groupL2Address;
-        Ipv4Address m_clientRespondersAddress;
 
         CommunicationType m_commType;
         std::vector<uint32_t> m_preDefineNodeIds;
