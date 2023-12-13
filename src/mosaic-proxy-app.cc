@@ -120,15 +120,7 @@ namespace ns3 {
             m_socket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            try
-            {
-                m_hostSocket->Send(packet);
-            }
-            catch(const std::exception& e)
-            {
-                std::cout << e.what() << std::endl;
-            }
-            
+            std::cout << "Message sent out with return value: " << m_hostSocket->Send(packet) << std::endl;
         }
     }
 

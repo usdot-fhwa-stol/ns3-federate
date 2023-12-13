@@ -83,7 +83,11 @@ namespace ns3 {
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
         Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
         // Set the UEs power in dBm
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
+        // Set power
+        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
         // Enable V2X communication on PHY layer
         Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
@@ -408,7 +412,7 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    
+                    std::cout << "FEDERATE DEBUG: " << node->GetDevice(0) == nullptr << std::endl;
                     Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
                     if (netDev == nullptr) {
                         std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
