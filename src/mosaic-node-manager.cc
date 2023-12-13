@@ -409,17 +409,17 @@ namespace ns3 {
                     }
                 } else if (m_commType == LTE) {
                     
-                    // Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
-                    // if (netDev == nullptr) {
-                    //     std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
-                    //     NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                    //     return;
-                    // } 
-                    // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
-                    // if (uePhy != 0){
-                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
-                    //     uePhy->SetTxPower(txDBm);
-                    // }
+                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
+                    if (netDev == nullptr) {
+                        std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
+                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                        return;
+                    } 
+                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    if (uePhy != 0){
+                        std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
+                        uePhy->SetTxPower(txDBm);
+                    }
                 }
                 else{
                     NS_LOG_ERROR("Unknown communication type:" << m_commType);
