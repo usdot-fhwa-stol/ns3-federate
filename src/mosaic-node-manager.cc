@@ -163,8 +163,8 @@ namespace ns3 {
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
-        Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
-        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+        Ipv4AddressGenerator::Init(Ipv4Address ("255.255.0.0"), Ipv4Mask("10.1.0.0"));
+        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
 
 
         std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
@@ -199,7 +199,7 @@ namespace ns3 {
             app->SetSockets(clientRespondersAddress);
             app->SetSockets();
 
-            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
             //Install app
             
         }
