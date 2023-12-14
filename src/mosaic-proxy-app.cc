@@ -75,6 +75,7 @@ namespace ns3 {
             m_hostSocket->Bind();
             m_hostSocket->Connect(InetSocketAddress(clientRespondersAddress,m_port));
             m_hostSocket->SetAllowBroadcast(true);
+            m_hostSocket->ShutdownRecv();
         }else{
             return;
         }
@@ -98,10 +99,6 @@ namespace ns3 {
         }
     }
 
-    void MosaicProxyApp::SendV2xBroadcastMessage(Ptr<Socket> socket, Ptr<Packet> packet){
-        std::cout << "Message sent out successfully: " << (socket->Send(packet) == packet->GetSize()) << std::endl;
-    }
-
     void MosaicProxyApp::TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address) {
         NS_LOG_FUNCTION(protocolID << msgID << payLength << address);
         if (!m_active) {
@@ -123,7 +120,7 @@ namespace ns3 {
             m_socket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            Simulator::ScheduleWithContext(GetNode()->GetId(), Seconds(1.0), &SendV2xBroadcastMessage, m_hostSocket, packet);
+            std::cout << "Message sent out successfully: " << (m_hostSocket->Send(packet) == packet->GetSize()) << std::endl;
         }
     }
 

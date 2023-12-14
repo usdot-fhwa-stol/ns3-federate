@@ -40,8 +40,6 @@ namespace ns3 {
 
         static TypeId GetTypeId(void);
 
-        void SendV2xBroadcastMessage(Ptr<Socket> socket, Ptr<Packet> packet);
-
         void SetNodeManager(MosaicNodeManager* nodeManager);
 
         void SetCommType(CommunicationType commType);
