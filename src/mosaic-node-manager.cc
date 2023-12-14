@@ -344,11 +344,12 @@ namespace ns3 {
             return;
         }
         uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
-        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << ns3NodeId << " to: " << position << std::endl;
+        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << ns3NodeId << " from " << mobModel->GetPosition() << " to: " << position << std::endl;
         
         Ptr<Node> node = NodeList::GetNode(ns3NodeId);
         Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel> ();
         mobModel->SetPosition(position);
+        mobModel->GetPosition();
     }
 
     void MosaicNodeManager::DeactivateNode(uint32_t nodeId) {
