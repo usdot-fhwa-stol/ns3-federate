@@ -164,7 +164,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.255.0.0"), Ipv4Mask("10.1.0.0"));
-        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("10.1.0.0"));
 
 
         std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
@@ -199,7 +199,7 @@ namespace ns3 {
             app->SetSockets(clientRespondersAddress);
             app->SetSockets();
 
-            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("10.1.0.0"));
             //Install app
             
         }
@@ -414,7 +414,7 @@ namespace ns3 {
                     }
                 } else if (m_commType == LTE) {
                     std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
-                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
+                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
                     if (netDev == nullptr) {
                         std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
