@@ -123,7 +123,7 @@ namespace ns3 {
             m_socket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            Simulator::ScheduleWithContext(GetNode()->GetId(), Seconds(1.0), &MosaicProxyApp::SendV2xBroadcastMessage, m_hostSocket, packet);
+            Simulator::ScheduleWithContext(GetNode()->GetId(), Simulator::Now(), &MosaicProxyApp::SendV2xBroadcastMessage, this, m_hostSocket, packet);
         }
     }
 
