@@ -199,7 +199,6 @@ namespace ns3 {
             m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
             m_groupL2Address++;
             clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
-            //Install app
             
         }
             
