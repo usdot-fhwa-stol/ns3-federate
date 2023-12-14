@@ -197,10 +197,8 @@ namespace ns3 {
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
-            m_groupL2Address++;
-            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
-            //Install app
-            
+            // m_groupL2Address++;
+            // clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));            
         }
             
         
@@ -418,7 +416,7 @@ namespace ns3 {
                         std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
                         return;
-                    } 
+                    }
                     Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     if (uePhy != 0){
                         std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
