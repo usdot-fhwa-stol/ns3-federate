@@ -78,6 +78,7 @@ namespace ns3 {
         Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
 
         Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
         NodeContainer enbNode;
         enbNode.Create(1); 
 
@@ -89,7 +90,6 @@ namespace ns3 {
         enbMobModel.Install(enbNode);        
         NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(enbNode);
 
-        Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
         Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper>();
         
         lteHelper->SetAttribute("UseSidelink", BooleanValue (true));

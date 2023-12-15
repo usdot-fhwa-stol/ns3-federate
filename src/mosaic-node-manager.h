@@ -106,9 +106,7 @@ namespace ns3 {
         std::map<uint32_t, uint32_t> m_ns3Id2DeviceId;
         Ipv4AddressHelper m_ipAddressHelper;
         CommunicationType m_commType;
-        std::vector<uint32_t> m_preDefineNodeIds;
-        
-
+        std::vector<uint32_t> m_ueNodeIds;
 
     };
 }
