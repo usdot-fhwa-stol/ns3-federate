@@ -112,7 +112,7 @@ namespace ns3 {
         BuildingsHelper::Install (ueNodes);
         BuildingsHelper::MakeMobilityModelConsistent (); 
 
-        for (uint16_t i=0; i<predefineNode.GetN();i++)
+        for (uint16_t i=0; i<ueNodes.GetN();i++)
         {
             m_ns3Id2DeviceId[ueNodes.Get(i)->GetId()] = i;
             m_preDefineNodeIds.push_back(ueNodes.Get(i)->GetId());
