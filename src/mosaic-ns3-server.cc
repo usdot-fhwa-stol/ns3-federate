@@ -140,7 +140,6 @@ namespace ns3 {
         }else if (m_commType == CommunicationType::LTE){
             if (!m_lte_init_complete){
                 std::cout << "FEDERATE DEBUG: Initialization LTE" << std::endl;
-                Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
                 m_nodeManager->InitLte();
                 m_lte_init_complete = true;
                 std::cout << "FEDERATE DEBUG: Completed Initialization of LTE" << std::endl;
