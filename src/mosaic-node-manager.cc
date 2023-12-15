@@ -66,10 +66,10 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<PointToPointEpcHelper> epcHelper_ = CreateObject<PointToPointEpcHelper>();
         NodeContainer enbNode;
         enbNode.Create(1);
-        
+
         NodeContainer ueNodes;
         ueNodes.Create(numOfNode);
 
