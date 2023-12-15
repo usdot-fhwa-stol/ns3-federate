@@ -190,7 +190,7 @@ namespace ns3 {
             clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
         }
 
-    Ptr<LteUeRrcSl> ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+        Ptr<LteUeRrcSl> ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
         ueSidelinkConfiguration->SetSlEnabled(true);
         ueSidelinkConfiguration->SetV2xEnabled(true);
 
@@ -388,6 +388,7 @@ namespace ns3 {
 
         // m_lteHelper->EnableTraces();
 
+        std::cout << "Init LTE End" << std::endl;
     }
 
     void MosaicNodeManager::InitDsrc(){
@@ -399,7 +400,7 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
-
+        std::cout << "CreateMosaicNode" << std::endl;
 
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
@@ -447,6 +448,7 @@ namespace ns3 {
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return;
         }
+        std::cout << "Create Node End" << std::endl;
     }
 
     uint32_t MosaicNodeManager::GetNs3NodeId(uint32_t nodeId) {
