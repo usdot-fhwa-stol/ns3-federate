@@ -104,7 +104,7 @@ namespace ns3 {
         enbMobModel.SetPositionAllocator(enbPos);
         enbMobModel.Install(enbNode);
 
-        NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(eNodeB);
+        NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(enbNode);
 
 
         // Required to use NIST 3GPP model
@@ -473,7 +473,7 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            app->TransmitPacket(protocolID, msgID, payLength, address);
+            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
