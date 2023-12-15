@@ -66,31 +66,28 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-        // NodeContainer ueNodes;
-        // NodeContainer enbNode;
-        // ueNodes.Create(numOfNode);
-        // enbNode.Create(1);
+        NodeContainer ueNodes;
+        NodeContainer enbNode;
+        ueNodes.Create(numOfNode);
+        enbNode.Create(1);
 
-        // MobilityHelper uenMobility;
-        // uenMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        // Ptr<ListPositionAllocator> uenPos = CreateObject<ListPositionAllocator>();
-
-        // // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
-        // uenPos->Add(Vector(10000, 10000, 0));
-        // uenMobility.SetPositionAllocator(uenPos);
-        // uenMobility.Install(ueNodes);
+        MobilityHelper uenMobility;
+        uenMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+        Ptr<ListPositionAllocator> uenPos = CreateObject<ListPositionAllocator>();
+        uenPos->Add(Vector(10000, 10000, 0));
+        uenMobility.SetPositionAllocator(uenPos);
+        uenMobility.Install(ueNodes);
         
-        // Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
-        // Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
-        // lteHelper->SetEpcHelper(epcHelper);
-        // lteHelper->DisableNewEnbPhy(); 
+        Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
+        lteHelper->SetEpcHelper(epcHelper);
+        lteHelper->DisableNewEnbPhy(); 
 
-        // Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper> ();
-        // lteV2xHelper->SetLteHelper (lteHelper); 
+        Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper> ();
+        lteV2xHelper->SetLteHelper (lteHelper); 
 
         // lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
-
 
         // lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
         // lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
