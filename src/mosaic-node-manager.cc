@@ -117,27 +117,27 @@ namespace ns3 {
             m_preDefineNodeIds.push_back(ueNodes.Get(i)->GetId());
         }
 
-        lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-        NetDeviceContainer ueRespondersDevs = lteHelper->InstallUeDevice (ueNodes);
-        NetDeviceContainer ueDevs;
-        ueDevs.Add (ueRespondersDevs); 
+        // lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
+        // NetDeviceContainer ueRespondersDevs = lteHelper->InstallUeDevice (ueNodes);
+        // NetDeviceContainer ueDevs;
+        // ueDevs.Add (ueRespondersDevs); 
 
-        InternetStackHelper internet;
-        internet.Install (ueNodes); 
+        // InternetStackHelper internet;
+        // internet.Install (ueNodes); 
 
-        Ipv4InterfaceContainer ueIpIface; 
-        ueIpIface = epcHelper->AssignUeIpv4Address (ueDevs);
-        Ipv4StaticRoutingHelper Ipv4RoutingHelper;
+        // Ipv4InterfaceContainer ueIpIface; 
+        // ueIpIface = epcHelper->AssignUeIpv4Address (ueDevs);
+        // Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
-        for(uint32_t u = 0; u < ueNodes.GetN(); ++u)
-        {
-            Ptr<Node> ueNode = ueNodes.Get(u);
-            Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);
-        }
+        // for(uint32_t u = 0; u < ueNodes.GetN(); ++u)
+        // {
+        //     Ptr<Node> ueNode = ueNodes.Get(u);
+        //     Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+        //     ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);
+        // }
 
 
-        lteHelper->Attach(ueDevs); 
+        // lteHelper->Attach(ueDevs); 
 
         // std::vector<NetDeviceContainer> txGroups;
         // txGroups = lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
