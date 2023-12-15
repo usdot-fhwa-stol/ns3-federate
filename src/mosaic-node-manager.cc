@@ -80,9 +80,9 @@ namespace ns3 {
         
         Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
-        Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
-        lteHelper->SetEpcHelper(epcHelper);
-        lteHelper->DisableNewEnbPhy(); 
+        // Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
+        // lteHelper->SetEpcHelper(epcHelper);
+        // lteHelper->DisableNewEnbPhy(); 
 
         // Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper> ();
         // lteV2xHelper->SetLteHelper (lteHelper); 
