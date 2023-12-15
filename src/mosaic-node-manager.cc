@@ -66,19 +66,19 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-        Ptr<PointToPointEpcHelper> epcHelper_ = CreateObject<PointToPointEpcHelper>();
+        Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
         NodeContainer enbNode;
         enbNode.Create(1);
 
         NodeContainer ueNodes;
         ueNodes.Create(numOfNode);
 
-        Ptr<ListPositionAllocator> uenPos = CreateObject<ListPositionAllocator>();
-        uenPos->Add(Vector(10000, 10000, 0));
-        MobilityHelper uenMobility;
-        uenMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-        uenMobility.SetPositionAllocator(uenPos);
-        uenMobility.Install(ueNodes);
+        // Ptr<ListPositionAllocator> uenPos = CreateObject<ListPositionAllocator>();
+        // uenPos->Add(Vector(10000, 10000, 0));
+        // MobilityHelper uenMobility;
+        // uenMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        // uenMobility.SetPositionAllocator(uenPos);
+        // uenMobility.Install(ueNodes);
         
 
         // Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
