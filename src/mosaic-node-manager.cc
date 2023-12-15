@@ -66,7 +66,6 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-        
         Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
         NodeContainer eNodeB;
         eNodeB.Create(1); 
@@ -235,7 +234,6 @@ namespace ns3 {
 
         m_lteHelper->EnableTraces();
 
-        std::cout << "Init LTE End" << std::endl;
     }
 
     void MosaicNodeManager::InitDsrc(){
@@ -247,7 +245,7 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
-        std::cout << "CreateMosaicNode" << std::endl;
+
 
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
@@ -295,7 +293,6 @@ namespace ns3 {
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return;
         }
-        std::cout << "Create Node End" << std::endl;
     }
 
     uint32_t MosaicNodeManager::GetNs3NodeId(uint32_t nodeId) {
@@ -322,7 +319,8 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
+            std::cout << "FEDERATE DEBUG: Send from address " << m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]] << std::endl;
+            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
