@@ -139,85 +139,85 @@ namespace ns3 {
 
         lteHelper->Attach(ueDevs); 
 
-        std::vector<NetDeviceContainer> txGroups;
-        txGroups = lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
+        // std::vector<NetDeviceContainer> txGroups;
+        // txGroups = lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
         
-        std::vector<uint32_t> groupL2Addresses; 
-        uint32_t groupL2Address = 0x00; 
-        Ipv4AddressGenerator::Init(Ipv4Address ("225.0.0.0"), Ipv4Mask("255.0.0.0"));
-        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+        // std::vector<uint32_t> groupL2Addresses; 
+        // uint32_t groupL2Address = 0x00; 
+        // Ipv4AddressGenerator::Init(Ipv4Address ("225.0.0.0"), Ipv4Mask("255.0.0.0"));
+        // Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
-        uint16_t application_port = 8000; // Application port to TX/RX
-        NetDeviceContainer activeTxUes;
+        // uint16_t application_port = 8000; // Application port to TX/RX
+        // NetDeviceContainer activeTxUes;
 
 
-        for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++)
-        {
-            Ptr<NetDevice> ueDev = gIt->Get(0);
-            Ptr<Node> ueNode = ueDev->GetNode();
+        // for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++)
+        // {
+        //     Ptr<NetDevice> ueDev = gIt->Get(0);
+        //     Ptr<Node> ueNode = ueDev->GetNode();
             
-            NetDeviceContainer txUe ((*gIt).Get(0));
-            activeTxUes.Add(txUe);
-            NetDeviceContainer rxUes = lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
-            Ptr<LteSlTft> tft = Create<LteSlTft> (LteSlTft::TRANSMIT, clientRespondersAddress, groupL2Address);
-            lteV2xHelper->ActivateSidelinkBearer (Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft> (LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address);
-            lteV2xHelper->ActivateSidelinkBearer (Seconds(0.0), rxUes, tft);
+        //     NetDeviceContainer txUe ((*gIt).Get(0));
+        //     activeTxUes.Add(txUe);
+        //     NetDeviceContainer rxUes = lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
+        //     Ptr<LteSlTft> tft = Create<LteSlTft> (LteSlTft::TRANSMIT, clientRespondersAddress, groupL2Address);
+        //     lteV2xHelper->ActivateSidelinkBearer (Seconds(0.0), txUe, tft);
+        //     tft = Create<LteSlTft> (LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address);
+        //     lteV2xHelper->ActivateSidelinkBearer (Seconds(0.0), rxUes, tft);
 
-            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-            app->SetNodeManager(this);
-            ueNode->AddApplication(app);
-            app->SetCommType(m_commType);
-            app->SetSockets(clientRespondersAddress);
-            app->SetSockets();
+        //     Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+        //     app->SetNodeManager(this);
+        //     ueNode->AddApplication(app);
+        //     app->SetCommType(m_commType);
+        //     app->SetSockets(clientRespondersAddress);
+        //     app->SetSockets();
 
 
-            // Ptr<Socket> host = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
-            // host->Bind();
-            // host->Connect(InetSocketAddress(clientRespondersAddress,application_port));
-            // host->SetAllowBroadcast(true);
-            // host->ShutdownRecv();
-            // Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
-            // ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, host));
+        //     // Ptr<Socket> host = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
+        //     // host->Bind();
+        //     // host->Connect(InetSocketAddress(clientRespondersAddress,application_port));
+        //     // host->SetAllowBroadcast(true);
+        //     // host->ShutdownRecv();
+        //     // Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
+        //     // ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, host));
             
             
-            // Ptr<Socket> sink = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
-            // sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), application_port));
-            // sink->SetRecvCallback (MakeCallback (&ReceivePacket));
+        //     // Ptr<Socket> sink = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
+        //     // sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), application_port));
+        //     // sink->SetRecvCallback (MakeCallback (&ReceivePacket));
 
-            groupL2Address++;
-            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
-        }
+        //     groupL2Address++;
+        //     clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+        // }
 
-        Ptr<LteUeRrcSl> ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
-        ueSidelinkConfiguration->SetSlEnabled(true);
-        ueSidelinkConfiguration->SetV2xEnabled(true);
+        // Ptr<LteUeRrcSl> ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+        // ueSidelinkConfiguration->SetSlEnabled(true);
+        // ueSidelinkConfiguration->SetV2xEnabled(true);
 
-        LteRrcSap::SlV2xPreconfiguration preconfiguration;
-        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
-        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
+        // LteRrcSap::SlV2xPreconfiguration preconfiguration;
+        // preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
+        // preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
         
-        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
-        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
+        // preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
+        // preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
 
-        SlV2xPreconfigPoolFactory pFactory;
-        pFactory.SetHaveUeSelectedResourceConfig (true);
-        pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
-        pFactory.SetAdjacencyPscchPssch (true);
-        pFactory.SetSizeSubchannel (10);
-        pFactory.SetNumSubchannel (3);
-        pFactory.SetStartRbSubchannel (0);
-        pFactory.SetStartRbPscchPool (0);
-        pFactory.SetDataTxP0 (-4);
-        pFactory.SetDataTxAlpha (0.9);
+        // SlV2xPreconfigPoolFactory pFactory;
+        // pFactory.SetHaveUeSelectedResourceConfig (true);
+        // pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
+        // pFactory.SetAdjacencyPscchPssch (true);
+        // pFactory.SetSizeSubchannel (10);
+        // pFactory.SetNumSubchannel (3);
+        // pFactory.SetStartRbSubchannel (0);
+        // pFactory.SetStartRbPscchPool (0);
+        // pFactory.SetDataTxP0 (-4);
+        // pFactory.SetDataTxAlpha (0.9);
 
-        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
-        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
-        ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
+        // preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
+        // preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
+        // ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
-        lteHelper->InstallSidelinkV2xConfiguration (ueRespondersDevs, ueSidelinkConfiguration);
+        // lteHelper->InstallSidelinkV2xConfiguration (ueRespondersDevs, ueSidelinkConfiguration);
 
-        lteHelper->EnableTraces();
+        // lteHelper->EnableTraces();
 
         // Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
         // NodeContainer eNodeB;
