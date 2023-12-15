@@ -473,7 +473,6 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            std::cout << "FEDERATE DEBUG: Send from address " << address << std::endl;
             app->TransmitPacket(protocolID, msgID, payLength, address);
         }
         else{
