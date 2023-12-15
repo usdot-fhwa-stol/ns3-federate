@@ -65,7 +65,7 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::InitLte(int numOfNode){
+    void MosaicNodeManager::InitLte(Ptr<PointToPointEpcHelper> epcHelper, int numOfNode){
         Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
         Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
@@ -77,7 +77,6 @@ namespace ns3 {
         Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (100));
         Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
 
-        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
         Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
         NodeContainer enbNode;
         enbNode.Create(1); 
