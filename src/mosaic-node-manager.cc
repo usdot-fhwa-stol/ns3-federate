@@ -141,7 +141,7 @@ namespace ns3 {
         lteHelper->Attach(ueDevs); 
 
         std::vector<NetDeviceContainer> txGroups;
-        txGroups = lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numVeh); 
+        txGroups = lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
         
         std::vector<uint32_t> groupL2Addresses; 
         uint32_t groupL2Address = 0x00; 
