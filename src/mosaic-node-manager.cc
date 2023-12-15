@@ -84,8 +84,8 @@ namespace ns3 {
         lteHelper->SetEpcHelper(epcHelper);
         lteHelper->DisableNewEnbPhy(); 
 
-        Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper> ();
-        lteV2xHelper->SetLteHelper (lteHelper); 
+        // Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper> ();
+        // lteV2xHelper->SetLteHelper (lteHelper); 
 
         // lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
 
