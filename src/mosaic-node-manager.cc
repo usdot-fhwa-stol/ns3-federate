@@ -71,14 +71,14 @@ namespace ns3 {
         ueNodes.Create(numOfNode);
         enbNode.Create(1);
 
-        MobilityHelper uenMobility;
-        uenMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
         Ptr<ListPositionAllocator> uenPos = CreateObject<ListPositionAllocator>();
         uenPos->Add(Vector(10000, 10000, 0));
+        MobilityHelper uenMobility;
+        uenMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         uenMobility.SetPositionAllocator(uenPos);
         uenMobility.Install(ueNodes);
         
-        // Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
         // Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
         // lteHelper->SetEpcHelper(epcHelper);
