@@ -89,10 +89,8 @@ namespace ns3 {
     private:
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
-        std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
-        // DSRC
         // Channel
         YansWifiChannelHelper m_wifiChannelHelper;
         Ptr<YansWifiChannel> m_channel;
@@ -105,26 +103,11 @@ namespace ns3 {
 
         // Assembler
         Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
-        // DSRC End
-
-        // LTE
-        // LTE Helper
         std::map<uint32_t, uint32_t> m_ns3Id2DeviceId;
-        Ptr<LteHelper> m_lteHelper;
-        Ptr<LteV2xHelper> m_lteV2xHelper;
-        Ptr<PointToPointEpcHelper> m_epcHelper;
-        Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
-
         Ipv4AddressHelper m_ipAddressHelper;
-
-        NetDeviceContainer m_ueDevs;
-
-        uint32_t m_groupL2Address;
-
         CommunicationType m_commType;
         std::vector<uint32_t> m_preDefineNodeIds;
         
-        // LTE End
 
 
     };
