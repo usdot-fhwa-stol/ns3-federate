@@ -83,12 +83,12 @@ namespace ns3 {
        
 
         m_lteHelper = CreateObject<LteHelper>();
-        Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper>();
+        m_lteV2xHelper = CreateObject<LteV2xHelper>();
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
         m_lteHelper->SetEpcHelper(epcHelper);
         m_lteHelper->DisableNewEnbPhy();
-        lteV2xHelper->SetLteHelper(m_lteHelper);
+        m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
         m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
         
@@ -170,7 +170,7 @@ namespace ns3 {
         Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
 
-        std::vector<NetDeviceContainer> txGroups = lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
+        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
         NetDeviceContainer activeTxUes;
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
@@ -183,12 +183,12 @@ namespace ns3 {
             
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
-            NetDeviceContainer rxUes = lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
+            NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
 
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, m_groupL2Address); 
-            lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, m_groupL2Address); 
-            lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
