@@ -66,6 +66,19 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
+         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
+        NodeContainer predefineNode;
+        predefineNode.Create(numOfNode);
+        
+        MobilityHelper mobility;
+        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+        Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
+
+        // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
+        positionAlloc->Add(Vector(10000, 10000, 0));
+        mobility.SetPositionAllocator(positionAlloc);
+        mobility.Install(predefineNode);
+ 
         Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
         NodeContainer eNodeB;
         eNodeB.Create(1); 
@@ -112,18 +125,7 @@ namespace ns3 {
         
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
-        std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
-        NodeContainer predefineNode;
-        predefineNode.Create(numOfNode);
-        
-        MobilityHelper mobility;
-        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
-        Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
 
-        // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
-        positionAlloc->Add(Vector(10000, 10000, 0));
-        mobility.SetPositionAllocator(positionAlloc);
-        mobility.Install(predefineNode);
 
 
         BuildingsHelper::Install (eNodeB);
