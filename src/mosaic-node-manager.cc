@@ -66,15 +66,6 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-
-        // Set the UEs power in dBm
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
-        Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
-        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
-        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (100));
-        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (100));
-        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
-
          std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
         predefineNode.Create(numOfNode);
@@ -98,9 +89,26 @@ namespace ns3 {
         m_lteHelper->SetEpcHelper(epcHelper);
         m_lteHelper->DisableNewEnbPhy();
         lteV2xHelper->SetLteHelper(m_lteHelper);
-        m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");        
+
+        m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
+        
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
-        Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));        
+        Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
+        // Set the UEs power in dBm
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
+        // Set power
+        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
+        // Enable V2X communication on PHY layer
+        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
+
+        // Set power
+        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
+        
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
         NodeContainer eNodeB;
