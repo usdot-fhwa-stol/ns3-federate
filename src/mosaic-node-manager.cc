@@ -195,7 +195,7 @@ namespace ns3 {
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
-            uint32_t++;
+            groupL2Address++;
             clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
         }
             
