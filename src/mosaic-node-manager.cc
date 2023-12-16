@@ -126,7 +126,7 @@ namespace ns3 {
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
 
-        NetDeviceContainer ueRespondersDevs = lteHelper->InstallUeDevice (m_ueNodes);
+        NetDeviceContainer ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
         NetDeviceContainer ueDevs;
         ueDevs.Add(ueRespondersDevs);
         
@@ -180,9 +180,9 @@ namespace ns3 {
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
 
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, uint32_t); 
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, uint32_t); 
+            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
@@ -227,7 +227,7 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
-        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
+        m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
 
@@ -432,18 +432,18 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration){
-        if (!m_ueSidelinkConfiguration){
-            NS_LOG_ERROR("Sidelink config has not initialized yet");
-            return;
-        }
-        if (!m_lteHelper){
-            NS_LOG_ERROR("LTE helper has not initialized yet");
-            return;
-        }
-        m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
+        // if (!m_ueSidelinkConfiguration){
+        //     NS_LOG_ERROR("Sidelink config has not initialized yet");
+        //     return;
+        // }
+        // if (!m_lteHelper){
+        //     NS_LOG_ERROR("LTE helper has not initialized yet");
+        //     return;
+        // }
+        // m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
 
-        // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
-        m_lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
+        // // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
+        // m_lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
 
     }
 }
