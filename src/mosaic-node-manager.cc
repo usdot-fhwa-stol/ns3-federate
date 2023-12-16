@@ -66,6 +66,7 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
+        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
         predefineNode.Create(numOfNode);
@@ -79,7 +80,6 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(predefineNode);
 
-        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
         Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
         
