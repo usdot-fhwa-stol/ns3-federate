@@ -438,18 +438,18 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration){
-        if (!m_ueSidelinkConfiguration){
-            NS_LOG_ERROR("Sidelink config has not initialized yet");
-            return;
-        }
-        if (!lteHelper){
-            NS_LOG_ERROR("LTE helper has not initialized yet");
-            return;
-        }
-        m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
+        // if (!m_ueSidelinkConfiguration){
+        //     NS_LOG_ERROR("Sidelink config has not initialized yet");
+        //     return;
+        // }
+        // if (!lteHelper){
+        //     NS_LOG_ERROR("LTE helper has not initialized yet");
+        //     return;
+        // }
+        // m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
 
-        // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
-        lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
+        // // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
+        // lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
 
     }
 }
