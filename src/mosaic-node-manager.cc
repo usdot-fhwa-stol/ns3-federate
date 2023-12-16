@@ -83,6 +83,16 @@ namespace ns3 {
         NodeContainer eNodeB;
         eNodeB.Create(1); 
 
+        // Topology eNodeB
+        Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+        pos_eNB->Add(Vector(0, 0, 0));
+
+        // Install mobility eNodeB
+        MobilityHelper mob_eNB;
+        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mob_eNB.SetPositionAllocator(pos_eNB);
+        mob_eNB.Install(eNodeB);
+        
         m_lteHelper = CreateObject<LteHelper>();
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
         
@@ -113,15 +123,6 @@ namespace ns3 {
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
 
-        // Topology eNodeB
-        Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-        pos_eNB->Add(Vector(0, 0, 0));
-
-        // Install mobility eNodeB
-        MobilityHelper mob_eNB;
-        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-        mob_eNB.SetPositionAllocator(pos_eNB);
-        mob_eNB.Install(eNodeB);
         
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
