@@ -66,52 +66,6 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-        Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
-        NodeContainer eNodeB;
-        eNodeB.Create(1); 
-
-        m_lteHelper = CreateObject<LteHelper>();
-        m_lteV2xHelper = CreateObject<LteV2xHelper>();
-        
-        m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-        m_lteHelper->SetEpcHelper(m_epcHelper);
-        m_lteHelper->DisableNewEnbPhy();
-        m_lteV2xHelper->SetLteHelper(m_lteHelper);
-
-        m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
-        
-        m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
-        Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
-        // Set the UEs power in dBm
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
-        // Set power
-        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
-        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
-        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
-        Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
-        // Enable V2X communication on PHY layer
-        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
-
-        // Set power
-        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (100));
-        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (100));
-        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
-        
-        m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
-        
-
-        // Topology eNodeB
-        Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-        pos_eNB->Add(Vector(0, 0, 0));
-
-        // Install mobility eNodeB
-        MobilityHelper mob_eNB;
-        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-        mob_eNB.SetPositionAllocator(pos_eNB);
-        mob_eNB.Install(eNodeB);
-        
-        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
-
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer predefineNode;
         predefineNode.Create(numOfNode);
@@ -125,12 +79,60 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(predefineNode);
 
+        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+
+        Ptr<LteHelper> lteHelper = CreateObject<LteHelper>();
+        
+        lteHelper->SetEpcHelper(epcHelper);
+        lteHelper->DisableNewEnbPhy();
+
+        Ptr<LteV2xHelper> lteV2xHelper = CreateObject<LteV2xHelper>();
+        lteV2xHelper->SetLteHelper(lteHelper);
+
+        lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
+        
+        lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
+        Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));
+        
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
+        
+        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
+        Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
+        
+        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
+
+        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (100));
+        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (100));
+        
+        lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
+        
+        NodeContainer eNodeB;
+        eNodeB.Create(1); 
+        // Topology eNodeB
+        Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+        pos_eNB->Add(Vector(0, 0, 0));
+
+        // Install mobility eNodeB
+        MobilityHelper mob_eNB;
+        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mob_eNB.SetPositionAllocator(pos_eNB);
+        mob_eNB.Install(eNodeB);
+        
+        NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice(eNodeB);
+
+
+
 
         BuildingsHelper::Install (eNodeB);
         BuildingsHelper::Install (predefineNode);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
-        NetDeviceContainer m_ueDevs = m_lteHelper->InstallUeDevice (predefineNode);
+        lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
+
+        NetDeviceContainer m_ueDevs = lteHelper->InstallUeDevice (predefineNode);
         
         for (uint16_t i=0; i<predefineNode.GetN();i++)
         {
@@ -145,7 +147,7 @@ namespace ns3 {
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(m_ueDevs);
+        Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(m_ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
@@ -154,12 +156,12 @@ namespace ns3 {
             Ptr<Node> ueNode = predefineNode.Get(i);
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);       
+            ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);       
         }
 
         // // Attach the LTE device to the eNodeB (base station)
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-        m_lteHelper->Attach(m_ueDevs);
+        lteHelper->Attach(m_ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_groupL2Address = 0x00;
@@ -167,7 +169,7 @@ namespace ns3 {
         Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
 
-        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
+        std::vector<NetDeviceContainer> txGroups = lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
         NetDeviceContainer activeTxUes;
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
@@ -180,12 +182,12 @@ namespace ns3 {
             
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
-            NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
+            NetDeviceContainer rxUes = lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
 
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
+            lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+            lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
@@ -231,9 +233,9 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
-        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
+        lteHelper->InstallSidelinkV2xConfiguration(m_ueDevs, m_ueSidelinkConfiguration);  
 
-        m_lteHelper->EnableTraces();
+        lteHelper->EnableTraces();
 
     }
 
@@ -440,14 +442,14 @@ namespace ns3 {
             NS_LOG_ERROR("Sidelink config has not initialized yet");
             return;
         }
-        if (!m_lteHelper){
+        if (!lteHelper){
             NS_LOG_ERROR("LTE helper has not initialized yet");
             return;
         }
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
 
         // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
-        m_lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
+        lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
 
     }
 }
