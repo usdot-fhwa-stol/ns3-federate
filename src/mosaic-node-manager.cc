@@ -79,14 +79,14 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(predefineNode);
  
-        Ptr<PointToPointEpcHelper> m_epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
        
 
         m_lteHelper = CreateObject<LteHelper>();
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-        m_lteHelper->SetEpcHelper(m_epcHelper);
+        m_lteHelper->SetEpcHelper(epcHelper);
         m_lteHelper->DisableNewEnbPhy();
         m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
@@ -148,7 +148,7 @@ namespace ns3 {
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(m_ueDevs);
+        Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(m_ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
@@ -157,7 +157,7 @@ namespace ns3 {
             Ptr<Node> ueNode = predefineNode.Get(i);
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);       
+            ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);       
         }
 
         // // Attach the LTE device to the eNodeB (base station)
