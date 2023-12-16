@@ -77,9 +77,10 @@ namespace ns3 {
         Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
 
          std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
-        NodeContainer predefineNode;
-        predefineNode.Create(numOfNode);
-        
+        NodeContainer ueAllNodes;
+        m_ueNodes.Create(numOfNode);
+        ueAllNodes.Add(m_ueNodes);
+
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
         Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
@@ -87,7 +88,7 @@ namespace ns3 {
         // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
         positionAlloc->Add(Vector(10000, 10000, 0));
         mobility.SetPositionAllocator(positionAlloc);
-        mobility.Install(predefineNode);
+        mobility.Install(m_ueNodes);
  
         Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
@@ -120,33 +121,35 @@ namespace ns3 {
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         BuildingsHelper::Install (eNodeB);
-        BuildingsHelper::Install (predefineNode);
+        BuildingsHelper::Install (ueAllNodes);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
 
-        NetDeviceContainer m_ueDevs = m_lteHelper->InstallUeDevice (predefineNode);
+        NetDeviceContainer ueRespondersDevs = lteHelper->InstallUeDevice (m_ueNodes);
+        NetDeviceContainer ueDevs;
+        ueDevs.Add(ueRespondersDevs);
         
-        for (uint16_t i=0; i<predefineNode.GetN();i++)
+        for (uint16_t i=0; i<m_ueNodes.GetN();i++)
         {
-            m_ns3Id2DeviceId[predefineNode.Get(i)->GetId()] = i;
-            m_preDefineNodeIds.push_back(predefineNode.Get(i)->GetId());
+            m_ns3Id2DeviceId[m_ueNodes.Get(i)->GetId()] = i;
+            m_ueNodeIdList.push_back(m_ueNodes.Get(i)->GetId());
         }
 
         // Install the IP stack on the UEs
         NS_LOG_INFO ("Installing IP stack..."); 
         InternetStackHelper internet;
-        internet.Install (predefineNode); 
+        internet.Install (ueAllNodes); 
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-        Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(m_ueDevs);
+        Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
-        for(uint32_t i = 0; i < predefineNode.GetN(); ++i)
+        for(uint32_t i = 0; i < ueAllNodes.GetN(); ++i)
         {
-            Ptr<Node> ueNode = predefineNode.Get(i);
+            Ptr<Node> ueNode = ueAllNodes.Get(i);
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
             ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);       
@@ -154,15 +157,15 @@ namespace ns3 {
 
         // // Attach the LTE device to the eNodeB (base station)
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-        m_lteHelper->Attach(m_ueDevs);
+        m_lteHelper->Attach(ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
-        m_groupL2Address = 0x00;
+        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
+
+        uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
-
-        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueDevs, numOfNode); 
         NetDeviceContainer activeTxUes;
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
@@ -177,9 +180,9 @@ namespace ns3 {
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
 
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, m_groupL2Address); 
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, uint32_t); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, m_groupL2Address); 
+            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, uint32_t); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
@@ -192,10 +195,8 @@ namespace ns3 {
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
-            m_groupL2Address++;
+            uint32_t++;
             clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
-            //Install app
-            
         }
             
         
@@ -274,9 +275,9 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (m_commType == LTE) {
-            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_preDefineNodeIds.front() << " from node pool, set position to : " << position << std::endl;
-            m_mosaic2ns3ID[ID] = m_preDefineNodeIds.front();
-            m_preDefineNodeIds.erase(m_preDefineNodeIds.begin());
+            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_ueNodeIdList.front() << " from node pool, set position to : " << position << std::endl;
+            m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
+            m_ueNodeIdList.erase(m_ueNodeIdList.begin());
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
             // pick up the node from pool and set the new coordinates

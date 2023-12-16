@@ -116,14 +116,10 @@ namespace ns3 {
 
         Ipv4AddressHelper m_ipAddressHelper;
 
-        NetDeviceContainer m_ueDevs;
-
-        uint32_t m_groupL2Address;
-        Ipv4Address m_clientRespondersAddress;
-
         CommunicationType m_commType;
-        std::vector<uint32_t> m_preDefineNodeIds;
+        std::vector<uint32_t> m_ueNodeIdList;
         
+        NodeContainer m_ueNodes;
         // LTE End
 
 
