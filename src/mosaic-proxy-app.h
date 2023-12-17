@@ -83,7 +83,7 @@ namespace ns3 {
         uint16_t m_port = 0;
 
     private:
-        void SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket);
+        void SidelinkV2xAnnouncementMacTrace(Ptr<const Packet> packet);
 
         void Receive(Ptr<Socket> socket);
 

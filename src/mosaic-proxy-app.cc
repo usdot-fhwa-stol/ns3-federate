@@ -68,17 +68,17 @@ namespace ns3 {
     void MosaicProxyApp::Disable(void) {
         m_active = false;
     }
-    void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
+    void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<const Packet> packet)
     {
-        Ptr <Node> node = socket->GetNode(); 
+        Ptr <Node> node = m_hostSocket->GetNode(); 
         int id = node->GetId();
         uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
         Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
         Vector posTx = posMobility->GetPosition();
         std::ostringstream msgCam;
         msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
-        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(), 120);
-        std::cout << "Message sent out successfully: " << (socket->Send(packet) == packet->GetSize()) << std::endl;
+        Ptr<Packet> packet_ = Create<Packet>((uint8_t*)msgCam.str().c_str(), 120);
+        std::cout << "Message sent out successfully: " << (m_hostSocket->Send(packet_) == packet_->GetSize()) << std::endl;
     }
 
     void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress, Ptr<LteUeMac> ueMac){
@@ -88,7 +88,7 @@ namespace ns3 {
             m_hostSocket->Connect(InetSocketAddress(clientRespondersAddress,m_port));
             m_hostSocket->SetAllowBroadcast(true);
             m_hostSocket->ShutdownRecv();
-            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
+            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&MosaicProxyApp::SidelinkV2xAnnouncementMacTrace, this));
         }else{
             return;
         }
