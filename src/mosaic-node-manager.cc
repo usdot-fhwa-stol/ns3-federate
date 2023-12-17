@@ -36,8 +36,6 @@
 #include "ns3/node-list.h"
 #include "ns3/mobility-module.h"
 
-#include <sstream>
-
 NS_LOG_COMPONENT_DEFINE("MosaicNodeManager");
 
 namespace ns3 {
@@ -65,16 +63,6 @@ namespace ns3 {
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType) {
         m_serverPtr = serverPtr;
         m_commType = commType;
-    }
-
-    void MosaicNodeManager::SidelinkV2xAnnouncementPhyTrace (Ptr<OutputStreamWrapper> stream)
-    {
-        *stream->GetStream () << Simulator::Now ().GetSeconds () << std::endl;
-    }
-
-    void MosaicNodeManager::SidelinkV2xAnnouncementMacTrace (Ptr<OutputStreamWrapper> stream)
-    {
-        *stream->GetStream () << Simulator::Now ().GetSeconds () << std::endl;
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
@@ -178,17 +166,6 @@ namespace ns3 {
         Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
         NetDeviceContainer activeTxUes;
-        
-        AsciiTraceHelper ascii1;
-        Ptr<OutputStreamWrapper> stream1 = ascii1.CreateFileStream ("sidelinkV2x_out_announcement_phy.tr");
-        *stream1->GetStream () << "Time" << std::endl;
-        
-        AsciiTraceHelper ascii2;
-        Ptr<OutputStreamWrapper> stream2 = ascii1.CreateFileStream ("sidelinkV2x_out_announcement_mac.tr");
-        *stream2->GetStream () << "Time" << std::endl;
-
-        std::ostringstream oss;
-        oss.str("");
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
@@ -205,20 +182,15 @@ namespace ns3 {
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
-            
-            oss << txUe.Get(0) ->GetObject<LteUeNetDevice>()->GetImsi(); 
 
-            Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy () );
             Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
 
-            uePhy->TraceConnect ("SidelinkV2xAnnouncement", oss.str() ,MakeBoundCallback (&MosaicNodeManager::SidelinkV2xAnnouncementPhyTrace, stream1));
-            ueMac->TraceConnect ("SidelinkV2xAnnouncement", oss.str() ,MakeBoundCallback (&MosaicNodeManager::SidelinkV2xAnnouncementMacTrace, stream2));
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
             app->SetCommType(m_commType);
-            app->SetSockets(clientRespondersAddress);
+            app->SetSockets(clientRespondersAddress, ueMac);
             app->SetSockets();
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;

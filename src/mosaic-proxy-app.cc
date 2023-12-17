@@ -69,14 +69,27 @@ namespace ns3 {
         m_active = false;
     }
     
-    void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress){
+    void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket){
+        Ptr <Node> node = socket->GetNode(); 
+        int id = node->GetId();
+        uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
+        Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
+        Vector posTx = posMobility->GetPosition();
+
+        std::ostringstream msgCam;
+        msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
+        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(),lenCam);
+        socket->Send(packet);
+    }
+
+    void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress, Ptr<LteUeMac> ueMac){
         if (!m_hostSocket){
             m_hostSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
             m_hostSocket->Bind();
             m_hostSocket->Connect(InetSocketAddress(clientRespondersAddress,m_port));
             m_hostSocket->SetAllowBroadcast(true);
             m_hostSocket->ShutdownRecv();
-            
+            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
         }else{
             return;
         }

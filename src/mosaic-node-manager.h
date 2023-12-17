@@ -95,10 +95,8 @@ namespace ns3 {
         std::string m_lossModel;
         std::string m_delayModel;
 
-    private: 
-        static void SidelinkV2xAnnouncementPhyTrace (Ptr<OutputStreamWrapper> stream);
-        static void SidelinkV2xAnnouncementMacTrace (Ptr<OutputStreamWrapper> stream);
-
+    private:
+    
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
