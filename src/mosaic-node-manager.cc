@@ -65,7 +65,7 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void void MosaicNodeManager::PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, uint16_t cellId, double rsrp, double sinr, uint8_t componentCarrierId){
+    void MosaicNodeManager::PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, uint16_t cellId, double rsrp, double sinr, uint8_t componentCarrierId){
         NS_LOG_INFO("PHY Layer Trace: RNTI=" << rnti << ", RSRP=" << rsrp << ", SINR=" << sinr);
     }
 
