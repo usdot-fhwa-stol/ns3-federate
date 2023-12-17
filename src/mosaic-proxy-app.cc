@@ -68,8 +68,7 @@ namespace ns3 {
     void MosaicProxyApp::Disable(void) {
         m_active = false;
     }
-    void
-    SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
+    void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
     {
         Ptr <Node> node = socket->GetNode(); 
         int id = node->GetId();

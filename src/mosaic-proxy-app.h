@@ -56,7 +56,6 @@ namespace ns3 {
     class MosaicProxyApp : public Application {
     public:
 
-        void SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket);
 
         MosaicProxyApp() = default;
 
@@ -84,6 +83,7 @@ namespace ns3 {
         uint16_t m_port = 0;
 
     private:
+        void SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket);
 
         void Receive(Ptr<Socket> socket);
 
