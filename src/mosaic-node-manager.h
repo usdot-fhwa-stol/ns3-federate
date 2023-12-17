@@ -94,7 +94,7 @@ namespace ns3 {
         std::string m_delayModel;
 
     private:    
-        void PhyTrace(Ptr<const SpectrumValue> spectrumValue, const SpectrumModel::SpectrumModelUid_t modelUid);
+        void PhyTrace(RsrpSinrInfo info) ;
         void MacTrace(uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size);
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
