@@ -96,8 +96,8 @@ namespace ns3 {
         std::string m_delayModel;
 
     private: 
-        void SidelinkV2xAnnouncementPhyTrace (Ptr<OutputStreamWrapper> stream);
-        void SidelinkV2xAnnouncementMacTrace (Ptr<OutputStreamWrapper> stream);
+        static void SidelinkV2xAnnouncementPhyTrace (Ptr<OutputStreamWrapper> stream);
+        static void SidelinkV2xAnnouncementMacTrace (Ptr<OutputStreamWrapper> stream);
 
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
