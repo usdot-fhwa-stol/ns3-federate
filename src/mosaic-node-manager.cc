@@ -239,18 +239,18 @@ namespace ns3 {
 
         m_lteHelper->EnableTraces();
 
-        for (uint16_t i = 0; i < m_ueNodes.GetN(); i++) {
-            Ptr<Node> singleNode = m_ueNodes.Get(i);
-            Ptr<LteUeNetDevice> lteUeDev = singleNode->GetDevice(0)->GetObject<LteUeNetDevice>();
+        // for (uint16_t i = 0; i < m_ueNodes.GetN(); i++) {
+        //     Ptr<Node> singleNode = m_ueNodes.Get(i);
+        //     Ptr<LteUeNetDevice> lteUeDev = singleNode->GetDevice(0)->GetObject<LteUeNetDevice>();
 
-            // Attach trace source to PHY layer for RSRP/SINR measurements
-            Ptr<LteUePhy> uePhy = lteUeDev->GetPhy();
-            uePhy->TraceConnectWithoutContext("ReportCurrentCellRsrpSinr", MakeCallback(&MosaicNodeManager::PhyRsrpSinrTrace, this));
+        //     // Attach trace source to PHY layer for RSRP/SINR measurements
+        //     Ptr<LteUePhy> uePhy = lteUeDev->GetPhy();
+        //     uePhy->TraceConnectWithoutContext("ReportCurrentCellRsrpSinr", MakeCallback(&MosaicNodeManager::PhyRsrpSinrTrace, this));
 
-            // Attach trace source to MAC layer for scheduling
-            Ptr<LteUeMac> ueMac = lteUeDev->GetMac();
-            ueMac->TraceConnectWithoutContext("DlScheduling", MakeCallback(&MosaicNodeManager::MacDlSchedulingTrace, this));
-        }
+        //     // Attach trace source to MAC layer for scheduling
+        //     Ptr<LteUeMac> ueMac = lteUeDev->GetMac();
+        //     ueMac->TraceConnectWithoutContext("DlScheduling", MakeCallback(&MosaicNodeManager::MacDlSchedulingTrace, this));
+        // }
 
     }
 
