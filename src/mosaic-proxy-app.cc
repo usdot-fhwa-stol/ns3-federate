@@ -71,8 +71,11 @@ namespace ns3 {
     void
     SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
     {
+        Ptr <Node> node = socket->GetNode(); 
+        int id = node->GetId();
         uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
-
+        Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
+        Vector posTx = posMobility->GetPosition();
         std::ostringstream msgCam;
         msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
         Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(), 120);
