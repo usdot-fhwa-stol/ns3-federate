@@ -65,6 +65,15 @@ namespace ns3 {
         m_commType = commType;
     }
 
+    void MosaicNodeManager::TxTraceCallback(Ptr<const Packet> packet) {
+        NS_LOG_INFO("Packet sent at " << Simulator::Now().GetSeconds() << " s");
+    }
+
+    void MosaicNodeManager::RxTraceCallback(Ptr<const Packet> packet, const Address &from) {
+        NS_LOG_INFO("Packet received at " << Simulator::Now().GetSeconds() << " s");
+    }
+
+
     void MosaicNodeManager::InitLte(int numOfNode){
 
         // Set the UEs power in dBm
@@ -190,7 +199,7 @@ namespace ns3 {
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
             app->SetCommType(m_commType);
-            app->SetSockets(clientRespondersAddress, ueMac);
+            app->SetSockets(clientRespondersAddress);
             app->SetSockets();
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;

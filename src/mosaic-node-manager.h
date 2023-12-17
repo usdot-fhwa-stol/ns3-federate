@@ -45,26 +45,11 @@
 #include "ns3/sl-v2x-preconfig-pool-factory.h"
 #include "ns3/ipv4-address-generator.h"
 
-#include "ns3/lte-helper.h"
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/ipv4-global-routing-helper.h"
-#include "ns3/internet-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/lte-module.h"
-#include "ns3/applications-module.h"
-#include "ns3/point-to-point-helper.h"
-#include "ns3/lte-v2x-helper.h"
-#include "ns3/config-store.h"
-#include "ns3/lte-hex-grid-enb-topology-helper.h"
-#include <ns3/buildings-helper.h>
-#include <ns3/cni-urbanmicrocell-propagation-loss-model.h>
-#include <ns3/constant-position-mobility-model.h>
-#include <ns3/spectrum-analyzer-helper.h>
-#include <ns3/multi-model-spectrum-channel.h>
-#include "ns3/ns2-mobility-helper.h"
-#include <cfloat>
-#include <sstream>
+#include "ns3/trace-source-accessor.h"
+#include "ns3/packet.h"
+
+#include "ns3/lte-ue-phy.h"
+#include "ns3/lte-ue-mac.h"
 
 
 namespace ns3 {
@@ -109,6 +94,8 @@ namespace ns3 {
         std::string m_delayModel;
 
     private:
+        void PhyTrace(RsrpSinrInfo info);
+        void MacTrace(uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size);
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
