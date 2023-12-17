@@ -36,6 +36,8 @@
 #include "ns3/node-list.h"
 #include "ns3/mobility-module.h"
 
+#include <sstream>
+
 NS_LOG_COMPONENT_DEFINE("MosaicNodeManager");
 
 namespace ns3 {
@@ -65,12 +67,14 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, uint16_t cellId, double rsrp, double sinr, uint8_t componentCarrierId){
-        NS_LOG_INFO("PHY Layer Trace: RNTI=" << rnti << ", RSRP=" << rsrp << ", SINR=" << sinr);
+    void MosaicNodeManager::SidelinkV2xAnnouncementPhyTrace (Ptr<OutputStreamWrapper> stream)
+    {
+        *stream->GetStream () << Simulator::Now ().GetSeconds () << std::endl;
     }
 
-    void MosaicNodeManager::MacDlSchedulingTrace(const std::string &path, uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size) {
-        NS_LOG_INFO("MAC Layer Trace: Frame=" << frameNo << ", Subframe=" << subframeNo << ", RNTI=" << rnti << ", MCS=" << mcs << ", Size=" << size);
+    void MosaicNodeManager::SidelinkV2xAnnouncementMacTrace (Ptr<OutputStreamWrapper> stream)
+    {
+        *stream->GetStream () << Simulator::Now ().GetSeconds () << std::endl;
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
@@ -174,6 +178,17 @@ namespace ns3 {
         Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
         NetDeviceContainer activeTxUes;
+        
+        AsciiTraceHelper ascii1;
+        Ptr<OutputStreamWrapper> stream1 = ascii1.CreateFileStream ("sidelinkV2x_out_announcement_phy.tr");
+        *stream1->GetStream () << "Time" << std::endl;
+        
+        AsciiTraceHelper ascii2;
+        Ptr<OutputStreamWrapper> stream2 = ascii1.CreateFileStream ("sidelinkV2x_out_announcement_mac.tr");
+        *stream2->GetStream () << "Time" << std::endl;
+
+        std::ostringstream oss;
+        oss.str("");
 
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
@@ -190,9 +205,12 @@ namespace ns3 {
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
-
+            
+            Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy () );
             Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
 
+            uePhy->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementPhyTrace, stream1));
+            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, stream2));
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
@@ -238,21 +256,6 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
-
-        for (uint16_t i = 0; i < m_ueNodes.GetN(); i++) {
-            Ptr<Node> singleNode = m_ueNodes.Get(i);
-            Ptr<LteUeNetDevice> lteUeDev = singleNode->GetDevice(0)->GetObject<LteUeNetDevice>();
-
-            std::cout << "FEDERATE DEBUG: ReportCurrentCellRsrpSinr" << std::endl;
-            // Attach trace source to PHY layer for RSRP/SINR measurements
-            Ptr<LteUePhy> uePhy = lteUeDev->GetPhy();
-            uePhy->TraceConnectWithoutContext("ReportCurrentCellRsrpSinr", MakeCallback(&MosaicNodeManager::PhyRsrpSinrTrace, this));
-            
-            std::cout << "FEDERATE DEBUG: DlScheduling" << std::endl;
-            // Attach trace source to MAC layer for scheduling
-            Ptr<LteUeMac> ueMac = lteUeDev->GetMac();
-            ueMac->TraceConnectWithoutContext("DlScheduling", MakeCallback(&MosaicNodeManager::MacDlSchedulingTrace, this));
-        }
 
     }
 

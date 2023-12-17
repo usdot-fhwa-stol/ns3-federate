@@ -50,6 +50,7 @@
 
 #include "ns3/lte-ue-phy.h"
 #include "ns3/lte-ue-mac.h"
+#include <sstream>
 
 
 namespace ns3 {
@@ -94,8 +95,9 @@ namespace ns3 {
         std::string m_delayModel;
 
     private: 
-        void MacDlSchedulingTrace(const std::string &path, uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size);
-        void PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, uint16_t cellId, double rsrp, double sinr, uint8_t componentCarrierId);
+        void SidelinkV2xAnnouncementPhyTrace (Ptr<OutputStreamWrapper> stream);
+        void SidelinkV2xAnnouncementMacTrace (Ptr<OutputStreamWrapper> stream);
+
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
