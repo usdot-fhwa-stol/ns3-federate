@@ -72,6 +72,7 @@ namespace ns3 {
     void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket){
         Ptr <Node> node = socket->GetNode(); 
         int id = node->GetId();
+        std::cout<< "trace node " << id << std::endl;
         uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
         Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
         Vector posTx = posMobility->GetPosition();
