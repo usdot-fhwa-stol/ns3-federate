@@ -64,14 +64,15 @@ namespace ns3 {
         m_serverPtr = serverPtr;
         m_commType = commType;
     }
-
-    void MosaicNodeManager::TxTraceCallback(Ptr<const Packet> packet) {
-        NS_LOG_INFO("Packet sent at " << Simulator::Now().GetSeconds() << " s");
+    
+    void MosaicNodeManager::PhyTrace(Ptr<const SpectrumValue> spectrumValue, const SpectrumModel::SpectrumModelUid_t modelUid) {
+        NS_LOG_INFO("PHY Layer Trace: SpectrumValue and ModelUid captured");
     }
 
-    void MosaicNodeManager::RxTraceCallback(Ptr<const Packet> packet, const Address &from) {
-        NS_LOG_INFO("Packet received at " << Simulator::Now().GetSeconds() << " s");
+    void MosaicNodeManager::MacTrace(uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size) {
+        NS_LOG_INFO("MAC Layer Trace: Frame=" << frameNo << ", Subframe=" << subframeNo << ", RNTI=" << rnti << ", MCS=" << mcs << ", Size=" << size);
     }
+
 
 
     void MosaicNodeManager::InitLte(int numOfNode){
@@ -239,6 +240,20 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
+        
+        for (uint16_t i = 0; i < m_ueNodes.GetN(); i++) {
+            Ptr<Node> singleNode = m_ueNodes.Get(i);
+            Ptr<LteUeNetDevice> lteUeDev = singleNode->GetDevice(0)->GetObject<LteUeNetDevice>();
+
+            // Attach trace source to PHY layer
+            Ptr<LteUePhy> uePhy = lteUeDev->GetPhy();
+            uePhy->TraceConnectWithoutContext("ReportUePhyMeasurement", MakeCallback(&MosaicNodeManager::PhyTrace, this));
+
+            // Attach trace source to MAC layer
+            Ptr<LteUeMac> ueMac = lteUeDev->GetMac();
+            ueMac->TraceConnectWithoutContext("DlScheduling", MakeCallback(&MosaicNodeManager::MacTrace, this));
+        }
+}
 
     }
 
