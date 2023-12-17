@@ -50,6 +50,7 @@
 
 #include "ns3/lte-ue-phy.h"
 #include "ns3/lte-ue-mac.h"
+#include "ns3/callback.h"
 #include <sstream>
 
 
