@@ -65,14 +65,13 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::PhyTrace(RsrpSinrInfo info) {
-        NS_LOG_INFO("PHY Layer Trace: RSRP=" << info.rsrp << ", SINR=" << info.sinr);
+    void MosaicNodeManager::PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, double rsrp, double sinr) {
+        NS_LOG_INFO("PHY Layer Trace: RNTI=" << rnti << ", RSRP=" << rsrp << ", SINR=" << sinr);
     }
 
-    void MosaicNodeManager::MacTrace(uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size) {
+    void MosaicNodeManager::MacDlSchedulingTrace(const std::string &path, uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size) {
         NS_LOG_INFO("MAC Layer Trace: Frame=" << frameNo << ", Subframe=" << subframeNo << ", RNTI=" << rnti << ", MCS=" << mcs << ", Size=" << size);
     }
-
 
     void MosaicNodeManager::InitLte(int numOfNode){
 
@@ -244,15 +243,14 @@ namespace ns3 {
             Ptr<Node> singleNode = m_ueNodes.Get(i);
             Ptr<LteUeNetDevice> lteUeDev = singleNode->GetDevice(0)->GetObject<LteUeNetDevice>();
 
-            // Attach trace source to PHY layer
+            // Attach trace source to PHY layer for RSRP/SINR measurements
             Ptr<LteUePhy> uePhy = lteUeDev->GetPhy();
-            uePhy->TraceConnectWithoutContext("ReportCurrentCellRsrpSinr", MakeCallback(&MosaicNodeManager::PhyTrace, this));
+            uePhy->TraceConnectWithoutContext("ReportCurrentCellRsrpSinr", MakeCallback(&MosaicNodeManager::PhyRsrpSinrTrace, this));
 
-            // Attach trace source to MAC layer
+            // Attach trace source to MAC layer for scheduling
             Ptr<LteUeMac> ueMac = lteUeDev->GetMac();
-            ueMac->TraceConnectWithoutContext("DlScheduling", MakeCallback(&MosaicNodeManager::MacTrace, this));
+            ueMac->TraceConnectWithoutContext("DlScheduling", MakeCallback(&MosaicNodeManager::MacDlSchedulingTrace, this));
         }
-
 
     }
 

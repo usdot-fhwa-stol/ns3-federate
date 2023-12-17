@@ -93,9 +93,10 @@ namespace ns3 {
         std::string m_lossModel;
         std::string m_delayModel;
 
-    private:    
-        void PhyTrace(RsrpSinrInfo info) ;
-        void MacTrace(uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size);
+    private: 
+        void PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, double rsrp, double sinr);
+        void MacDlSchedulingTrace(const std::string &path, uint32_t frameNo, uint32_t subframeNo, uint16_t rnti, uint8_t mcs, uint16_t size);
+   
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
