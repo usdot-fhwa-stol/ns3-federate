@@ -65,7 +65,7 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, double rsrp, double sinr) {
+    void void MosaicNodeManager::PhyRsrpSinrTrace(const std::string &path, uint16_t rnti, uint16_t cellId, double rsrp, double sinr, uint8_t componentCarrierId){
         NS_LOG_INFO("PHY Layer Trace: RNTI=" << rnti << ", RSRP=" << rsrp << ", SINR=" << sinr);
     }
 
@@ -247,7 +247,7 @@ namespace ns3 {
             // Attach trace source to PHY layer for RSRP/SINR measurements
             Ptr<LteUePhy> uePhy = lteUeDev->GetPhy();
             uePhy->TraceConnectWithoutContext("ReportCurrentCellRsrpSinr", MakeCallback(&MosaicNodeManager::PhyRsrpSinrTrace, this));
-
+            
             std::cout << "FEDERATE DEBUG: DlScheduling" << std::endl;
             // Attach trace source to MAC layer for scheduling
             Ptr<LteUeMac> ueMac = lteUeDev->GetMac();
