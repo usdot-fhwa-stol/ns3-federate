@@ -68,14 +68,26 @@ namespace ns3 {
     void MosaicProxyApp::Disable(void) {
         m_active = false;
     }
+    void
+    SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
+    {
+        uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
+
+        std::ostringstream msgCam;
+        msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
+        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(), 120);
+        std::cout << "Message sent out successfully: " << (socket->Send(packet) == packet->GetSize()) << std::endl;
+    }
     
-    void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress){
+    void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress, Ptr<LteUeMac> ueMac){
         if (!m_hostSocket){
             m_hostSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
             m_hostSocket->Bind();
             m_hostSocket->Connect(InetSocketAddress(clientRespondersAddress,m_port));
             m_hostSocket->SetAllowBroadcast(true);
             m_hostSocket->ShutdownRecv();
+            Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
+            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
         }else{
             return;
         }
@@ -120,7 +132,7 @@ namespace ns3 {
             m_socket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            std::cout << "Message sent out successfully: " << (m_hostSocket->Send(packet) == packet->GetSize()) << std::endl;
+            std::cout << "FEDERATE DEBUG:Message sent out successfully: " << (m_hostSocket->Send(packet) == packet->GetSize()) << std::endl;
         }
     }
 

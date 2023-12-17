@@ -34,6 +34,8 @@ namespace ns3 {
     class MosaicProxyApp : public Application {
     public:
 
+        void SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket);
+
         MosaicProxyApp() = default;
 
         virtual ~MosaicProxyApp() = default;
@@ -46,7 +48,7 @@ namespace ns3 {
 
         void SetSockets(void);
 
-        void SetSockets(Ipv4Address clientRespondersAddress);
+        void SetSockets(Ipv4Address clientRespondersAddress, Ptr<LteUeMac> ueMac);
         
         void TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address);
         

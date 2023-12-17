@@ -68,7 +68,6 @@ namespace ns3 {
     void MosaicNodeManager::InitLte(int numOfNode){
 
         // Set the UEs power in dBm
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
         Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
@@ -179,18 +178,19 @@ namespace ns3 {
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
-
             Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+
+            Ptr<LteUeMac> ueMac = txUe.Get(0)->GetObject<LteUeNetDevice>()->GetMac();
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
             app->SetCommType(m_commType);
-            app->SetSockets(clientRespondersAddress);
+            app->SetSockets(clientRespondersAddress, ueMac);
             app->SetSockets();
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
@@ -330,6 +330,7 @@ namespace ns3 {
         if (m_isDeactivated[ns3NodeId]) {
             return;
         }
+        std::cout << "FEDERATE DEBUG: AddRecvPacket to " << ns3NodeId << std::endl;
         
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
