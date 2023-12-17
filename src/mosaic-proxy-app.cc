@@ -78,7 +78,7 @@ namespace ns3 {
 
         std::ostringstream msgCam;
         msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
-        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(),lenCam);
+        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(), 128);
         socket->Send(packet);
     }
 
@@ -153,7 +153,7 @@ namespace ns3 {
         NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
         packet = socket->Recv();
 
-        m_recvCount++;
+        // m_recvCount++;
 
         FlowIdTag Tag;
         int msgID;
@@ -169,7 +169,7 @@ namespace ns3 {
 
         //report the received messages to the MosaicNs3Server instance
         m_nodeManager->AddRecvPacket(Simulator::Now().GetNanoSeconds(), packet, GetNode()->GetId(), msgID);
-        NS_LOG_INFO("Receiving message no. " << m_recvCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | message size  = " << packet->GetSize() << " Bytes");
-        NS_LOG_INFO("Reception on node " << GetNode()->GetId());
+        // NS_LOG_INFO("Receiving message no. " << m_recvCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | message size  = " << packet->GetSize() << " Bytes");
+        // NS_LOG_INFO("Reception on node " << GetNode()->GetId());
     }
 } // namespace ns3
