@@ -79,7 +79,7 @@ namespace ns3 {
         std::ostringstream msgCam;
         msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
         Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(),128);
-        socket->Send(packet);
+        std::cout << socket->Send(packet) << std::endl;
         
     }
 
