@@ -217,7 +217,7 @@ namespace ns3 {
                                                 MakeBoundCallback (&MosaicNodeManager::SidelinkV2xAnnouncementMacTrace, host));
             
             Ptr<Socket> sink = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
-            sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), application_port));
+            sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), 8000));
             sink->SetRecvCallback (MakeCallback (&MosaicNodeManager::ReceivePacket));
 
             // std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
