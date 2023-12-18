@@ -113,10 +113,10 @@ namespace ns3 {
             // Join the multicast group
             Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
             if (udpSocket) {
-                std::cout << "Node " << txUe.Get(0)->GetNode()->GetId() << " receive socket joins the multicast group. " << m_clientRespondersAddress << std::endl;
+                std::cout << "Node " << GetNode()->GetId() << " receive socket joins the multicast group. " << m_clientRespondersAddress << std::endl;
                 udpSocket->MulticastJoinGroup(0, m_clientRespondersAddress);
             } else {
-                std::cout<< "Failed to join multicast group: Socket is not a UDP socket." << std::endl;
+                std::cout<< "Node " << GetNode()->GetId() << "Failed to join multicast group: Socket is not a UDP socket." << std::endl;
             }
 
             m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
