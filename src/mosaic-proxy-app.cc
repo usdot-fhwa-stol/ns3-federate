@@ -96,19 +96,6 @@ namespace ns3 {
             m_hostSocket->ShutdownRecv();
             // ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
 
-            // Assuming 'socket' is a Ptr<Socket> that has been created and bound to an address and port
-            Ipv4Address multicastGroup = Ipv4Address("224.0.0.1"); // Replace with your multicast group address
-
-            Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_hostSocket);
-            if (udpSocket) {
-                // Join the multicast group
-                std::cout<< "Join the multicast group." << std::endl;
-                udpSocket->MulticastJoinGroup(0, clientRespondersAddress);
-            } else {
-                std::cout<< "Failed to join multicast group: Socket is not a UDP socket." << std::endl;
-            }
-            
-
         }else{
             return;
         }
