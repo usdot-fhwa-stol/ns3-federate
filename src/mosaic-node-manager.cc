@@ -68,6 +68,8 @@ namespace ns3 {
     void
     MosaicNodeManager::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
     {
+
+        std::cout << "send out message from node " << socket->GetNode()->GetId() << std::endl;
         Ptr <Node> node = socket->GetNode(); 
         int id = node->GetId();
         uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
@@ -214,7 +216,7 @@ namespace ns3 {
 
             Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
             ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", 
-                                                MakeBoundCallback (&MosaicNodeManager::SidelinkV2xAnnouncementMacTrace, host, this));
+                                                MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, host, this));
             
             Ptr<Socket> sink = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
             sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), 8000));
