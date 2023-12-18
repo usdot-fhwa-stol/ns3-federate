@@ -81,7 +81,7 @@ namespace ns3 {
         
     }
 
-    static void
+    void
     MosaicNodeManager::ReceivePacket(Ptr<Socket> socket)
     {   
         std::cout << "Receive Packet from" << socket->GetNode()->GetId() << std::endl;
