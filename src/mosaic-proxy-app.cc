@@ -106,7 +106,7 @@ namespace ns3 {
             m_socket->Bind(local);
             m_socket->SetAllowBroadcast(true);
 
-            m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
+            m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
             std::cout<< "set sockets on node " << GetNode()->GetId() << " with port " << m_port << std::endl;
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
