@@ -83,6 +83,10 @@ namespace ns3 {
         socket->Send(packet);
     }
 
+    void MosaicProxyApp::SetIpv4Addr(Ipv4Address clientRespondersAddress){
+        m_clientRespondersAddress = clientRespondersAddress;
+    }
+
     void MosaicProxyApp::SetSockets(Ipv4Address clientRespondersAddress, Ptr<LteUeMac> ueMac){
         if (!m_hostSocket){
             m_hostSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
@@ -119,6 +123,15 @@ namespace ns3 {
             Ipv4Address address = Ipv4Address::GetAny();
             m_socket->Bind(InetSocketAddress(address, m_port));
             m_socket->SetAllowBroadcast(true);
+
+            // Join the multicast group
+            Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
+            if (udpSocket) {
+                // Replace with the multicast group address you are using
+                udpSocket->MulticastJoinGroup(0, m_clientRespondersAddress);
+            } else {
+                NS_LOG_WARN("Failed to join multicast group: Socket is not a UDP socket.");
+            }
 
             m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
             std::cout<< "FEDERATE DEBUG: set sockets on node " << GetNode()->GetId() << " with address " << address << " port " << m_port << std::endl;

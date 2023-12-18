@@ -189,6 +189,7 @@ namespace ns3 {
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
+            app->SetIpv4Addr(clientRespondersAddress);
             app->SetCommType(m_commType);
             app->SetSockets(clientRespondersAddress, ueMac);
             app->SetSockets();

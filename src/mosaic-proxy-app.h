@@ -56,7 +56,7 @@ namespace ns3 {
         void Disable();
         
         virtual void DoDispose(void);
-        
+        void SetIpv4Addr(Ipv4Address clientRespondersAddress);
         //Must be public to be accessible for ns-3 object system
         uint16_t m_port = 0;
 
@@ -76,6 +76,7 @@ namespace ns3 {
 
         CommunicationType m_commType;
         MosaicNodeManager* m_nodeManager;
+        Ipv4Address m_clientRespondersAddress;
     };
 } // namespace ns3
 
