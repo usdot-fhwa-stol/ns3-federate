@@ -65,6 +65,29 @@ namespace ns3 {
         m_commType = commType;
     }
 
+    void
+    MosaicNodeManager::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
+    {
+        Ptr <Node> node = socket->GetNode(); 
+        int id = node->GetId();
+        uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
+        Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
+        Vector posTx = posMobility->GetPosition();
+
+        std::ostringstream msgCam;
+        msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
+        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(),128);
+        socket->Send(packet);
+        
+    }
+
+    static void
+    MosaicNodeManager::ReceivePacket(Ptr<Socket> socket)
+    {   
+        std::cout << "Receive Packet from" << socket->GetNode()->GetId() << std::endl;
+    }
+
+
     void MosaicNodeManager::InitLte(int numOfNode){
 
         // Set the UEs power in dBm
@@ -183,16 +206,28 @@ namespace ns3 {
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
-            Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
+            Ptr<Socket> host = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
+            host->Bind();
+            host->Connect(InetSocketAddress(clientRespondersAddress,8000));
+            host->SetAllowBroadcast(true);
+            host->ShutdownRecv();
 
-            std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
-            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-            app->SetNodeManager(this);
-            ueNode->AddApplication(app);
-            app->SetIpv4Addr(clientRespondersAddress);
-            app->SetCommType(m_commType);
-            app->SetSockets(clientRespondersAddress, ueMac);
-            app->SetSockets();
+            Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
+            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", 
+                                                MakeBoundCallback (&MosaicNodeManager::SidelinkV2xAnnouncementMacTrace, host));
+            
+            Ptr<Socket> sink = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
+            sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), application_port));
+            sink->SetRecvCallback (MakeCallback (&MosaicNodeManager::ReceivePacket));
+
+            // std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
+            // Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            // app->SetNodeManager(this);
+            // ueNode->AddApplication(app);
+            // app->SetIpv4Addr(clientRespondersAddress);
+            // app->SetCommType(m_commType);
+            // app->SetSockets(clientRespondersAddress, ueMac);
+            // app->SetSockets();
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
