@@ -408,64 +408,64 @@ namespace ns3 {
      * @brief Evaluates configuration message and applies it to the node
      */
     void MosaicNodeManager::ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower) {
-        if (m_isDeactivated[nodeId]) {
-            return;
-        }
+        // if (m_isDeactivated[nodeId]) {
+        //     return;
+        // }
 
-        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
-        Ptr<Node> node = NodeList::GetNode(ns3NodeId);
-        if (node->GetNApplications() > 0) {
-            Ptr<Application> app = node->GetApplication(0);
-        } else {
-            return;
-        }
-        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << ns3NodeId << " transmitPower: " << transmitPower << std::endl;
-        Ptr<Application> app = node->GetApplication(0);
-        Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
-        if (!ssa) {
-            std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;                        
-            NS_LOG_ERROR("No app found on node " << ns3NodeId << " !");
-            return;
-        }
-        if (radioTurnedOn) {
-            ssa->Enable();
-            std::cout << "FEDERATE DEBUG: radioTurnedOn: " << radioTurnedOn << std::endl;
-            if (transmitPower > -1) {
-                std::cout << "FEDERATE DEBUG: transmitPower: " << transmitPower << std::endl;
-                double txDBm = 10 * log10((double) transmitPower);
-                if (m_commType == DSRC) {
-                    Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
-                    if (netDev == nullptr) {
-                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                        return;
-                    }                        
-                    Ptr<YansWifiPhy> wavePhy = DynamicCast<YansWifiPhy> (netDev->GetPhy());
-                    if (wavePhy != 0) {
-                        wavePhy->SetTxPowerStart(txDBm);
-                        wavePhy->SetTxPowerEnd(txDBm);
-                    }
-                } else if (m_commType == LTE) {
-                    std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
-                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
-                    if (netDev == nullptr) {
-                        std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
-                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                        return;
-                    } 
-                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
-                    if (uePhy != 0){
-                        std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
-                        uePhy->SetTxPower(txDBm);
-                    }
-                }
-                else{
-                    NS_LOG_ERROR("Unknown communication type:" << m_commType);
-                    return;
-                }
-            }
-        } else {
-            ssa->Disable();
-        }
+        // uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
+        // Ptr<Node> node = NodeList::GetNode(ns3NodeId);
+        // if (node->GetNApplications() > 0) {
+        //     Ptr<Application> app = node->GetApplication(0);
+        // } else {
+        //     return;
+        // }
+        // std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << ns3NodeId << " transmitPower: " << transmitPower << std::endl;
+        // Ptr<Application> app = node->GetApplication(0);
+        // Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
+        // if (!ssa) {
+        //     std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;                        
+        //     NS_LOG_ERROR("No app found on node " << ns3NodeId << " !");
+        //     return;
+        // }
+        // if (radioTurnedOn) {
+        //     ssa->Enable();
+        //     std::cout << "FEDERATE DEBUG: radioTurnedOn: " << radioTurnedOn << std::endl;
+        //     if (transmitPower > -1) {
+        //         std::cout << "FEDERATE DEBUG: transmitPower: " << transmitPower << std::endl;
+        //         double txDBm = 10 * log10((double) transmitPower);
+        //         if (m_commType == DSRC) {
+        //             Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
+        //             if (netDev == nullptr) {
+        //                 NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+        //                 return;
+        //             }                        
+        //             Ptr<YansWifiPhy> wavePhy = DynamicCast<YansWifiPhy> (netDev->GetPhy());
+        //             if (wavePhy != 0) {
+        //                 wavePhy->SetTxPowerStart(txDBm);
+        //                 wavePhy->SetTxPowerEnd(txDBm);
+        //             }
+        //         } else if (m_commType == LTE) {
+        //             std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
+        //             Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
+        //             if (netDev == nullptr) {
+        //                 std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
+        //                 NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+        //                 return;
+        //             } 
+        //             Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+        //             if (uePhy != 0){
+        //                 std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
+        //                 uePhy->SetTxPower(txDBm);
+        //             }
+        //         }
+        //         else{
+        //             NS_LOG_ERROR("Unknown communication type:" << m_commType);
+        //             return;
+        //         }
+        //     }
+        // } else {
+        //     ssa->Disable();
+        // }
     }
 
     void MosaicNodeManager::ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration){
