@@ -150,27 +150,27 @@ namespace ns3 {
         }
 
         std::cout << "FEDERATE DEBUG: Receive Packet" << std::endl;
-        Ptr<Packet> packet;
-        NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
-        packet = socket->Recv();
+        // Ptr<Packet> packet;
+        // NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
+        // packet = socket->Recv();
 
-        m_recvCount++;
+        // // m_recvCount++;
 
-        FlowIdTag Tag;
-        int msgID;
-        //get the flowIdTag
-        if (packet->FindFirstMatchingByteTag(Tag)) {
-            //send the MsgID
-            msgID = Tag.GetFlowId();
-            //find the message and send it back
-        } else {
-            NS_LOG_ERROR("Error, message has no msgIdTag");
-            msgID = -1;
-        }
+        // FlowIdTag Tag;
+        // int msgID;
+        // //get the flowIdTag
+        // if (packet->FindFirstMatchingByteTag(Tag)) {
+        //     //send the MsgID
+        //     msgID = Tag.GetFlowId();
+        //     //find the message and send it back
+        // } else {
+        //     NS_LOG_ERROR("Error, message has no msgIdTag");
+        //     msgID = -1;
+        // }
 
-        //report the received messages to the MosaicNs3Server instance
-        m_nodeManager->AddRecvPacket(Simulator::Now().GetNanoSeconds(), packet, GetNode()->GetId(), msgID);
-        NS_LOG_INFO("Receiving message no. " << m_recvCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | message size  = " << packet->GetSize() << " Bytes");
-        NS_LOG_INFO("Reception on node " << GetNode()->GetId());
+        // //report the received messages to the MosaicNs3Server instance
+        // m_nodeManager->AddRecvPacket(Simulator::Now().GetNanoSeconds(), packet, GetNode()->GetId(), msgID);
+        // NS_LOG_INFO("Receiving message no. " << m_recvCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | message size  = " << packet->GetSize() << " Bytes");
+        // NS_LOG_INFO("Reception on node " << GetNode()->GetId());
     }
 } // namespace ns3

@@ -63,7 +63,7 @@ namespace ns3 {
 
         static void SidelinkV2xAnnouncementMacTrace (Ptr<Socket> socket);
 
-        void Receive(Ptr<Socket> socket);
+        static void Receive(Ptr<Socket> socket);
 
         Ptr<Socket> m_socket{nullptr};
         Ptr<Socket> m_hostSocket{nullptr};
