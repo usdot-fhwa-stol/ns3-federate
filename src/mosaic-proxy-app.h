@@ -27,6 +27,7 @@
 #include "mosaic-node-manager.h"
 #include "ns3/data-rate.h"
 #include "ClientServerChannel.h"
+#include "ns3/udp-socket.h"
 
 namespace ns3 {
 
