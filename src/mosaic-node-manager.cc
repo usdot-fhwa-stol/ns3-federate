@@ -81,7 +81,7 @@ namespace ns3 {
         ueAllNodes.Add(m_ueNodes);
 
         MobilityHelper mobility;
-        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+        mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
 
         // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
@@ -109,7 +109,7 @@ namespace ns3 {
 
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-        pos_eNB->Add(Vector(0, 0, 0));
+        pos_eNB->Add(Vector(5,-10,30));
 
         // Install mobility eNodeB
         MobilityHelper mob_eNB;

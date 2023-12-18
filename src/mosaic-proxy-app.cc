@@ -101,9 +101,8 @@ namespace ns3 {
 
         if (!m_socket) {
 
-            m_socket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
-            InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
-            m_socket->Bind(local);
+            m_socket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
+            m_socket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
             m_socket->SetAllowBroadcast(true);
 
             m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
