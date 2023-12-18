@@ -214,7 +214,7 @@ namespace ns3 {
 
             Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
             ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", 
-                                                MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, host));
+                                                MakeBoundCallback (&MosaicNodeManager::idelinkV2xAnnouncementMacTrace, host, this));
             
             Ptr<Socket> sink = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
             sink->Bind(InetSocketAddress (Ipv4Address::GetAny (), 8000));
