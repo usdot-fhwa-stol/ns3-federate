@@ -119,7 +119,7 @@ namespace ns3 {
                 std::cout<< "Node " << GetNode()->GetId() << "Failed to join multicast group: Socket is not a UDP socket." << std::endl;
             }
 
-            m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
+            m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
             std::cout<< "FEDERATE DEBUG: set sockets on node " << GetNode()->GetId() << " with address " << address << " port " << m_port << std::endl;
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
