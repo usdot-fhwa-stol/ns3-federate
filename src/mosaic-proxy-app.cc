@@ -95,7 +95,6 @@ namespace ns3 {
             m_hostSocket->SetAllowBroadcast(true);
             m_hostSocket->ShutdownRecv();
             // ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
-
         }else{
             return;
         }
@@ -114,10 +113,10 @@ namespace ns3 {
             // Join the multicast group
             Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
             if (udpSocket) {
-                // Replace with the multicast group address you are using
+                std::cout << "Node " << txUe.Get(0)->GetNode()->GetId() << " receive socket joins the multicast group. " << m_clientRespondersAddress << std::endl;
                 udpSocket->MulticastJoinGroup(0, m_clientRespondersAddress);
             } else {
-                NS_LOG_WARN("Failed to join multicast group: Socket is not a UDP socket.");
+                std::cout<< "Failed to join multicast group: Socket is not a UDP socket." << std::endl;
             }
 
             m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
