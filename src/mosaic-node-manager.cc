@@ -281,7 +281,7 @@ namespace ns3 {
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
             // pick up the node from pool and set the new coordinates
-            Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
+            Ptr<ConstantPositionMobilityModel> mobModel = singleNode->GetObject<ConstantPositionMobilityModel>();
             mobModel->SetPosition(position); 
 
             std::cout << "Completed Creating LTE Node" << std::endl;
