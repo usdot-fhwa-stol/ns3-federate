@@ -72,7 +72,7 @@ namespace ns3 {
     void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket){
         Ptr <Node> node = socket->GetNode(); 
         int id = node->GetId();
-        std::cout<< "trace node " << id << std::endl;
+        std::cout<< "FEDERATE DEBUG: trace node " << id << std::endl;
         uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
         Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
         Vector posTx = posMobility->GetPosition();
@@ -90,7 +90,7 @@ namespace ns3 {
             m_hostSocket->Connect(InetSocketAddress(clientRespondersAddress,m_port));
             m_hostSocket->SetAllowBroadcast(true);
             m_hostSocket->ShutdownRecv();
-            // ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
+            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&SidelinkV2xAnnouncementMacTrace, m_hostSocket));
         }else{
             return;
         }
@@ -102,11 +102,12 @@ namespace ns3 {
         if (!m_socket) {
 
             m_socket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
-            m_socket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
+            Ipv4Address address = Ipv4Address::GetAny();
+            m_socket->Bind(InetSocketAddress(address, m_port));
             m_socket->SetAllowBroadcast(true);
 
             m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive));
-            std::cout<< "set sockets on node " << GetNode()->GetId() << " with port " << m_port << std::endl;
+            std::cout<< "FEDERATE DEBUG: set sockets on node " << GetNode()->GetId() << " with address " << address << " port " << m_port << std::endl;
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
             return;
@@ -127,14 +128,14 @@ namespace ns3 {
 
         m_sendCount++;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
-        std::cout << "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
+        std::cout << "FEDERATE DEBUG: Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         if (m_commType == DSRC){
             //call the socket of this node to send the packet
             InetSocketAddress ipSA = InetSocketAddress(address, m_port);
             m_socket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            std::cout << "Message sent out successfully: " << (m_hostSocket->Send(packet) == packet->GetSize()) << std::endl;
+            std::cout << "FEDERATE DEBUG: Message sent out successfully: " << (m_hostSocket->Send(packet) == packet->GetSize()) << std::endl;
         }
     }
 
