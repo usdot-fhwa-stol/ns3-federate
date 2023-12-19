@@ -45,9 +45,11 @@ namespace ns3 {
 
         void SetCommType(CommunicationType commType);
 
-        void SetSockets(void);
+        void SetMultiCastAddr(Ipv4Address m_multicastAddress);
 
-        void SetSockets(Ipv4Address clientRespondersAddress, Ptr<LteUeMac> ueMac);
+        void SetTxSocket(void);
+
+        void SetRxSocket(void);
         
         void TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address);
         
@@ -56,18 +58,15 @@ namespace ns3 {
         void Disable();
         
         virtual void DoDispose(void);
-        void SetIpv4Addr(Ipv4Address clientRespondersAddress);
         //Must be public to be accessible for ns-3 object system
         uint16_t m_port = 0;
 
     private:
 
-        static void SidelinkV2xAnnouncementMacTrace (Ptr<Socket> socket);
-
         void Receive(Ptr<Socket> socket);
 
-        Ptr<Socket> m_socket{nullptr};
-        Ptr<Socket> m_hostSocket{nullptr};
+        Ptr<Socket> m_txSocket{nullptr};
+        Ptr<Socket> m_rxSocket{nullptr};
                 
         uint16_t m_sendCount = 0;
         uint64_t m_recvCount = 0;
@@ -76,7 +75,7 @@ namespace ns3 {
 
         CommunicationType m_commType;
         MosaicNodeManager* m_nodeManager;
-        Ipv4Address m_clientRespondersAddress;
+        Ipv4Address m_multicastAddress;
     };
 } // namespace ns3
 

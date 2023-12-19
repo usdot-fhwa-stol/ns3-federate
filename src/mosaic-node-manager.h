@@ -96,8 +96,6 @@ namespace ns3 {
         std::string m_delayModel;
 
     private:
-        static void SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket);
-        static void ReceivePacket(Ptr<Socket> socket);
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
