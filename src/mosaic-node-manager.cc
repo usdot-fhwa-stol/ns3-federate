@@ -90,6 +90,14 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(m_ueNodes);
  
+        AnimationInterface anim("animation.xml");
+        for (uint32_t i = 0; i < numOfNode; i++) {
+            std::cout << "setting Node " << i << std::endl;
+            anim.SetConstantPosition(m_ueNodes.Get(i), 10000, 10000); // Set position if not using a mobility model
+            anim.UpdateNodeDescription(m_ueNodes.Get(i), "Node " + std::to_string(i)); // Set node descriptions
+            anim.UpdateNodeColor(m_ueNodes.Get(i), 255, 0, 0); // Set node color (R, G, B)
+        }
+
         Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
         m_lteHelper = CreateObject<LteHelper>();
@@ -232,13 +240,6 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
-        AnimationInterface anim("animation.xml");
-        for (uint32_t i = 0; i < 10; i++) {
-            std::cout << "setting Node " << i << std::endl;
-            anim.SetConstantPosition(m_ueNodes.Get(i), 10000, 10000); // Set position if not using a mobility model
-            anim.UpdateNodeDescription(m_ueNodes.Get(i), "Node " + std::to_string(i)); // Set node descriptions
-            anim.UpdateNodeColor(m_ueNodes.Get(i), 255, 0, 0); // Set node color (R, G, B)
-        }
     }
 
     void MosaicNodeManager::InitDsrc(){
