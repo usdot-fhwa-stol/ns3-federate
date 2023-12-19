@@ -163,7 +163,7 @@ namespace ns3 {
 
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
-        Ipv4Address clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+        Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
         NetDeviceContainer activeTxUes;
 
@@ -178,9 +178,9 @@ namespace ns3 {
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, clientRespondersAddress, groupL2Address); 
+            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft>(LteSlTft::RECEIVE, clientRespondersAddress, groupL2Address); 
+            tft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
 
             Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
@@ -189,15 +189,15 @@ namespace ns3 {
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
-            app->SetMulticastAddr(clientRespondersAddress);
+            app->SetMulticastAddr(multicastAddress);
             app->SetCommType(m_commType);
             app->SetTxSocket();
             app->SetRxSocket();
 
-            std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << clientRespondersAddress << std::endl;
-            m_ns3ID2UniqueAddress[ueNode->GetId()] = clientRespondersAddress;
+            std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << multicastAddress << std::endl;
+            m_ns3ID2UniqueAddress[ueNode->GetId()] = multicastAddress;
             groupL2Address++;
-            clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+            multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
         }
             
         
@@ -316,7 +316,7 @@ namespace ns3 {
         }
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
-            // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
+            // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
             std::cout << "FEDERATE DEBUG: Send from address " << m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]] << std::endl;
             app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
         }

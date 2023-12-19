@@ -45,7 +45,7 @@ namespace ns3 {
 
         void SetCommType(CommunicationType commType);
 
-        void SetMultiCastAddr(Ipv4Address m_multicastAddress);
+        void SetMulticastAddr(Ipv4Address m_multicastAddress);
 
         void SetTxSocket(void);
 
