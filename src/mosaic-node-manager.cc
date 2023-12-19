@@ -60,12 +60,12 @@ namespace ns3 {
 
     MosaicNodeManager::MosaicNodeManager() : m_ipAddressHelper("10.1.0.0", "255.255.0.0") {
 
-        AnimationInterface anim("/opt/carma-simulation/cv2x_animation.xml");
     }
 
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType) {
         m_serverPtr = serverPtr;
         m_commType = commType;
+        AnimationInterface anim("/opt/carma-simulation/cv2x_animation.xml");
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
