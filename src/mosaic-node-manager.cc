@@ -419,8 +419,8 @@ namespace ns3 {
                     } 
                     Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     if (uePhy != 0){
-                        std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << transmitPower << std::endl;
-                        uePhy->SetTxPower(transmitPower);
+                        std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
+                        uePhy->SetTxPower(txDBm);
                     }
                 }
                 else{
