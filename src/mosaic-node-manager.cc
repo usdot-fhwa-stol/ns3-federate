@@ -90,7 +90,7 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(m_ueNodes);
  
-        AnimationInterface anim("animation.xml");
+        AnimationInterface anim("cv2x_animation.xml");
         for (uint32_t i = 0; i < numOfNode; i++) {
             std::cout << "setting Node " << i << std::endl;
             anim.SetConstantPosition(m_ueNodes.Get(i), 10000, 10000); // Set position if not using a mobility model
