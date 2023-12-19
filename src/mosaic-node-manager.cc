@@ -66,6 +66,24 @@ namespace ns3 {
         m_commType = commType;
     }
 
+    void MosaicNodeManager::OnConnectionEstablished(uint64_t imsi, uint16_t cellId, uint16_t rnti) {
+        std::cout << "Connection established: IMSI=" << imsi << " CellId=" << cellId << " RNTI=" << rnti << std::endl;
+    }
+    void MosaicNodeManager::SetupLteTraces() {
+        // Assuming m_lteHelper is your LteHelper object
+        if (m_lteHelper == nullptr) {
+            NS_LOG_ERROR("LTE Helper is not initialized!");
+            return;
+        }
+
+        // Example: Trace for RRC connection establishment
+        // Note: The exact trace source name and parameters might differ
+        m_lteHelper->GetLteEnbRrc()->TraceConnectWithoutContext("ConnectionEstablished",
+            MakeCallback(&MosaicNodeManager::OnConnectionEstablished, this));
+
+        // Add more traces as needed
+    }
+
     void MosaicNodeManager::InitLte(int numOfNode){
 
         // Set the UEs power in dBm
@@ -232,6 +250,8 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
+
+        SetupLteTraces();
     }
 
     void MosaicNodeManager::InitDsrc(){
