@@ -162,6 +162,8 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
 
+        m_lteV2xHelper->PrintGroups(txGroups); 
+        
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
