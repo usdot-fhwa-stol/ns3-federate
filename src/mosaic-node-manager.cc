@@ -59,6 +59,8 @@ namespace ns3 {
     }
 
     MosaicNodeManager::MosaicNodeManager() : m_ipAddressHelper("10.1.0.0", "255.255.0.0") {
+
+        AnimationInterface anim("/opt/carma-simulation/cv2x_animation.xml");
     }
 
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType) {
@@ -90,13 +92,6 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(m_ueNodes);
  
-        AnimationInterface anim("/opt/carma-simulation/cv2x_animation.xml");
-        for (uint32_t i = 0; i < numOfNode; i++) {
-            std::cout << "setting Node " << i << std::endl;
-            anim.SetConstantPosition(m_ueNodes.Get(i), 10000, 10000); // Set position if not using a mobility model
-            anim.UpdateNodeDescription(m_ueNodes.Get(i), "Node " + std::to_string(i)); // Set node descriptions
-            anim.UpdateNodeColor(m_ueNodes.Get(i), 255, 0, 0); // Set node color (R, G, B)
-        }
 
         Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
