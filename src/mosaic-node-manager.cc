@@ -66,24 +66,6 @@ namespace ns3 {
         m_commType = commType;
     }
 
-    void MosaicNodeManager::OnConnectionEstablished(uint64_t imsi, uint16_t cellId, uint16_t rnti) {
-        std::cout << "Connection established: IMSI=" << imsi << " CellId=" << cellId << " RNTI=" << rnti << std::endl;
-    }
-    void MosaicNodeManager::SetupLteTraces() {
-        // Assuming m_lteHelper is your LteHelper object
-        if (m_lteHelper == nullptr) {
-            NS_LOG_ERROR("LTE Helper is not initialized!");
-            return;
-        }
-
-        // Example: Trace for RRC connection establishment
-        // Note: The exact trace source name and parameters might differ
-        m_lteHelper->GetLteEnbRrc()->TraceConnectWithoutContext("ConnectionEstablished",
-            MakeCallback(&MosaicNodeManager::OnConnectionEstablished, this));
-
-        // Add more traces as needed
-    }
-
     void MosaicNodeManager::InitLte(int numOfNode){
 
         // Set the UEs power in dBm
@@ -128,7 +110,7 @@ namespace ns3 {
 
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-        pos_eNB->Add(Vector(5,-10,30));
+        pos_eNB->Add(Vector(50,94,0));
 
         // Install mobility eNodeB
         MobilityHelper mob_eNB;
@@ -250,8 +232,6 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
-
-        SetupLteTraces();
     }
 
     void MosaicNodeManager::InitDsrc(){
@@ -337,9 +317,8 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            Ipv4Address destinationAddress = NodeList::GetNode(3)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();;
-            std::cout << "FEDERATE DEBUG: Send from address " << destinationAddress << std::endl;
-            app->TransmitPacket(protocolID, msgID, payLength, destinationAddress);
+            std::cout << "FEDERATE DEBUG: Send from address " << m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]] << std::endl;
+            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
