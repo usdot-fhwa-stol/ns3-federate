@@ -24,6 +24,7 @@
 #include "mosaic-node-manager.h"
 
 #include "mosaic-ns3-server.h"
+#include "ns3/netanim-module.h"
 
 #include "ns3/wave-net-device.h"
 #include "mosaic-proxy-app.h"
@@ -231,7 +232,12 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
-
+        AnimationInterface anim("animation.xml");
+        for (uint32_t i = 0; i < m_ueNodes.GetN(); ++i) {
+            anim.SetConstantPosition(m_ueNodes.Get(i), x, y); // Set position if not using a mobility model
+            anim.UpdateNodeDescription(m_ueNodes.Get(i), "Node " + std::to_string(i)); // Set node descriptions
+            anim.UpdateNodeColor(m_ueNodes.Get(i), 255, 0, 0); // Set node color (R, G, B)
+        }
     }
 
     void MosaicNodeManager::InitDsrc(){
