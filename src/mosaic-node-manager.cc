@@ -317,7 +317,7 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            Ipv4Address destinationAddress = GetAddressOfNode(3);
+            Ipv4Address destinationAddress = NodeList::GetNode(3)->GetObject<Ipv4>();
             std::cout << "FEDERATE DEBUG: Send from address " << destinationAddress << std::endl;
             app->TransmitPacket(protocolID, msgID, payLength, destinationAddress);
         }
