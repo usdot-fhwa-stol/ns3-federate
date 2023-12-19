@@ -90,8 +90,6 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(m_ueNodes);
  
-        AnimationInterface anim("/opt/carma-simulation/cv2x_animation.xml");
-
         Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
 
         m_lteHelper = CreateObject<LteHelper>();
@@ -319,8 +317,9 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            std::cout << "FEDERATE DEBUG: Send from address " << m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]] << std::endl;
-            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
+            Ipv4Address destinationAddress = GetAddressOfNode(3);
+            std::cout << "FEDERATE DEBUG: Send from address " << destinationAddress << std::endl;
+            app->TransmitPacket(protocolID, msgID, payLength, destinationAddress);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
