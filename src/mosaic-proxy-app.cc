@@ -74,10 +74,6 @@ namespace ns3 {
     }
 
     void MosaicProxyApp::SetTxSocket(){
-        if (!m_multicastAddress){
-            return;
-        }
-
         if (!m_txSocket){
             m_txSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
             m_txSocket->Bind();
