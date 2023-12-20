@@ -91,10 +91,10 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(m_ueNodes);
  
-        m_epcHelper = CreateObject<PointToPointm_epcHelper>();
+        m_epcHelper = CreateObject<PointToPointEpcHelper>();
 
         m_lteHelper = CreateObject<LteHelper>();
-        m_lteHelper->Setm_epcHelper(m_epcHelper);
+        m_lteHelper->SetEpcHelper(m_epcHelper);
         m_lteHelper->DisableNewEnbPhy();
 
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
