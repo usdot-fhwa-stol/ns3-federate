@@ -170,13 +170,13 @@ namespace ns3 {
 
         NetDeviceContainer activeTxUes;
 
+        std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
         for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
 
-            std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            std::cout << "FEDERATE DEBUG: Group 2 address: " << groupL2Address << std::endl; 
+            std::cout << "FEDERATE DEBUG: Group L2 address: " << groupL2Address << std::endl; 
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
