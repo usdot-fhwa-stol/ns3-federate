@@ -69,12 +69,13 @@ namespace ns3 {
     void MosaicNodeManager::InitLte(int numOfNode){
 
         // Set the UEs power in dBm
+        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (23));
         Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
+        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
         Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
         // Enable V2X communication on PHY layer
-        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer m_ueAllNodes;
@@ -83,7 +84,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: Number of node:" << NodeList::GetNNodes() << std::endl;
 
         MobilityHelper mobility;
-        mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
         Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
 
         // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
@@ -92,6 +93,7 @@ namespace ns3 {
         mobility.Install(m_ueNodes);
  
         m_epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<Node> pgw = m_epcHelper->GetPgwNode();
 
         m_lteHelper = CreateObject<LteHelper>();
         m_lteHelper->SetEpcHelper(m_epcHelper);
@@ -111,7 +113,7 @@ namespace ns3 {
 
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-        pos_eNB->Add(Vector(0,0,0));
+        pos_eNB->Add(Vector(5,-10,30));
 
         // Install mobility eNodeB
         MobilityHelper mob_eNB;

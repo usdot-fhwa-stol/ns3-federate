@@ -129,6 +129,7 @@ namespace ns3 {
         Ipv4AddressHelper m_ipAddressHelper;
         std::vector<NetDeviceContainer> m_txGroups;
         NodeContainer m_ueAllNodes;
+        NetDeviceContainer m_ueDevs;    
         CommunicationType m_commType;
         std::vector<uint32_t> m_ueNodeIdList;
         std::vector<uint32_t> m_groupL2Addresses; 
