@@ -176,7 +176,6 @@ namespace ns3 {
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
 
-            std::cout << "FEDERATE DEBUG: Group L2 address: " << groupL2Address << std::endl; 
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
@@ -195,7 +194,10 @@ namespace ns3 {
             app->SetTxSocket();
             app->SetRxSocket();
 
-            std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << multicastAddress << std::endl;
+            std::cout << "Created group L2Address=" << groupL2Address << " IPAddress=";
+            multicastAddress.Print(std::cout);
+            std::cout << std::endl;
+
             m_ns3ID2UniqueAddress[ueNode->GetId()] = multicastAddress;
             m_groupL2Addresses.push_back(groupL2Address);
             groupL2Address++;
