@@ -169,7 +169,7 @@ namespace ns3 {
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
-        NetDeviceContainer activeTxUes;
+        
 
         std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
         for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
@@ -178,7 +178,7 @@ namespace ns3 {
             Ptr<Node> ueNode = ueDev->GetNode();
 
             NetDeviceContainer txUe ((*gIt).Get(0));
-            activeTxUes.Add(txUe);
+            m_activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
 
             Ptr<LteSlTft> txTft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 

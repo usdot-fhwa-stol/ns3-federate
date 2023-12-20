@@ -131,7 +131,7 @@ namespace ns3 {
         CommunicationType m_commType;
         std::vector<uint32_t> m_ueNodeIdList;
         std::vector<uint32_t> m_groupL2Addresses; 
-        
+        NetDeviceContainer m_activeTxUes;
         NodeContainer m_ueNodes;
         // LTE End
 
