@@ -73,32 +73,18 @@ namespace ns3 {
         m_multicastAddress = multicastAddress;
     }
 
-    void MosaicProxyApp::SetTxSocket(Ptr<LteUeMac> ueMac){
+    void MosaicProxyApp::SetTxSocket(){
         if (!m_txSocket){
             m_txSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
             m_txSocket->Bind();
             m_txSocket->Connect(InetSocketAddress(m_multicastAddress, m_port));
             m_txSocket->SetAllowBroadcast(true);
             m_txSocket->ShutdownRecv();
-            ueMac->TraceConnectWithoutContext ("SidelinkV2xAnnouncement", MakeBoundCallback (&MosaicProxyApp::SidelinkV2xAnnouncementMacTrace, m_txSocket));
         }else{
             return;
         }
     }
-    void MosaicProxyApp::SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket)
-    {
-        Ptr <Node> node = socket->GetNode(); 
-        int id = node->GetId();
-        uint32_t simTime = Simulator::Now().GetMilliSeconds(); 
-        Ptr<MobilityModel> posMobility = node->GetObject<MobilityModel>();
-        Vector posTx = posMobility->GetPosition();
 
-        // Generate CAM 
-        std::ostringstream msgCam;
-        msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
-        Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(),128);
-        std::cout << "FEDERATE DEBUG: Message sent out successfully: " << socket->Send(packet) << std::endl;
-    }
     void MosaicProxyApp::SetRxSocket(void) {
         NS_LOG_INFO("set sockets on node " << GetNode()->GetId());
 
@@ -136,7 +122,7 @@ namespace ns3 {
         }
         else if (m_commType == LTE){
             
-            // std::cout << "FEDERATE DEBUG: Message sent out successfully: " << (m_txSocket->Send(packet) == packet->GetSize()) << std::endl;
+            std::cout << "FEDERATE DEBUG: Message sent out successfully: " << (m_txSocket->Send(packet) == packet->GetSize()) << std::endl;
         }
     }
 
@@ -146,32 +132,32 @@ namespace ns3 {
      */
     void MosaicProxyApp::Receive(Ptr<Socket> socket) {
         std::cout << "FEDERATE DEBUG: Receive Packet" << std::endl;
-        // NS_LOG_FUNCTION_NOARGS();
-        // if (!m_active) {
-        //     return;
-        // }
+        NS_LOG_FUNCTION_NOARGS();
+        if (!m_active) {
+            return;
+        }
 
-        // Ptr<Packet> packet;
-        // NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
-        // packet = socket->Recv();
+        Ptr<Packet> packet;
+        NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
+        packet = socket->Recv();
 
-        // // m_recvCount++;
+        // m_recvCount++;
 
-        // FlowIdTag Tag;
-        // int msgID;
-        // //get the flowIdTag
-        // if (packet->FindFirstMatchingByteTag(Tag)) {
-        //     //send the MsgID
-        //     msgID = Tag.GetFlowId();
-        //     //find the message and send it back
-        // } else {
-        //     NS_LOG_ERROR("Error, message has no msgIdTag");
-        //     msgID = -1;
-        // }
+        FlowIdTag Tag;
+        int msgID;
+        //get the flowIdTag
+        if (packet->FindFirstMatchingByteTag(Tag)) {
+            //send the MsgID
+            msgID = Tag.GetFlowId();
+            //find the message and send it back
+        } else {
+            NS_LOG_ERROR("Error, message has no msgIdTag");
+            msgID = -1;
+        }
 
-        // //report the received messages to the MosaicNs3Server instance
-        // m_nodeManager->AddRecvPacket(Simulator::Now().GetNanoSeconds(), packet, GetNode()->GetId(), msgID);
-        // NS_LOG_INFO("Receiving message no. " << m_recvCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | message size  = " << packet->GetSize() << " Bytes");
-        // NS_LOG_INFO("Reception on node " << GetNode()->GetId());
+        //report the received messages to the MosaicNs3Server instance
+        m_nodeManager->AddRecvPacket(Simulator::Now().GetNanoSeconds(), packet, GetNode()->GetId(), msgID);
+        NS_LOG_INFO("Receiving message no. " << m_recvCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | message size  = " << packet->GetSize() << " Bytes");
+        NS_LOG_INFO("Reception on node " << GetNode()->GetId());
     }
 } // namespace ns3
