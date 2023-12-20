@@ -97,7 +97,7 @@ namespace ns3 {
         std::ostringstream msgCam;
         msgCam << id-1 << ";" << simTime << ";" << (int) posTx.x << ";" << (int) posTx.y << '\0'; 
         Ptr<Packet> packet = Create<Packet>((uint8_t*)msgCam.str().c_str(),128);
-        socket->Send(packet);
+        std::cout << "FEDERATE DEBUG: Message sent out successfully: " << socket->Send(packet) << std::endl;
     }
     void MosaicProxyApp::SetRxSocket(void) {
         NS_LOG_INFO("set sockets on node " << GetNode()->GetId());
