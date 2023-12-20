@@ -164,7 +164,7 @@ namespace ns3 {
 
         m_lteV2xHelper->PrintGroups(txGroups); 
 
-        uint32_t groupL2Address = 1;
+        uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
@@ -180,10 +180,11 @@ namespace ns3 {
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
-            tft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
+
+            Ptr<LteSlTft> txTft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, txTft);
+            Ptr<LteSlTft> rxTft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, rxTft);
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
@@ -196,6 +197,7 @@ namespace ns3 {
 
             std::cout << "FEDERATE DEBUG: clientResponderAddress for node " << ueNode->GetId() << " : " << multicastAddress << std::endl;
             m_ns3ID2UniqueAddress[ueNode->GetId()] = multicastAddress;
+            m_groupL2Addresses.push_back(groupL2Address);
             groupL2Address++;
             multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
         }
