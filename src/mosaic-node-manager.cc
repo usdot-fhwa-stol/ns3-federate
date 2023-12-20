@@ -192,7 +192,8 @@ namespace ns3 {
             ueNode->AddApplication(app);
             app->SetMulticastAddr(multicastAddress);
             app->SetCommType(m_commType);
-            app->SetTxSocket();
+            Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
+            app->SetTxSocket(ueMac);
             app->SetRxSocket();
 
             std::cout << "Created group L2Address=" << groupL2Address << " IPAddress=";

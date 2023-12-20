@@ -47,7 +47,7 @@ namespace ns3 {
 
         void SetMulticastAddr(Ipv4Address m_multicastAddress);
 
-        void SetTxSocket(void);
+        void SetTxSocket(Ptr<LteUeMac> ueMac);
 
         void SetRxSocket(void);
         
@@ -63,6 +63,7 @@ namespace ns3 {
 
     private:
 
+        static void SidelinkV2xAnnouncementMacTrace(Ptr<Socket> socket);
         void Receive(Ptr<Socket> socket);
 
         Ptr<Socket> m_txSocket{nullptr};
