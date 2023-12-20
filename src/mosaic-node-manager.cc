@@ -76,10 +76,11 @@ namespace ns3 {
         // Enable V2X communication on PHY layer
         Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
 
-         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
+        std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer ueAllNodes;
         m_ueNodes.Create(numOfNode);
         ueAllNodes.Add(m_ueNodes);
+        std::cout << "FEDERATE DEBUG: Number of node:" << NodeList::GetNNodes() << std::endl;
 
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -110,7 +111,7 @@ namespace ns3 {
 
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-        pos_eNB->Add(Vector(50,94,0));
+        pos_eNB->Add(Vector(0,0,0));
 
         // Install mobility eNodeB
         MobilityHelper mob_eNB;
