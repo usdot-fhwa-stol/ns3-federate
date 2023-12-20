@@ -164,7 +164,7 @@ namespace ns3 {
 
         m_lteV2xHelper->PrintGroups(txGroups); 
 
-        uint32_t groupL2Address = 0x00;
+        uint32_t groupL2Address = 1;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
