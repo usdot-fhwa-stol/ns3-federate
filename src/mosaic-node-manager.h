@@ -125,9 +125,10 @@ namespace ns3 {
         Ptr<LteHelper> m_lteHelper;
         Ptr<LteV2xHelper> m_lteV2xHelper;
         Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
-
+        Ptr<PointToPointEpcHelper> m_epcHelper;
         Ipv4AddressHelper m_ipAddressHelper;
-
+        std::vector<NetDeviceContainer> m_txGroups;
+        NodeContainer m_ueAllNodes;
         CommunicationType m_commType;
         std::vector<uint32_t> m_ueNodeIdList;
         std::vector<uint32_t> m_groupL2Addresses; 

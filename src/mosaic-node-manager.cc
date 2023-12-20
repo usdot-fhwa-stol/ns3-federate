@@ -77,9 +77,9 @@ namespace ns3 {
         Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
-        NodeContainer ueAllNodes;
+        NodeContainer m_ueAllNodes;
         m_ueNodes.Create(numOfNode);
-        ueAllNodes.Add(m_ueNodes);
+        m_ueAllNodes.Add(m_ueNodes);
         std::cout << "FEDERATE DEBUG: Number of node:" << NodeList::GetNNodes() << std::endl;
 
         MobilityHelper mobility;
@@ -91,10 +91,10 @@ namespace ns3 {
         mobility.SetPositionAllocator(positionAlloc);
         mobility.Install(m_ueNodes);
  
-        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+        m_epcHelper = CreateObject<PointToPointm_epcHelper>();
 
         m_lteHelper = CreateObject<LteHelper>();
-        m_lteHelper->SetEpcHelper(epcHelper);
+        m_lteHelper->Setm_epcHelper(m_epcHelper);
         m_lteHelper->DisableNewEnbPhy();
 
         m_lteV2xHelper = CreateObject<LteV2xHelper>();
@@ -122,7 +122,7 @@ namespace ns3 {
         NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
 
         BuildingsHelper::Install (eNodeB);
-        BuildingsHelper::Install (ueAllNodes);
+        BuildingsHelper::Install (m_ueAllNodes);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
@@ -140,20 +140,20 @@ namespace ns3 {
         // Install the IP stack on the UEs
         NS_LOG_INFO ("Installing IP stack..."); 
         InternetStackHelper internet;
-        internet.Install (ueAllNodes); 
+        internet.Install (m_ueAllNodes); 
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-        Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(ueDevs);
+        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
-        for(uint32_t i = 0; i < ueAllNodes.GetN(); ++i)
+        for(uint32_t i = 0; i < m_ueAllNodes.GetN(); ++i)
         {
-            Ptr<Node> ueNode = ueAllNodes.Get(i);
+            Ptr<Node> ueNode = m_ueAllNodes.Get(i);
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);       
+            ueStaticRouting->SetDefaultRoute (m_epcHelper->GetUeDefaultGatewayAddress(), 1);       
         }
 
         // // Attach the LTE device to the eNodeB (base station)
@@ -161,9 +161,9 @@ namespace ns3 {
         m_lteHelper->Attach(ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
-        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
+        m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
 
-        m_lteV2xHelper->PrintGroups(txGroups); 
+        m_lteV2xHelper->PrintGroups(m_txGroups); 
 
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
@@ -172,7 +172,7 @@ namespace ns3 {
         
 
         std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-        for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
+        for(std::vector<NetDeviceContainer>::iterator gIt=m_txGroups.begin(); gIt != m_txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
