@@ -171,7 +171,7 @@ namespace ns3 {
         NetDeviceContainer activeTxUes;
 
         std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-        for(auto gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
+        for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
