@@ -128,10 +128,9 @@ namespace ns3 {
         BuildingsHelper::MakeMobilityModelConsistent();  
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-
         NetDeviceContainer ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
-        NetDeviceContainer ueDevs;
-        ueDevs.Add(ueRespondersDevs);
+        
+        m_ueDevs.Add(ueRespondersDevs);
         
         for (uint16_t i=0; i<m_ueNodes.GetN();i++)
         {
@@ -146,7 +145,7 @@ namespace ns3 {
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
-        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDevs);
+        Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(m_ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
@@ -160,7 +159,7 @@ namespace ns3 {
 
         // // Attach the LTE device to the eNodeB (base station)
         std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
-        m_lteHelper->Attach(ueDevs);
+        m_lteHelper->Attach(m_ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
@@ -288,7 +287,7 @@ namespace ns3 {
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
             // pick up the node from pool and set the new coordinates
-            Ptr<ConstantPositionMobilityModel> mobModel = singleNode->GetObject<ConstantPositionMobilityModel>();
+            Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
 
             std::cout << "Completed Creating LTE Node" << std::endl;
