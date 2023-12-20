@@ -163,7 +163,7 @@ namespace ns3 {
         std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
 
         m_lteV2xHelper->PrintGroups(txGroups); 
-        
+
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
@@ -175,9 +175,8 @@ namespace ns3 {
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
 
-            // Create and activate a sidelink bearer for V2X communication
             std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-            
+            std::cout << "FEDERATE DEBUG: Group 2 address: " << groupL2Address << std::endl; 
             NetDeviceContainer txUe ((*gIt).Get(0));
             activeTxUes.Add(txUe);
             NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
@@ -185,8 +184,6 @@ namespace ns3 {
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, tft);
             tft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, tft);
-
-            Ptr<LteUeMac> ueMac = DynamicCast<LteUeMac>( txUe.Get (0)->GetObject<LteUeNetDevice> ()->GetMac () );
 
             std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
@@ -202,7 +199,6 @@ namespace ns3 {
             groupL2Address++;
             multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
         }
-            
         
         // Sidelink configuration
         m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
