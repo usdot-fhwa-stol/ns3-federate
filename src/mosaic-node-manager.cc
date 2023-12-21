@@ -194,7 +194,15 @@ namespace ns3 {
             app->SetMulticastAddr(multicastAddress);
             app->SetCommType(m_commType);
             
-            app->SetTxSocket();
+            Ptr<Socket> txSocket = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
+            txSocket->Bind();
+            txSocket->Connect(InetSocketAddress(multicastAddress, app->m_port));
+            txSocket->SetAllowBroadcast(true);
+            txSocket->ShutdownRecv();
+            app->SetTxSocket(txSocket);
+
+            Ptr<Socket> rxSocket = Socket::CreateSocket(txUe.Get(0)->GetNode(),TypeId::LookupByName ("ns3::UdpSocketFactory"));
+            rxSocket->Bind(InetSocketAddress (Ipv4Address::GetAny (), app->m_port));
             app->SetRxSocket();
 
             std::cout << "Created group L2Address=" << groupL2Address << " IPAddress=";
