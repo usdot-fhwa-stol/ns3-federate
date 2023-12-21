@@ -135,7 +135,7 @@ namespace ns3 {
         std::vector<uint32_t> m_groupL2Addresses; 
         NetDeviceContainer m_activeTxUes;
         NodeContainer m_ueNodes;
-        NetDeviceContainer m_ueRespondersDevs
+        NetDeviceContainer m_ueRespondersDevs;
         // LTE End
 
 
