@@ -164,35 +164,7 @@ namespace ns3 {
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
 
-
         m_lteV2xHelper->PrintGroups(m_txGroups); 
-
-        double totalRxs = 0;
-        std::map<uint32_t, uint32_t> txPerUeMap;
-        std::map<uint32_t, uint32_t> groupsPerUe;
-
-        std::vector<NetDeviceContainer>::iterator gIt;
-        for(gIt=txGroups.begin(); gIt != txGroups.end(); gIt++)
-        {
-            uint32_t numDevs = gIt->GetN();
-
-            totalRxs += numOfNode-1;
-            uint32_t nId;
-
-            for(uint32_t i=1; i< numDevs; i++)
-            {
-                nId = gIt->Get(i)->GetNode()->GetId();
-                txPerUeMap[nId]++;
-            }
-        }
-
-        double totalTxPerUe = 0; 
-        std::map<uint32_t, uint32_t>::iterator mIt;
-        for(mIt=txPerUeMap.begin(); mIt != txPerUeMap.end(); mIt++)
-        {
-            totalTxPerUe += mIt->second;
-            groupsPerUe [mIt->second]++;
-        }
 
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
@@ -201,7 +173,7 @@ namespace ns3 {
         
 
         std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
-        for(gIt=m_txGroups.begin(); gIt != m_txGroups.end(); gIt++){
+        for(std::vector<NetDeviceContainer>::iterator gIt=m_txGroups.begin(); gIt != m_txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
@@ -350,7 +322,8 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            app->TransmitPacket(protocolID, msgID, payLength, address);
+            std::cout << "FEDERATE DEBUG: Send from address " << m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]] << std::endl;
+            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
