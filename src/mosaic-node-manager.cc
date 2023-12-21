@@ -172,7 +172,7 @@ namespace ns3 {
         std::map<uint32_t, uint32_t> groupsPerUe;
 
         std::vector<NetDeviceContainer>::iterator gIt;
-        for(gIt=m_txGroups.begin(); gIt != m_txGroups.end(); gIt++)
+        for(gIt=txGroups.begin(); gIt != txGroups.end(); gIt++)
         {
             uint32_t numDevs = gIt->GetN();
 
