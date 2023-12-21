@@ -91,7 +91,6 @@ namespace ns3 {
         if (!m_rxSocket) {
             m_rxSocket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
             m_rxSocket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
-            m_rxSocket->SetAllowBroadcast(true);
             m_rxSocket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
             std::cout<< "FEDERATE DEBUG: set sockets on node " << GetNode()->GetId() << " with port " << m_port << std::endl;
         } else {
@@ -121,6 +120,7 @@ namespace ns3 {
             m_rxSocket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
+            std::cout << "FEDERATE DEBUG: Sending packet" << std::endl;
             bool result = (m_txSocket->Send(packet) == packet->GetSize());
             std::cout << "FEDERATE DEBUG: Message sent out successfully: " << result << std::endl;
         }
