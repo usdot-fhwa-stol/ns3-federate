@@ -350,7 +350,7 @@ namespace ns3 {
         else if (m_commType == LTE) {
             // For LTE communication, send message to sidelink
             // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            app->TransmitPacket(protocolID, msgID, payLength, address);
+            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
