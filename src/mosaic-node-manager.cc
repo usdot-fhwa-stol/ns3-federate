@@ -67,27 +67,6 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-
-        // Set the UEs power in dBm
-        Config::SetDefault ("ns3::LteUePhy::TxPower", DoubleValue (23));
-        Config::SetDefault ("ns3::LteUePhy::RsrpUeMeasThreshold", DoubleValue (-10.0));
-        Config::SetDefault ("ns3::LteUePhy::EnableV2x", BooleanValue (true));
-        Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
-        Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
-        Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
-
-        Config::SetDefault ("ns3::LteUeMac::UlBandwidth", UintegerValue(30));
-        Config::SetDefault ("ns3::LteUeMac::EnableV2xHarq", BooleanValue(false));
-        Config::SetDefault ("ns3::LteUeMac::EnableAdjacencyPscchPssch", BooleanValue(true));
-        Config::SetDefault ("ns3::LteUeMac::EnablePartialSensing", BooleanValue(false));
-        Config::SetDefault ("ns3::LteUeMac::SlGrantMcs", UintegerValue(20));
-        Config::SetDefault ("ns3::LteUeMac::SlSubchannelSize", UintegerValue (10));
-        Config::SetDefault ("ns3::LteUeMac::SlSubchannelNum", UintegerValue (3));
-        Config::SetDefault ("ns3::LteUeMac::SlStartRbSubchannel", UintegerValue (0));
-        Config::SetDefault ("ns3::LteUeMac::SlPrsvp", UintegerValue(100));
-        Config::SetDefault ("ns3::LteUeMac::SlProbResourceKeep", DoubleValue(0));
-        Config::SetDefault ("ns3::LteUeMac::SelectionWindowT1", UintegerValue(4));
-        Config::SetDefault ("ns3::LteUeMac::SelectionWindowT2", UintegerValue(100));
         // Enable V2X communication on PHY layer
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
@@ -118,7 +97,6 @@ namespace ns3 {
         m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
         
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
-        Config::SetDefault ("ns3::LteEnbNetDevice::UlEarfcn", StringValue ("54990"));        
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
         NodeContainer eNodeB;
