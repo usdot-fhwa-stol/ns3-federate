@@ -75,6 +75,19 @@ namespace ns3 {
         Config::SetDefault ("ns3::LteUePowerControl::Pcmax", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePowerControl::PsschTxPower", DoubleValue (50));
         Config::SetDefault ("ns3::LteUePowerControl::PscchTxPower", DoubleValue (50));
+
+        Config::SetDefault ("ns3::LteUeMac::UlBandwidth", UintegerValue(30));
+        Config::SetDefault ("ns3::LteUeMac::EnableV2xHarq", BooleanValue(false));
+        Config::SetDefault ("ns3::LteUeMac::EnableAdjacencyPscchPssch", BooleanValue(true));
+        Config::SetDefault ("ns3::LteUeMac::EnablePartialSensing", BooleanValue(false));
+        Config::SetDefault ("ns3::LteUeMac::SlGrantMcs", UintegerValue(20));
+        Config::SetDefault ("ns3::LteUeMac::SlSubchannelSize", UintegerValue (10));
+        Config::SetDefault ("ns3::LteUeMac::SlSubchannelNum", UintegerValue (3));
+        Config::SetDefault ("ns3::LteUeMac::SlStartRbSubchannel", UintegerValue (0));
+        Config::SetDefault ("ns3::LteUeMac::SlPrsvp", UintegerValue(100));
+        Config::SetDefault ("ns3::LteUeMac::SlProbResourceKeep", DoubleValue(0));
+        Config::SetDefault ("ns3::LteUeMac::SelectionWindowT1", UintegerValue(4));
+        Config::SetDefault ("ns3::LteUeMac::SelectionWindowT2", UintegerValue(100));
         // Enable V2X communication on PHY layer
 
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
