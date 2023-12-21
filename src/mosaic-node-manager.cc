@@ -282,16 +282,16 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (m_commType == LTE) {
-            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_ueNodeIdList.front() << " from node pool, set position to : " << position << std::endl;
-            m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
-            m_ueNodeIdList.erase(m_ueNodeIdList.begin());
-            Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
+            // std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_ueNodeIdList.front() << " from node pool, set position to : " << position << std::endl;
+            // m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
+            // m_ueNodeIdList.erase(m_ueNodeIdList.begin());
+            // Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
-            // pick up the node from pool and set the new coordinates
-            Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
-            mobModel->SetPosition(position); 
+            // // pick up the node from pool and set the new coordinates
+            // Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
+            // mobModel->SetPosition(position); 
 
-            std::cout << "Completed Creating LTE Node" << std::endl;
+            // std::cout << "Completed Creating LTE Node" << std::endl;
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
