@@ -119,9 +119,9 @@ namespace ns3 {
         BuildingsHelper::MakeMobilityModelConsistent();  
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-        NetDeviceContainer ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
+        m_ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
         
-        m_ueDevs.Add(ueRespondersDevs);
+        m_ueDevs.Add(m_ueRespondersDevs);
         
         for (uint16_t i=0; i<m_ueNodes.GetN();i++)
         {
@@ -130,7 +130,7 @@ namespace ns3 {
         }
 
         // Install the IP stack on the UEs
-        NS_LOG_INFO ("Installing IP stack..."); 
+        std::cout << "Installing IP stack..." << std::endl; 
         InternetStackHelper internet;
         internet.Install (m_ueAllNodes); 
 
@@ -153,7 +153,7 @@ namespace ns3 {
         m_lteHelper->Attach(m_ueDevs);
 
         std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
-        m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
+        m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueRespondersDevs, numOfNode); 
 
         m_lteV2xHelper->PrintGroups(m_txGroups); 
 
@@ -226,7 +226,7 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
-        m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
+        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
     }
@@ -393,18 +393,18 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    // std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
-                    // Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
-                    // if (netDev == nullptr) {
-                    //     std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
-                    //     NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
-                    //     return;
-                    // } 
-                    // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
-                    // if (uePhy != 0){
-                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
-                    //     uePhy->SetTxPower(txDBm);
-                    // }
+                    std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
+                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
+                    if (netDev == nullptr) {
+                        std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
+                        NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
+                        return;
+                    } 
+                    Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
+                    if (uePhy != 0){
+                        std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
+                        uePhy->SetTxPower(txDBm);
+                    }
                 }
                 else{
                     NS_LOG_ERROR("Unknown communication type:" << m_commType);
@@ -417,18 +417,18 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration){
-        // if (!m_ueSidelinkConfiguration){
-        //     NS_LOG_ERROR("Sidelink config has not initialized yet");
-        //     return;
-        // }
-        // if (!m_lteHelper){
-        //     NS_LOG_ERROR("LTE helper has not initialized yet");
-        //     return;
-        // }
-        // m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
+        if (!m_ueSidelinkConfiguration){
+            NS_LOG_ERROR("Sidelink config has not initialized yet");
+            return;
+        }
+        if (!m_lteHelper){
+            NS_LOG_ERROR("LTE helper has not initialized yet");
+            return;
+        }
+        m_ueSidelinkConfiguration->SetSlV2xPreconfiguration(preconfiguration);
 
-        // // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
-        // m_lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
+        // Apply the configuration to all UEs to ensure that all devices have a consistent and updated configuration
+        m_lteHelper->InstallSidelinkV2xConfiguration (m_ueDevs, m_ueSidelinkConfiguration);
 
     }
 }
