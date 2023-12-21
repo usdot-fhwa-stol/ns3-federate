@@ -184,6 +184,7 @@ namespace ns3 {
 
             Ptr<LteSlTft> txTft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, txTft);
+            
             Ptr<LteSlTft> rxTft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, rxTft);
 
@@ -316,19 +317,8 @@ namespace ns3 {
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
-        if (m_commType == DSRC) {
-            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
-        }
-        else if (m_commType == LTE) {
-            // For LTE communication, send message to sidelink
-            // multicastAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            std::cout << "FEDERATE DEBUG: Send from address " << m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]] << std::endl;
-            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[m_mosaic2ns3ID[nodeId]]);
-        }
-        else{
-            NS_LOG_ERROR("Unknown communication type:" << m_commType);
-            return;
-        }
+
+        app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
     }
 
     void MosaicNodeManager::AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID) {
