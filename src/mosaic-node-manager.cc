@@ -313,11 +313,10 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID) {
-        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeID];
-        if (m_isDeactivated[ns3NodeId]) {
+        if (m_isDeactivated[nodeID]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: AddRecvPacket to " << ns3NodeId << std::endl;
+        std::cout << "FEDERATE DEBUG: AddRecvPacket to " << nodeID << std::endl;
         
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
@@ -326,11 +325,10 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
-        
-        Ptr<Node> node = NodeList::GetNode(ns3NodeId);
+
+        Ptr<Node> node = NodeList::GetNode(nodeId);
         Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel> ();
-        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << ns3NodeId << " from " << mobModel->GetPosition() << " to: " << position << std::endl;
+        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << nodeId << " from " << mobModel->GetPosition() << " to: " << position << std::endl;
         mobModel->SetPosition(position);
 
     }
@@ -363,19 +361,18 @@ namespace ns3 {
             return;
         }
 
-        uint32_t ns3NodeId = m_mosaic2ns3ID[nodeId];
-        Ptr<Node> node = NodeList::GetNode(ns3NodeId);
+        Ptr<Node> node = NodeList::GetNode(nodeId);
         if (node->GetNApplications() > 0) {
             Ptr<Application> app = node->GetApplication(0);
         } else {
             return;
         }
-        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << ns3NodeId << " transmitPower: " << transmitPower << std::endl;
+        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << " transmitPower: " << transmitPower << std::endl;
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
             std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;                        
-            NS_LOG_ERROR("No app found on node " << ns3NodeId << " !");
+            NS_LOG_ERROR("No app found on node " << nodeId << " !");
             return;
         }
         if (radioTurnedOn) {
@@ -405,7 +402,7 @@ namespace ns3 {
                     // } 
                     // Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     // if (uePhy != 0){
-                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << ns3NodeId << " to be " << txDBm << std::endl;
+                    //     std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
                     //     uePhy->SetTxPower(txDBm);
                     // }
                 }
