@@ -73,27 +73,21 @@ namespace ns3 {
         m_multicastAddress = multicastAddress;
     }
 
-    void MosaicProxyApp::SetTxSocket(Ptr<Socket> txSocket){
-        m_txSocket = txSocket;
-        // if (!m_txSocket){
-        //     m_txSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
-        //     m_txSocket->Bind();
-        //     m_txSocket->Connect(InetSocketAddress(m_multicastAddress, m_port));
-        //     m_txSocket->SetAllowBroadcast(true);
-        //     m_txSocket->ShutdownRecv();
-        // }else{
-        //     return;
-        // }
+    void MosaicProxyApp::SetTxSocket(){
+        if (!m_txSocket){
+            m_txSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+            m_txSocket->Bind();
+            m_txSocket->Connect(InetSocketAddress(m_multicastAddress, m_port));
+            m_txSocket->SetAllowBroadcast(true);
+            m_txSocket->ShutdownRecv();
+        }else{
+            return;
+        }
     }
 
-    void MosaicProxyApp::SetRxSocket(Ptr<Socket> rxSocket){
-        m_rxSocket = rxSocket;
-        m_rxSocket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
-    }
-
-    void MosaicProxyApp::SetRxSocket() {
+    void MosaicProxyApp::SetRxSocket(void) {
         NS_LOG_INFO("set sockets on node " << GetNode()->GetId());
-    
+
         if (!m_rxSocket) {
             m_rxSocket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
             m_rxSocket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
