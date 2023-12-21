@@ -166,9 +166,9 @@ namespace ns3 {
                 for (std::vector<CSC_node_data>::iterator it = update_node_message.properties.begin(); it != update_node_message.properties.end(); ++it) {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
-                        std::cout << "Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
-                        sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
+                        // std::cout << "Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
+                        // sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
+                        // NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
                         std::cout << "Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
