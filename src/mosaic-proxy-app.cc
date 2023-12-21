@@ -121,8 +121,8 @@ namespace ns3 {
             m_rxSocket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            
-            std::cout << "FEDERATE DEBUG: Message sent out successfully: " << (m_txSocket->Send(packet) == packet->GetSize()) << std::endl;
+            bool result = (m_txSocket->Send(packet) == packet->GetSize());
+            std::cout << "FEDERATE DEBUG: Message sent out successfully: " << result << std::endl;
         }
     }
 
