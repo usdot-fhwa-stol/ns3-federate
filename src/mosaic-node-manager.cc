@@ -130,8 +130,8 @@ namespace ns3 {
 
         // Install the IP stack on the UEs
         std::cout << "Installing IP stack..." << std::endl; 
-        InternetStackHelper internet;
-        internet.Install (m_ueAllNodes); 
+        
+        m_internet.Install (m_ueAllNodes); 
 
         // Assign an IPv4 address to the LTE device
         std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
