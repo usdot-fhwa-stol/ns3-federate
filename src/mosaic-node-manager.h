@@ -136,6 +136,7 @@ namespace ns3 {
         NetDeviceContainer m_activeTxUes;
         NodeContainer m_ueNodes;
         NetDeviceContainer m_ueRespondersDevs;
+        NodeContainer m_eNodeB;
         // LTE End
 
 

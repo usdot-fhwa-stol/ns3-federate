@@ -99,8 +99,7 @@ namespace ns3 {
         m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
         m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
         
-        NodeContainer eNodeB;
-        eNodeB.Create(1); 
+        m_eNodeB.Create(1); 
 
         // Topology eNodeB
         Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
@@ -110,11 +109,11 @@ namespace ns3 {
         MobilityHelper mob_eNB;
         mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
         mob_eNB.SetPositionAllocator(pos_eNB);
-        mob_eNB.Install(eNodeB);
+        mob_eNB.Install(m_eNodeB);
         
-        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
+        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(m_eNodeB);
 
-        BuildingsHelper::Install (eNodeB);
+        BuildingsHelper::Install (m_eNodeB);
         BuildingsHelper::Install (m_ueAllNodes);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
