@@ -111,7 +111,7 @@ namespace ns3 {
         mob_eNB.SetPositionAllocator(pos_eNB);
         mob_eNB.Install(m_eNodeB);
         
-        NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(m_eNodeB);
+        m_enbDev = m_lteHelper->InstallEnbDevice(m_eNodeB);
 
         BuildingsHelper::Install (m_eNodeB);
         BuildingsHelper::Install (m_ueAllNodes);
