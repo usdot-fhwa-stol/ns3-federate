@@ -138,7 +138,6 @@ namespace ns3 {
         NodeContainer m_ueNodes;
         NetDeviceContainer m_ueRespondersDevs;
         NodeContainer m_eNodeB;
-        InternetStackHelper m_internet;
         // LTE End
 
 
