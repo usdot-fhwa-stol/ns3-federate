@@ -68,9 +68,10 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitLte(int numOfNode){
-        // Enable V2X communication on PHY layer
+        
         ConfigStore inputConfig; 
         inputConfig.ConfigureDefaults(); 
+        
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer m_ueAllNodes;
         m_ueNodes.Create(numOfNode);
