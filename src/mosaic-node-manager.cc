@@ -71,7 +71,7 @@ namespace ns3 {
         
         ConfigStore inputConfig; 
         inputConfig.ConfigureDefaults(); 
-        
+
         std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer m_ueAllNodes;
         m_ueNodes.Create(numOfNode);
@@ -161,7 +161,7 @@ namespace ns3 {
         m_lteV2xHelper->PrintGroups(m_txGroups); 
 
         uint32_t groupL2Address = 0x00;
-        Ipv4AddressGenerator::Init(Ipv4Address ("255.0.0.0"), Ipv4Mask("255.0.0.0"));
+        Ipv4AddressGenerator::Init(Ipv4Address ("225.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
         
