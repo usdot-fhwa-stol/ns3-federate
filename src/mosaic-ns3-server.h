@@ -136,7 +136,7 @@ namespace ns3 {
         bool m_lte_init_complete = false;
         bool m_dsrc_init_complete = false;
 
-        int m_numOfNode = 5;
+        int m_numOfNodes = 5;
     };
 }
 #endif
