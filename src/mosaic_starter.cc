@@ -139,6 +139,35 @@ void SetLogLevels(const std::string & configFile) {
     xmlXPathFreeObject(result);
 }
 
+std::string GetCommType(const std::string &configFile) {
+    xmlDocPtr doc = xmlParseFile(configFile.c_str());
+    xmlXPathContextPtr context = xmlXPathNewContext(doc);
+
+    // XPath to find the specific CommType component
+    xmlChar *xpath = (xmlChar *) "//ns3/CommType/component[@name='CommType']";
+    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
+
+    std::string valueString;
+    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
+        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
+
+        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
+            std::string attrName((char *) attr->name);
+            if (attrName == "value") {
+                valueString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
+                break; // Once value is found, break the loop
+            }
+        }
+    }
+
+    xmlXPathFreeObject(result);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+
+    return valueString;
+}
+
+
 int main(int argc, char *argv[]) {
     using namespace std;
     //default values
@@ -171,9 +200,11 @@ int main(int argc, char *argv[]) {
     xmlConfig.ConfigureAttributes();
 
     SetLogLevels(configFile);
+    
+    std::string commType = GetCommType(configFile);
 
     try {
-        MosaicNs3Server server(port, cmdPort);
+        MosaicNs3Server server(port, cmdPort, commType);
         server.processCommandsUntilSimStep();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");
