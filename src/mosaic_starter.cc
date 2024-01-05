@@ -147,7 +147,16 @@ void SetLogLevels(const std::string & configFile) {
 NetworkConfig GetNetworkConfig(const std::string &configFile) {
     NetworkConfig config;
     xmlDocPtr doc = xmlParseFile(configFile.c_str());
+    if (!doc) {
+        std::cerr << "Error: unable to parse file \"" << configFile << "\"\n";
+        return config;  // Return empty config
+    }
     xmlXPathContextPtr context = xmlXPathNewContext(doc);
+    if (!context) {
+        xmlFreeDoc(doc);
+        std::cerr << "Error: unable to create new XPath context\n";
+        return config;  // Return empty config
+    }
 
     // XPath to find CommType and NumOfNodes
     xmlChar *commTypeXpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='CommType']";
@@ -157,7 +166,11 @@ NetworkConfig GetNetworkConfig(const std::string &configFile) {
     xmlXPathObjectPtr result = xmlXPathEvalExpression(commTypeXpath, context);
     if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
         xmlNodePtr node = result->nodesetval->nodeTab[0];
-        config.commType = (char *) xmlNodeListGetString(doc, node->children, 1);
+        xmlChar *value = xmlNodeListGetString(doc, node->children, 1);
+        if (value) {
+            config.commType = (char *) value;
+            xmlFree(value);
+        }
     }
     xmlXPathFreeObject(result);
 
@@ -165,17 +178,20 @@ NetworkConfig GetNetworkConfig(const std::string &configFile) {
     result = xmlXPathEvalExpression(numOfNodesXpath, context);
     if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
         xmlNodePtr node = result->nodesetval->nodeTab[0];
-        std::string numOfNodesStr = (char *) xmlNodeListGetString(doc, node->children, 1);
-        config.numOfNodes = std::atoi(numOfNodesStr.c_str());
+        xmlChar *value = xmlNodeListGetString(doc, node->children, 1);
+        if (value) {
+            config.numOfNodes = std::atoi((char *) value);
+            xmlFree(value);
+        }
     }
     xmlXPathFreeObject(result);
 
+    xmlXPathFreeContext(context);
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
     return config;
 }
-
 
 int main(int argc, char *argv[]) {
     using namespace std;
@@ -210,7 +226,7 @@ int main(int argc, char *argv[]) {
 
     SetLogLevels(configFile);
     
-    // NetworkConfig config = GetNetworkConfig(configFile);
+    NetworkConfig config = GetNetworkConfig(configFile);
 
     try {
         MosaicNs3Server server(port, cmdPort, "LTE");
