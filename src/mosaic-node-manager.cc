@@ -72,9 +72,9 @@ namespace ns3 {
         ConfigStore inputConfig; 
         inputConfig.ConfigureDefaults(); 
 
-        NodeContainer m_ueAllNodes;
+        NodeContainer ueAllNodes;
         m_ueNodes.Create(numOfNode);
-        m_ueAllNodes.Add(m_ueNodes);
+        ueAllNodes.Add(m_ueNodes);
 
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
@@ -112,16 +112,16 @@ namespace ns3 {
         mob_eNB.SetPositionAllocator(pos_eNB);
         mob_eNB.Install(m_eNodeB);
         
-        m_enbDev = m_lteHelper->InstallEnbDevice(m_eNodeB);
+        NetDeviceContainer enbDev = m_lteHelper->InstallEnbDevice(m_eNodeB);
 
         BuildingsHelper::Install (m_eNodeB);
-        BuildingsHelper::Install (m_ueAllNodes);
+        BuildingsHelper::Install (ueAllNodes);
         BuildingsHelper::MakeMobilityModelConsistent();  
         
         m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-        m_ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
+        NetDeviceContainer ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
         
-        m_ueDevs.Add(m_ueRespondersDevs);
+        m_ueDevs.Add(ueRespondersDevs);
         
         for (uint16_t i=0; i<m_ueNodes.GetN();i++)
         {
@@ -131,16 +131,16 @@ namespace ns3 {
 
         // Install the IP stack on the UEs        
         InternetStackHelper internet;
-        internet.Install (m_ueAllNodes); 
+        internet.Install (ueAllNodes); 
 
         // Assign an IPv4 address to the LTE device
         Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(m_ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
         // Set up static routing for the node to use the default gateway provided by the EPC helper
-        for(uint32_t i = 0; i < m_ueAllNodes.GetN(); ++i)
+        for(uint32_t i = 0; i < ueAllNodes.GetN(); ++i)
         {
-            Ptr<Node> ueNode = m_ueAllNodes.Get(i);
+            Ptr<Node> ueNode = ueAllNodes.Get(i);
             // Set the default gateway for the UE
             Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
             ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);       
@@ -149,13 +149,13 @@ namespace ns3 {
         // // Attach the LTE device to the eNodeB (base station)
         m_lteHelper->Attach(m_ueDevs);
 
-        m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueRespondersDevs, numOfNode); 
+        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
 
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("225.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
-        for(std::vector<NetDeviceContainer>::iterator gIt=m_txGroups.begin(); gIt != m_txGroups.end(); gIt++){
+        for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
@@ -182,7 +182,6 @@ namespace ns3 {
             multicastAddress.Print(std::cout);
 
             m_ns3ID2UniqueAddress[ueNode->GetId()] = multicastAddress;
-            m_groupL2Addresses.push_back(groupL2Address);
             groupL2Address++;
             multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
         }
@@ -214,7 +213,7 @@ namespace ns3 {
         preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
         m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
 
-        m_lteHelper->InstallSidelinkV2xConfiguration(m_ueRespondersDevs, m_ueSidelinkConfiguration);  
+        m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
     }
