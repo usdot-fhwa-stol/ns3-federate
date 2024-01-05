@@ -38,6 +38,8 @@ namespace ns3 {
     public:
         MosaicNs3Server() = delete;
         MosaicNs3Server(int port, int cmdPort, std::string commType = "LTE");
+        
+        void SetNumOfNodes(int numOfNodes);
 
         /**
          * @brief NS3 Magic: a specialized entry-point is needed to create this class from a end-user script. The call of the constructor is forbidden by the NS3.
@@ -133,6 +135,8 @@ namespace ns3 {
 
         bool m_lte_init_complete = false;
         bool m_dsrc_init_complete = false;
+
+        int m_numOfNode = 5;
     };
 }
 #endif
