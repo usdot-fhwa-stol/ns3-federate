@@ -215,8 +215,8 @@ int main(int argc, char *argv[]) {
         MosaicNs3Server server(port, cmdPort, config.commType);
         
         // For LTE mode, all NS-3 nodes need to be pre-define. Provide number of nodes variable is necessary under this mode
-        // if (config.commType == "LTE")
-        //     server.SetNumOfNodes(config.numOfNodes);
+        if (config.commType == "LTE")
+            server.SetNumOfNodes(config.numOfNodes);
         server.processCommandsUntilSimStep();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");
