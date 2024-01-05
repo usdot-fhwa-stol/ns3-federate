@@ -38,20 +38,17 @@ namespace ns3 {
      * @param MosaicNodeManger MosaicNodeManger given from the NS3 starter script
      */
     MosaicNs3Server::MosaicNs3Server(int port, int cmdPort, std::string commType) {
+        std::cout << "Starting federate on port " << port << "\n";
         if (commType == "DSRC"){
             m_commType = CommunicationType::DSRC;
-            std::cout << "Federate Debug: Communication type is " << commType << "\n";
         }
         else if (commType == "LTE"){
             m_commType = CommunicationType::LTE;
-            std::cout << "Federate Debug: Communication type is " << commType << "\n";
         }
         else{
             NS_LOG_ERROR("Unknown communication type config");
             return;
-        }
-            
-        std::cout << "Starting federate on port " << port << "\n";
+        }            
 
         if (cmdPort > 0) {
             std::cout << "Once connected, federate will listen to commands on port " << cmdPort << "\n";
@@ -68,7 +65,6 @@ namespace ns3 {
 
         actPort = ambassadorFederateChannel.prepareConnection("0.0.0.0", cmdPort);
         if (actPort < 1) {
-            std::cout << "Could not prepare port for Command Channel" << std::endl;
             exit(-1);
         }
         federateAmbassadorChannel.writePort(actPort);
@@ -144,17 +140,13 @@ namespace ns3 {
 
         if (m_commType == CommunicationType::DSRC){
             if (!m_dsrc_init_complete){
-                std::cout << "FEDERATE DEBUG: Initialization DSRC" << std::endl;
                 m_nodeManager->InitDsrc();
                 m_dsrc_init_complete = true;
-                std::cout << "FEDERATE DEBUG: Completed Initialization of DSRC" << std::endl;
             }
         }else if (m_commType == CommunicationType::LTE){
             if (!m_lte_init_complete){
-                std::cout << "FEDERATE DEBUG: Initialization LTE" << std::endl;
                 m_nodeManager->InitLte();
                 m_lte_init_complete = true;
-                std::cout << "FEDERATE DEBUG: Completed Initialization of LTE" << std::endl;
             }
         }else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
@@ -170,7 +162,6 @@ namespace ns3 {
                 break;
             case CMD_UPDATE_NODE:
             {
-                std::cout << "FEDERATE DEBUG: CMD_UPDATE_NODE" << std::endl;
                 CSC_update_node_return update_node_message;
                 ambassadorFederateChannel.readUpdateNode(update_node_message);
                 Time tNext = NanoSeconds(update_node_message.time);
@@ -178,17 +169,14 @@ namespace ns3 {
                 for (std::vector<CSC_node_data>::iterator it = update_node_message.properties.begin(); it != update_node_message.properties.end(); ++it) {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
-                        std::cout << "Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
-                        std::cout << "Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_MOVE_NODE) {
-                        std::cout << "Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
                         NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
@@ -197,7 +185,6 @@ namespace ns3 {
                         //It is not allowed to delete a node during the simulation step -> the node will be deactivated
                         //void (std::vector<int>::*fctptr)(const int&) = &std::vector<int>::push_back;
                         //sim->ScheduleAtTime(tNext, MakeEvent(fctptr, &m_deactivatedNodes, it->id));
-                        std::cout << "Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext << std::endl;
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::DeactivateNode, m_nodeManager, it->id));
                         NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                     }
@@ -208,7 +195,6 @@ namespace ns3 {
 
                 // advance the next time step and run the simulation read the next time step
             case CMD_ADVANCE_TIME:
-                std::cout << "FEDERATE DEBUG: CMD_ADVANCE_TIME" << std::endl;
                 uint64_t advancedTime;
                 advancedTime = ambassadorFederateChannel.readTimeMessage();
 
@@ -228,7 +214,6 @@ namespace ns3 {
 
                 try {
 
-                    std::cout << "FEDERATE DEBUG: CMD_CONF_RADIO" << std::endl;
                     CSC_config_message config_message;
                     ambassadorFederateChannel.readConfigurationMessage(config_message);
                     Time tNext = NanoSeconds(config_message.time);
@@ -251,13 +236,11 @@ namespace ns3 {
             case CMD_MSG_SEND:
             {
                 try {
-                    std::cout << "FEDERATE DEBUG: CMD_MSG_SEND" << std::endl;
                     CSC_send_message send_message;
                     ambassadorFederateChannel.readSendMessage(send_message);
                     //Convert the IP address
                     Ipv4Address ip(send_message.topo_address.ip_address);
                     int id = m_nodeManager->GetNs3NodeId(send_message.node_id);
-                    std::cout << "Received V2X_MESSAGE_TRANSMISSION id: " << id << " sendTime: " << send_message.time << " length: " << send_message.length << std::endl;
                     NS_LOG_DEBUG("Received V2X_MESSAGE_TRANSMISSION id: " << id << " sendTime: " << send_message.time << " length: " << send_message.length);
 
                     //create a sending jitter to avoid concurrently sending
@@ -274,7 +257,6 @@ namespace ns3 {
                 break;
             }
             case CMD_SHUT_DOWN:
-                std::cout << "FEDERATE DEBUG: CMD_SHUT_DOWN" << std::endl;
                 m_closeConnection = true;
                 Simulator::Destroy();
                 break;

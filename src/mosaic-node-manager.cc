@@ -72,11 +72,9 @@ namespace ns3 {
         ConfigStore inputConfig; 
         inputConfig.ConfigureDefaults(); 
 
-        std::cout << "FEDERATE DEBUG: Create predefine node" << std::endl;
         NodeContainer m_ueAllNodes;
         m_ueNodes.Create(numOfNode);
         m_ueAllNodes.Add(m_ueNodes);
-        std::cout << "FEDERATE DEBUG: Number of node:" << NodeList::GetNNodes() << std::endl;
 
         MobilityHelper mobility;
         mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
@@ -131,14 +129,11 @@ namespace ns3 {
             m_ueNodeIdList.push_back(m_ueNodes.Get(i)->GetId());
         }
 
-        // Install the IP stack on the UEs
-        std::cout << "Installing IP stack..." << std::endl; 
-        
+        // Install the IP stack on the UEs        
         InternetStackHelper internet;
         internet.Install (m_ueAllNodes); 
 
         // Assign an IPv4 address to the LTE device
-        std::cout << "FEDERATE DEBUG: assign IP to the device" << std::endl;
         Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(m_ueDevs);
         Ipv4StaticRoutingHelper Ipv4RoutingHelper;
 
@@ -152,21 +147,14 @@ namespace ns3 {
         }
 
         // // Attach the LTE device to the eNodeB (base station)
-        std::cout << "FEDERATE DEBUG: attach lte device to the eNodeB" << std::endl;
         m_lteHelper->Attach(m_ueDevs);
 
-        std::cout << "FEDERATE DEBUG: assign group L2 address" << std::endl;
         m_txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(m_ueRespondersDevs, numOfNode); 
-
-        m_lteV2xHelper->PrintGroups(m_txGroups); 
 
         uint32_t groupL2Address = 0x00;
         Ipv4AddressGenerator::Init(Ipv4Address ("225.0.0.0"), Ipv4Mask("255.0.0.0"));
         Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
 
-        
-
-        std::cout << "FEDERATE DEBUG: Create and activate a sidelink bearer for V2X communication" << std::endl;
         for(std::vector<NetDeviceContainer>::iterator gIt=m_txGroups.begin(); gIt != m_txGroups.end(); gIt++){
 
             Ptr<NetDevice> ueDev = gIt->Get(0);
@@ -182,7 +170,6 @@ namespace ns3 {
             Ptr<LteSlTft> rxTft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, rxTft);
 
-            std::cout << "Install MosaicProxyApp on node " << ueNode->GetId() << std::endl;
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             ueNode->AddApplication(app);
@@ -192,9 +179,7 @@ namespace ns3 {
             app->SetTxSocket();
             app->SetRxSocket();
 
-            std::cout << "Created group L2Address=" << groupL2Address << " IPAddress=";
             multicastAddress.Print(std::cout);
-            std::cout << std::endl;
 
             m_ns3ID2UniqueAddress[ueNode->GetId()] = multicastAddress;
             m_groupL2Addresses.push_back(groupL2Address);
@@ -235,7 +220,6 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::InitDsrc(){
-        std::cout << "FEDERATE DEBUG: Initialize DSRC NS-3 node" << std::endl;
         m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
         m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
         m_channel = m_wifiChannelHelper.Create();
@@ -243,7 +227,6 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
-
 
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
@@ -276,16 +259,16 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (m_commType == LTE) {
-            std::cout << "FEDERATE DEBUG: Pickup node ID :" << m_ueNodeIdList.front() << " from node pool, set position to : " << position << std::endl;
+
             m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
             m_ueNodeIdList.erase(m_ueNodeIdList.begin());
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
             
-            // pick up the node from pool and set the new coordinates
+            NS_LOG_INFO("Got Node " << singleNode->GetId() << " from node pool");
+
             Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
-
-            std::cout << "Completed Creating LTE Node" << std::endl;
+            NS_LOG_INFO("Moved Node " << singleNode->GetId() << " to pos:" << position);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
@@ -303,11 +286,9 @@ namespace ns3 {
         }
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
         Ptr<Node> node = NodeList::GetNode(nodeId);
-        std::cout << "FEDERATE DEBUG: Retrieved Node ID " << m_mosaic2ns3ID[nodeId] << " with node " << node << std::endl;
         
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
-            std::cout << "FEDERATE DEBUG: Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing" << std::endl;
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
@@ -319,8 +300,6 @@ namespace ns3 {
         if (m_isDeactivated[nodeID]) {
             return;
         }
-        std::cout << "FEDERATE DEBUG: AddRecvPacket to " << nodeID << std::endl;
-        
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
 
@@ -331,7 +310,6 @@ namespace ns3 {
 
         Ptr<Node> node = NodeList::GetNode(nodeId);
         Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel> ();
-        std::cout << "FEDERATE DEBUG: UpdateNodePosition Node ID:" << nodeId << " from " << mobModel->GetPosition() << " to: " << position << std::endl;
         mobModel->SetPosition(position);
 
     }
@@ -370,19 +348,15 @@ namespace ns3 {
         } else {
             return;
         }
-        std::cout << "FEDERATE DEBUG: ConfigureNodeRadio Node ID:" << nodeId << " transmitPower: " << transmitPower << std::endl;
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
-            std::cout << "FEDERATE DEBUG: No app found on node " << std::endl;                        
             NS_LOG_ERROR("No app found on node " << nodeId << " !");
             return;
         }
         if (radioTurnedOn) {
             ssa->Enable();
-            std::cout << "FEDERATE DEBUG: radioTurnedOn: " << radioTurnedOn << std::endl;
             if (transmitPower > -1) {
-                std::cout << "FEDERATE DEBUG: transmitPower: " << transmitPower << std::endl;
                 double txDBm = 10 * log10((double) transmitPower);
                 if (m_commType == DSRC) {
                     Ptr<WifiNetDevice> netDev = DynamicCast<WifiNetDevice> (node->GetDevice(1));
@@ -396,16 +370,13 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    std::cout << "FEDERATE DEBUG: " << (node->GetDevice(0) == nullptr) << std::endl;
                     Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
                     if (netDev == nullptr) {
-                        std::cout << "FEDERATE DEBUG: Inconsistency: no matching NetDevice found on node while configuring" << std::endl;
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
                         return;
                     } 
                     Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     if (uePhy != 0){
-                        std::cout << "FEDERATE DEBUG: set tx power of node " << nodeId << " to be " << txDBm << std::endl;
                         uePhy->SetTxPower(txDBm);
                     }
                 }
