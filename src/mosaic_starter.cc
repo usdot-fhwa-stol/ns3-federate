@@ -37,11 +37,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("MosaicStarter");
 
-struct NetworkConfig {
-    std::string commType;
-    int numOfNodes;
-};
-
 static LogLevel ParseLogLevel(const std::string & levelString) {
     //Taken from ns-3 environment parsing of log level
     unsigned int level = 0;
@@ -144,37 +139,34 @@ void SetLogLevels(const std::string & configFile) {
     xmlXPathFreeObject(result);
 }
 
-NetworkConfig GetNetworkConfig(const std::string &configFile) {
-    NetworkConfig config;
+std::string GetCommType(const std::string &configFile) {
     xmlDocPtr doc = xmlParseFile(configFile.c_str());
     xmlXPathContextPtr context = xmlXPathNewContext(doc);
 
-    // XPath to find CommType and NumOfNodes
-    xmlChar *commTypeXpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='CommType']";
-    xmlChar *numOfNodesXpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='NumOfNodes']";
+    // XPath to find the specific CommType component
+    xmlChar *xpath = (xmlChar *) "//ns3/CommType/component[@name='CommType']";
+    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
 
-    // Get CommType
-    xmlXPathObjectPtr result = xmlXPathEvalExpression(commTypeXpath, context);
+    std::string valueString;
     if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
-        xmlNodePtr node = result->nodesetval->nodeTab[0];
-        config.commType = (char *) xmlNodeListGetString(doc, node->children, 1);
-    }
-    xmlXPathFreeObject(result);
+        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
 
-    // Get NumOfNodes
-    result = xmlXPathEvalExpression(numOfNodesXpath, context);
-    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
-        xmlNodePtr node = result->nodesetval->nodeTab[0];
-        std::string numOfNodesStr = (char *) xmlNodeListGetString(doc, node->children, 1);
-        config.numOfNodes = std::atoi(numOfNodesStr.c_str());
+        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
+            std::string attrName((char *) attr->name);
+            if (attrName == "value") {
+                valueString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
+                break; // Once value is found, break the loop
+            }
+        }
     }
-    xmlXPathFreeObject(result);
 
+    xmlXPathFreeObject(result);
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
-    return config;
+    return valueString;
 }
+
 
 int main(int argc, char *argv[]) {
     using namespace std;
@@ -209,14 +201,10 @@ int main(int argc, char *argv[]) {
 
     SetLogLevels(configFile);
     
-    NetworkConfig config = GetNetworkConfig(configFile);
+    std::string commType = GetCommType(configFile);
 
     try {
-        MosaicNs3Server server(port, cmdPort, config.commType);
-        
-        // For LTE mode, all NS-3 nodes need to be pre-define. Provide number of nodes variable is necessary under this mode
-        if (config.commType == "LTE")
-            server.SetNumOfNode(config.numOfNodes);
+        MosaicNs3Server server(port, cmdPort, commType);
         server.processCommandsUntilSimStep();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");

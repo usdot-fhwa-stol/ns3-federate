@@ -86,10 +86,6 @@ namespace ns3 {
         std::cout << "ns3Server: created new connection to " << port << std::endl;
     }
 
-    void MosaicNs3Server::SetNumOfNodes(int numOfNodes){
-        m_numOfNodes = numOfNodes;
-    }
-
     /**
      * @brief NS3 Magic: a specialized entry-point is needed to create this class from a end-user script. The call of the constructor is forbidden by the NS3.
      * @brief this function is called by the starter script and obtains the whole simulation
@@ -149,7 +145,7 @@ namespace ns3 {
             }
         }else if (m_commType == CommunicationType::LTE){
             if (!m_lte_init_complete){
-                m_nodeManager->InitLte(m_numOfNodes);
+                m_nodeManager->InitLte();
                 m_lte_init_complete = true;
             }
         }else{
