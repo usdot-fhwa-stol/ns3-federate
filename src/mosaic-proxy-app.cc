@@ -92,7 +92,6 @@ namespace ns3 {
             m_rxSocket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
             m_rxSocket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
             m_rxSocket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
-            std::cout<< "FEDERATE DEBUG: set sockets on node " << GetNode()->GetId() << " with port " << m_port << std::endl;
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
             return;
@@ -113,17 +112,14 @@ namespace ns3 {
 
         m_sendCount++;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
-        std::cout << "FEDERATE DEBUG: Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         if (m_commType == DSRC){
             //call the socket of this node to send the packet
             InetSocketAddress ipSA = InetSocketAddress(address, m_port);
             m_rxSocket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            std::cout << "FEDERATE DEBUG: Sending packet" << std::endl;
             uint32_t acceptedBytes = m_txSocket->Send(packet);
-            bool result = (acceptedBytes == packet->GetSize());
-            std::cout << "FEDERATE DEBUG: Message sent out successfully: " << result << std::endl;
+            bool result = (acceptedBytes == packet->GetSize());            
         }
     }
 
