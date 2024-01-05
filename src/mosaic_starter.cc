@@ -236,7 +236,7 @@ int main(int argc, char *argv[]) {
             // do nothing
         }else{
             NS_LOG_ERROR("Unknown communication type:" << commType);
-            return;
+            return 0;
         }
             
         server.processCommandsUntilSimStep();
