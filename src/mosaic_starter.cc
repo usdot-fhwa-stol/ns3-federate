@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
 
     SetLogLevels(configFile);
     
-    NetworkConfig config = GetNetworkConfig(configFile);
+    // NetworkConfig config = GetNetworkConfig(configFile);
 
     try {
         MosaicNs3Server server(port, cmdPort, config.commType);
