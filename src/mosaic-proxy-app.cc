@@ -53,8 +53,12 @@ namespace ns3 {
 
     void MosaicProxyApp::DoDispose(void) {
         NS_LOG_FUNCTION_NOARGS();
-        m_socket = 0;
+        m_rxSocket = 0;
         Application::DoDispose();
+    }
+
+    void MosaicProxyApp::SetCommType(CommunicationType commType){
+        m_commType = commType;
     }
 
     void MosaicProxyApp::Enable(void) {
@@ -65,17 +69,29 @@ namespace ns3 {
         m_active = false;
     }
 
-    void MosaicProxyApp::SetSockets(void) {
+    void MosaicProxyApp::SetMulticastAddr(Ipv4Address multicastAddress){
+        m_multicastAddress = multicastAddress;
+    }
+
+    void MosaicProxyApp::SetTxSocket(){
+        if (!m_txSocket){
+            m_txSocket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+            m_txSocket->Bind();
+            m_txSocket->Connect(InetSocketAddress(m_multicastAddress, m_port));
+            m_txSocket->SetAllowBroadcast(true);
+            m_txSocket->ShutdownRecv();
+        }else{
+            return;
+        }
+    }
+
+    void MosaicProxyApp::SetRxSocket(void) {
         NS_LOG_INFO("set sockets on node " << GetNode()->GetId());
 
-        if (!m_socket) {
-
-            m_socket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
-            InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
-            m_socket->Bind(local);
-            m_socket->SetAllowBroadcast(true);
-
-            m_socket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
+        if (!m_rxSocket) {
+            m_rxSocket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
+            m_rxSocket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
+            m_rxSocket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
             return;
@@ -84,7 +100,6 @@ namespace ns3 {
 
     void MosaicProxyApp::TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address) {
         NS_LOG_FUNCTION(protocolID << msgID << payLength << address);
-
         if (!m_active) {
             return;
         }
@@ -97,10 +112,15 @@ namespace ns3 {
 
         m_sendCount++;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
-
-        //call the socket of this node to send the packet
-        InetSocketAddress ipSA = InetSocketAddress(address, m_port);
-        m_socket->SendTo(packet, 0, ipSA);
+        if (m_commType == DSRC){
+            //call the socket of this node to send the packet
+            InetSocketAddress ipSA = InetSocketAddress(address, m_port);
+            m_rxSocket->SendTo(packet, 0, ipSA);
+        }
+        else if (m_commType == LTE){
+            uint32_t acceptedBytes = m_txSocket->Send(packet);
+            bool result = (acceptedBytes == packet->GetSize());            
+        }
     }
 
     /*
@@ -108,6 +128,7 @@ namespace ns3 {
      * This method is called by the callback which is defined in the method MosaicProxyApp::SetSockets
      */
     void MosaicProxyApp::Receive(Ptr<Socket> socket) {
+        std::cout << "FEDERATE DEBUG: Receive Packet" << std::endl;
         NS_LOG_FUNCTION_NOARGS();
         if (!m_active) {
             return;
@@ -117,7 +138,7 @@ namespace ns3 {
         NS_LOG_INFO("Start Receiving - Call Socket -> Recv()");
         packet = socket->Recv();
 
-        m_recvCount++;
+        // m_recvCount++;
 
         FlowIdTag Tag;
         int msgID;
