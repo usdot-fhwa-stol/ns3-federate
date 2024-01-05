@@ -46,7 +46,7 @@ namespace ns3 {
             m_commType = CommunicationType::LTE;
         }
         else{
-            NS_LOG_ERROR("Unknown communication type config");
+            NS_LOG_ERROR("Unknown communication type:" << commType);
             return;
         }            
 
