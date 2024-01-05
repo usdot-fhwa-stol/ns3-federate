@@ -137,31 +137,36 @@ void SetLogLevels(const std::string & configFile) {
     }
 
     xmlXPathFreeObject(result);
+}
 
-    // Handling CommType components
-    xmlChar *commTypeXpath = (xmlChar *) "//ns3/CommType/component";
-    xmlXPathObjectPtr commTypeResult = xmlXPathEvalExpression(commTypeXpath, context);
+std::string GetCommType(const std::string &configFile) {
+    xmlDocPtr doc = xmlParseFile(configFile.c_str());
+    xmlXPathContextPtr context = xmlXPathNewContext(doc);
 
-    for (int i = 0; commTypeResult->nodesetval != nullptr && i < commTypeResult->nodesetval->nodeNr; i++) {
-        xmlNodePtr nodePtr = commTypeResult->nodesetval->nodeTab[i];
+    // XPath to find the specific CommType component
+    xmlChar *xpath = (xmlChar *) "//ns3/CommType/component[@name='CommType']";
+    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
 
-        std::string nameString, valueString;
-        for (xmlAttrPtr attr = nodePtr->properties; NULL != attr; attr = attr->next) {
+    std::string valueString;
+    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
+        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
+
+        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
             std::string attrName((char *) attr->name);
-            
-            if (attrName == "name") {
-                nameString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
-            } else if (attrName == "value") {
+            if (attrName == "value") {
                 valueString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
+                break; // Once value is found, break the loop
             }
         }
-
-        // Here, add your logic to handle CommType data
-        // For example, SetCommType(nameString, valueString);
     }
-    xmlXPathFreeObject(commTypeResult);
-    std::cout<< "Federate Debug: commType result" << commTypeResult << std::endl;
+
+    xmlXPathFreeObject(result);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+
+    return valueString;
 }
+
 
 int main(int argc, char *argv[]) {
     using namespace std;
@@ -195,7 +200,10 @@ int main(int argc, char *argv[]) {
     xmlConfig.ConfigureAttributes();
 
     SetLogLevels(configFile);
-
+    
+    std::string commType = GetCommType(configFile);
+    std::cout << "CommType: " << commType << std::endl;
+    
     try {
         MosaicNs3Server server(port, cmdPort);
         server.processCommandsUntilSimStep();
