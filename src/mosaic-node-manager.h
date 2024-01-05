@@ -117,6 +117,8 @@ namespace ns3 {
 
         // Assembler
         Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
+        
+        Ipv4AddressHelper m_ipAddressHelper;
         // DSRC End
 
         // LTE
@@ -125,8 +127,6 @@ namespace ns3 {
         Ptr<LteHelper> m_lteHelper;
         Ptr<LteV2xHelper> m_lteV2xHelper;
         Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
-        Ipv4AddressHelper m_ipAddressHelper;
-        
         
         NetDeviceContainer m_ueDevs;    
         NetDeviceContainer m_enbDev;

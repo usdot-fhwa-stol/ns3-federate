@@ -80,7 +80,7 @@ namespace ns3 {
 
         if (m_events != 0) {
             while (!m_events->IsEmpty()) {
-                Scheduler::Event next = m_events->RemoveNext();          
+                Scheduler::Event next = m_events->RemoveNext();
                 scheduler->Insert(next);
             }
         }
@@ -97,6 +97,7 @@ namespace ns3 {
         Scheduler::Event next = m_events->RemoveNext();
         NS_ASSERT(next.key.m_ts >= m_currentTs);
         m_unscheduledEvents--;
+
         NS_LOG_LOGIC("handle " << next.key.m_ts);
         m_currentTs = next.key.m_ts;
         m_currentContext = next.key.m_context;
@@ -143,7 +144,7 @@ namespace ns3 {
     }
 
     EventId MosaicSimulatorImpl::Schedule(Time const &time, EventImpl *event) {
-        
+
         Time tAbsolute = time + TimeStep(m_currentTs);
 
         NS_ASSERT(tAbsolute.IsPositive());
@@ -169,12 +170,10 @@ namespace ns3 {
         ev.key.m_ts = m_currentTs + time.GetTimeStep();
         ev.key.m_context = context;
         ev.key.m_uid = m_uid;
-
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
         m_server->writeNextTime(ev.key.m_ts);
-        
     }
 
     EventId MosaicSimulatorImpl::ScheduleNow(EventImpl *event) {
@@ -188,7 +187,6 @@ namespace ns3 {
         m_unscheduledEvents++;
         m_events->Insert(ev);
 
-        
         return EventId(event, ev.key.m_ts, ev.key.m_context, ev.key.m_uid);
     }
 
@@ -255,7 +253,6 @@ namespace ns3 {
     }
 
     bool MosaicSimulatorImpl::IsExpired(const EventId &ev) const {
-
         if (ev.GetUid() == 2) {
             if (ev.PeekEventImpl() == 0 ||
                     ev.PeekEventImpl()->IsCancelled()) {
