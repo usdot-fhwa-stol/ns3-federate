@@ -137,6 +137,30 @@ void SetLogLevels(const std::string & configFile) {
     }
 
     xmlXPathFreeObject(result);
+
+    // Handling CommType components
+    xmlChar *commTypeXpath = (xmlChar *) "//ns3/CommType/component";
+    xmlXPathObjectPtr commTypeResult = xmlXPathEvalExpression(commTypeXpath, context);
+
+    for (int i = 0; commTypeResult->nodesetval != nullptr && i < commTypeResult->nodesetval->nodeNr; i++) {
+        xmlNodePtr nodePtr = commTypeResult->nodesetval->nodeTab[i];
+
+        std::string nameString, valueString;
+        for (xmlAttrPtr attr = nodePtr->properties; NULL != attr; attr = attr->next) {
+            std::string attrName((char *) attr->name);
+            
+            if (attrName == "name") {
+                nameString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
+            } else if (attrName == "value") {
+                valueString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
+            }
+        }
+
+        // Here, add your logic to handle CommType data
+        // For example, SetCommType(nameString, valueString);
+    }
+    xmlXPathFreeObject(commTypeResult);
+    std::cout<< "Federate Debug: commType result" << commTypeResult << std::endl;
 }
 
 int main(int argc, char *argv[]) {
