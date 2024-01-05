@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
     // NetworkConfig config = GetNetworkConfig(configFile);
 
     try {
-        MosaicNs3Server server(port, cmdPort, config.commType);
+        MosaicNs3Server server(port, cmdPort, "LTE");
         // if (config.commType == "LTE")
         //     server.SetNumOfNodes(config.numOfNodes);
         server.processCommandsUntilSimStep();
