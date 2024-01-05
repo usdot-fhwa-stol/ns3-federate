@@ -229,9 +229,16 @@ int main(int argc, char *argv[]) {
     NetworkConfig config = GetNetworkConfig(configFile);
 
     try {
-        MosaicNs3Server server(port, cmdPort, "LTE");
-        // if (config.commType == "LTE")
-        //     server.SetNumOfNodes(config.numOfNodes);
+        MosaicNs3Server server(port, cmdPort, config.commType);
+        if (config.commType == "LTE")
+            server.SetNumOfNodes(config.numOfNodes);
+        else if (config.commType == "DSRC"){
+            // do nothing
+        }else{
+            NS_LOG_ERROR("Unknown communication type:" << commType);
+            return;
+        }
+            
         server.processCommandsUntilSimStep();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");
