@@ -234,8 +234,9 @@ int main(int argc, char *argv[]) {
             server.SetNumOfNodes(config.numOfNodes);
         else if (config.commType == "DSRC"){
             // do nothing
-        }else{
-            NS_LOG_ERROR("Unknown communication type:" << commType);
+        }
+        else{
+            NS_LOG_ERROR("Unknown communication type:" << config.commType);
             return 0;
         }
             
