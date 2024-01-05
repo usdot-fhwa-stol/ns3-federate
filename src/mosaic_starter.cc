@@ -202,10 +202,9 @@ int main(int argc, char *argv[]) {
     SetLogLevels(configFile);
     
     std::string commType = GetCommType(configFile);
-    std::cout << "CommType: " << commType << std::endl;
-    
+
     try {
-        MosaicNs3Server server(port, cmdPort);
+        MosaicNs3Server server(port, cmdPort, commType);
         server.processCommandsUntilSimStep();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");

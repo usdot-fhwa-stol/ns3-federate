@@ -37,9 +37,21 @@ namespace ns3 {
      * @param port  port for receiving the commands from MOSAIC
      * @param MosaicNodeManger MosaicNodeManger given from the NS3 starter script
      */
-    MosaicNs3Server::MosaicNs3Server(int port, int cmdPort, CommunicationType commType) {
+    MosaicNs3Server::MosaicNs3Server(int port, int cmdPort, std::string commType) {
+        if (commType == "DSRC"){
+            m_commType = CommunicationType::DSRC;
+            std::cout << "Federate Debug: Communication type is " << commType << "\n";
+        }
+        else if (commType == "LTE"){
+            m_commType = CommunicationType::LTE;
+            std::cout << "Federate Debug: Communication type is " << commType << "\n";
+        }
+        else{
+            NS_LOG_ERROR("Unknown communication type config");
+            return;
+        }
+            
         std::cout << "Starting federate on port " << port << "\n";
-        m_commType = commType;
 
         if (cmdPort > 0) {
             std::cout << "Once connected, federate will listen to commands on port " << cmdPort << "\n";
