@@ -144,38 +144,62 @@ void SetLogLevels(const std::string & configFile) {
     xmlXPathFreeObject(result);
 }
 
-NetworkConfig GetNetworkConfig(const std::string &configFile) {
-    NetworkConfig config;
+std::string GetCommType(const std::string &configFile) {
     xmlDocPtr doc = xmlParseFile(configFile.c_str());
     xmlXPathContextPtr context = xmlXPathNewContext(doc);
 
-    // XPath to find CommType and NumOfNodes
-    xmlChar *commTypeXpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='CommType']";
-    xmlChar *numOfNodesXpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='NumOfNodes']";
+    // XPath to find the specific CommType component
+    xmlChar *xpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='CommType']";
+    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
 
-    // Get CommType
-    xmlXPathObjectPtr result = xmlXPathEvalExpression(commTypeXpath, context);
+    std::string valueString;
     if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
-        xmlNodePtr node = result->nodesetval->nodeTab[0];
-        config.commType = (char *) xmlNodeListGetString(doc, node->children, 1);
-    }
-    xmlXPathFreeObject(result);
+        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
 
-    // Get NumOfNodes
-    result = xmlXPathEvalExpression(numOfNodesXpath, context);
-    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
-        xmlNodePtr node = result->nodesetval->nodeTab[0];
-        std::string numOfNodesStr = (char *) xmlNodeListGetString(doc, node->children, 1);
-        config.numOfNodes = std::atoi(numOfNodesStr.c_str());
+        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
+            std::string attrName((char *) attr->name);
+            if (attrName == "value") {
+                valueString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
+                break; // Once value is found, break the loop
+            }
+        }
     }
-    xmlXPathFreeObject(result);
 
+    xmlXPathFreeObject(result);
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
-    return config;
+    return valueString;
 }
 
+int GetNumOfNodes(const std::string &configFile) {
+    xmlDocPtr doc = xmlParseFile(configFile.c_str());
+    xmlXPathContextPtr context = xmlXPathNewContext(doc);
+
+    // XPath to find the specific NumOfNodes component
+    xmlChar *xpath = (xmlChar *) "//NetworkConfig/component[@name='NumOfNodes']";
+    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
+
+    int numOfNodes = 0;
+    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
+        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
+
+        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
+            std::string attrName((char *) attr->name);
+            if (attrName == "value") {
+                std::string valueString = (char *) xmlNodeListGetString(doc, attr->children, 1);
+                numOfNodes = std::atoi(valueString.c_str());
+                break; // Once value is found, break the loop
+            }
+        }
+    }
+
+    xmlXPathFreeObject(result);
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+
+    return numOfNodes;
+}
 
 int main(int argc, char *argv[]) {
     using namespace std;
@@ -210,12 +234,24 @@ int main(int argc, char *argv[]) {
 
     SetLogLevels(configFile);
     
-    NetworkConfig config = GetNetworkConfig(configFile);
+    NetworkConfig config;
+    config.commType = GetCommType(configFile);
+
 
     try {
         MosaicNs3Server server(port, cmdPort, config.commType);
-        if (config.commType == "LTE")
+        if (config.commType == "LTE"){
+            config.numOfNodes = GetNumOfNodes(configFile);
             server.SetNumOfNodes(config.numOfNodes);
+        }
+        else if (config.commType == "DSRC"){
+            // do nothing
+        }
+        else{
+            NS_LOG_ERROR("Unknown communication type:" << config.commType);
+            return 0;
+        }
+            
         server.processCommandsUntilSimStep();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");
