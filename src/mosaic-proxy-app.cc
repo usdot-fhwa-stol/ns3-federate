@@ -128,6 +128,8 @@ namespace ns3 {
      * This method is called by the callback which is defined in the method MosaicProxyApp::SetSockets
      */
     void MosaicProxyApp::Receive(Ptr<Socket> socket) {
+        NS_LOG_INFO("FEDERATE DEBUG: Receive Packet" );
+        std::cout << "FEDERATE DEBUG: Receive Packet" << std::endl;
         NS_LOG_FUNCTION_NOARGS();
         if (!m_active) {
             return;
