@@ -24,6 +24,7 @@
 #include "mosaic-node-manager.h"
 
 #include "mosaic-ns3-server.h"
+#include "ns3/netanim-module.h"
 
 #include "ns3/wave-net-device.h"
 #include "mosaic-proxy-app.h"
@@ -34,6 +35,8 @@
 #include "ns3/log.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/node-list.h"
+#include "ns3/mobility-module.h"
+#include "ns3/config-store.h"
 
 NS_LOG_COMPONENT_DEFINE("MosaicNodeManager");
 
@@ -62,154 +65,214 @@ namespace ns3 {
     void MosaicNodeManager::Configure(MosaicNs3Server* serverPtr, CommunicationType commType) {
         m_serverPtr = serverPtr;
         m_commType = commType;
-        if(m_commType == DSRC){
-            m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
-            m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
-            m_channel = m_wifiChannelHelper.Create();
-            m_wifiPhyHelper.SetChannel(m_channel);
-        } else if (m_commType == LTE){
-            m_lteHelper = CreateObject<LteHelper>();
-            m_lteV2xHelper = CreateObject<LteV2xHelper>();
-            m_epcHelper = CreateObject<PointToPointEpcHelper>();
-            
-            m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
-            m_lteHelper->SetEpcHelper(m_epcHelper);
-            m_lteHelper->DisableNewEnbPhy();
-            m_lteV2xHelper->SetLteHelper(m_lteHelper);
+    }
 
+    void MosaicNodeManager::InitLte(int numOfNode){
+        
+        ConfigStore inputConfig; 
+        inputConfig.ConfigureDefaults(); 
 
-            m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
-            
-            NodeContainer eNodeB;
-            eNodeB.Create(1); 
+        NodeContainer ueAllNodes;
+        m_ueNodes.Create(numOfNode);
+        ueAllNodes.Add(m_ueNodes);
 
-            // Topology eNodeB
-            Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
-            pos_eNB->Add(Vector(0, 0, 0));
+        MobilityHelper mobility;
+        mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+        Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator>();
 
-            // Install mobility eNodeB
-            MobilityHelper mob_eNB;
-            mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-            mob_eNB.SetPositionAllocator(pos_eNB);
-            mob_eNB.Install(eNodeB);
+        // Set the distant position to (10000, 10000, 0) which is faraway from the scenario
+        positionAlloc->Add(Vector(10000, 10000, 0));
+        mobility.SetPositionAllocator(positionAlloc);
+        mobility.Install(m_ueNodes);
+ 
+        Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper>();
+        Ptr<Node> pgw = epcHelper->GetPgwNode();
 
-            NetDeviceContainer enbDevs = m_lteHelper->InstallEnbDevice(eNodeB);
+        m_lteHelper = CreateObject<LteHelper>();
+        m_lteHelper->SetEpcHelper(epcHelper);
+        m_lteHelper->DisableNewEnbPhy();
 
-            BuildingsHelper::Install (eNodeB);
-            BuildingsHelper::MakeMobilityModelConsistent();  
+        m_lteV2xHelper = CreateObject<LteV2xHelper>();
+        m_lteV2xHelper->SetLteHelper(m_lteHelper);
 
-            m_groupL2Address = 0x00;
-            Ipv4AddressGenerator::Init(Ipv4Address ("10.1.0.0"), Ipv4Mask("255.255.0.0"));
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
+        m_lteHelper->SetEnbAntennaModelType ("ns3::NistParabolic3dAntennaModel");
+        
+        m_lteHelper->SetAttribute ("UseSameUlDlPropagationCondition", BooleanValue(true));
+        m_lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::CniUrbanmicrocellPropagationLossModel"));
+        
+        m_eNodeB.Create(1); 
 
-            // Sidelink configuration
-            m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
-            m_ueSidelinkConfiguration->SetSlEnabled(true);
-            m_ueSidelinkConfiguration->SetV2xEnabled(true);
+        // Topology eNodeB
+        Ptr<ListPositionAllocator> pos_eNB = CreateObject<ListPositionAllocator>(); 
+        pos_eNB->Add(Vector(5,-10,30));
 
-            LteRrcSap::SlV2xPreconfiguration preconfiguration;
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
-            
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
+        // Install mobility eNodeB
+        MobilityHelper mob_eNB;
+        mob_eNB.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mob_eNB.SetPositionAllocator(pos_eNB);
+        mob_eNB.Install(m_eNodeB);
+        
+        NetDeviceContainer enbDev = m_lteHelper->InstallEnbDevice(m_eNodeB);
 
-            SlV2xPreconfigPoolFactory pFactory;
-            pFactory.SetHaveUeSelectedResourceConfig (true);
-            pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
-            pFactory.SetAdjacencyPscchPssch (true);
-            pFactory.SetSizeSubchannel (10);
-            pFactory.SetNumSubchannel (3);
-            pFactory.SetStartRbSubchannel (0);
-            pFactory.SetStartRbPscchPool (0);
-            pFactory.SetDataTxP0 (-4);
-            pFactory.SetDataTxAlpha (0.9);
-
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
-            preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
-            m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
+        BuildingsHelper::Install (m_eNodeB);
+        BuildingsHelper::Install (ueAllNodes);
+        BuildingsHelper::MakeMobilityModelConsistent();  
+        
+        m_lteHelper->SetAttribute("UseSidelink", BooleanValue (true));
+        NetDeviceContainer ueRespondersDevs = m_lteHelper->InstallUeDevice (m_ueNodes);
+        
+        m_ueDevs.Add(ueRespondersDevs);
+        
+        for (uint16_t i=0; i<m_ueNodes.GetN();i++)
+        {
+            m_ns3Id2DeviceId[m_ueNodes.Get(i)->GetId()] = i;
+            m_ueNodeIdList.push_back(m_ueNodes.Get(i)->GetId());
         }
-        else{
-            NS_LOG_ERROR("Unknown communication type:" << m_commType);
+
+        // Install the IP stack on the UEs        
+        InternetStackHelper internet;
+        internet.Install (ueAllNodes); 
+
+        // Assign an IPv4 address to the LTE device
+        Ipv4InterfaceContainer vehicleIpIface = epcHelper->AssignUeIpv4Address(m_ueDevs);
+        Ipv4StaticRoutingHelper Ipv4RoutingHelper;
+
+        // Set up static routing for the node to use the default gateway provided by the EPC helper
+        for(uint32_t i = 0; i < ueAllNodes.GetN(); ++i)
+        {
+            Ptr<Node> ueNode = ueAllNodes.Get(i);
+            // Set the default gateway for the UE
+            Ptr<Ipv4StaticRouting> ueStaticRouting = Ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+            ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress(), 1);       
         }
+
+        // // Attach the LTE device to the eNodeB (base station)
+        m_lteHelper->Attach(m_ueDevs);
+
+        std::vector<NetDeviceContainer> txGroups = m_lteV2xHelper->AssociateForV2xBroadcast(ueRespondersDevs, numOfNode); 
+
+        uint32_t groupL2Address = 0x00;
+        Ipv4AddressGenerator::Init(Ipv4Address ("225.0.0.0"), Ipv4Mask("255.0.0.0"));
+        Ipv4Address multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+
+        for(std::vector<NetDeviceContainer>::iterator gIt=txGroups.begin(); gIt != txGroups.end(); gIt++){
+
+            Ptr<NetDevice> ueDev = gIt->Get(0);
+            Ptr<Node> ueNode = ueDev->GetNode();
+
+            NetDeviceContainer txUe ((*gIt).Get(0));
+            m_activeTxUes.Add(txUe);
+            NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
+
+            Ptr<LteSlTft> txTft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, txTft);
+            
+            Ptr<LteSlTft> rxTft = Create<LteSlTft>(LteSlTft::RECEIVE, multicastAddress, groupL2Address); 
+            m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), rxUes, rxTft);
+
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            ueNode->AddApplication(app);
+            app->SetMulticastAddr(multicastAddress);
+            app->SetCommType(m_commType);
+            
+            app->SetTxSocket();
+            app->SetRxSocket();
+
+            multicastAddress.Print(std::cout);
+
+            m_ns3ID2UniqueAddress[ueNode->GetId()] = multicastAddress;
+            groupL2Address++;
+            multicastAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.0.0.0"));
+        }
+        
+        // Sidelink configuration
+        m_ueSidelinkConfiguration = CreateObject<LteUeRrcSl>();
+        m_ueSidelinkConfiguration->SetSlEnabled(true);
+        m_ueSidelinkConfiguration->SetV2xEnabled(true);
+
+        LteRrcSap::SlV2xPreconfiguration preconfiguration;
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.carrierFreq = 54890;
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommPreconfigGeneral.slBandwidth = 30;
+        
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.nbPools = 1;
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.nbPools = 1;
+
+        SlV2xPreconfigPoolFactory pFactory;
+        pFactory.SetHaveUeSelectedResourceConfig (true);
+        pFactory.SetSlSubframe (std::bitset<20> (0xFFFFF));
+        pFactory.SetAdjacencyPscchPssch (true);
+        pFactory.SetSizeSubchannel (10);
+        pFactory.SetNumSubchannel (3);
+        pFactory.SetStartRbSubchannel (0);
+        pFactory.SetStartRbPscchPool (0);
+        pFactory.SetDataTxP0 (-4);
+        pFactory.SetDataTxAlpha (0.9);
+
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommTxPoolList.pools[0] = pFactory.CreatePool ();
+        preconfiguration.v2xPreconfigFreqList.freq[0].v2xCommRxPoolList.pools[0] = pFactory.CreatePool ();
+        m_ueSidelinkConfiguration->SetSlV2xPreconfiguration (preconfiguration); 
+
+        m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
+
+        m_lteHelper->EnableTraces();
+    }
+
+    void MosaicNodeManager::InitDsrc(){
+        m_wifiChannelHelper.AddPropagationLoss(m_lossModel);
+        m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
+        m_channel = m_wifiChannelHelper.Create();
+        m_wifiPhyHelper.SetChannel(m_channel);
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
-        if (m_isDeactivated[ID]) {
-            return;
-        }
-        Ptr<Node> singleNode = CreateObject<Node>();
-        
-        NS_LOG_INFO("Created node " << singleNode->GetId());
-        m_mosaic2ns3ID[ID] = singleNode->GetId();
 
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
-            NS_LOG_INFO ("Creating helpers for the DSRC...");
+            if (m_isDeactivated[ID]) {
+                return;
+            }
+            Ptr<Node> singleNode = CreateObject<Node>();
+            
+            NS_LOG_INFO("Created node " << singleNode->GetId());
+            m_mosaic2ns3ID[ID] = singleNode->GetId();
+
+            //Install Wave device
+            NS_LOG_INFO("Install WAVE on node " << singleNode->GetId());
             InternetStackHelper internet;   
             internet.Install(singleNode);
             NetDeviceContainer netDevices = m_wifi80211pHelper.Install(m_wifiPhyHelper, m_waveMacHelper, singleNode);
             m_ipAddressHelper.Assign(netDevices);
 
+            //Install app
+            NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
+            Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
+            app->SetNodeManager(this);
+            singleNode->AddApplication(app);
+            app->SetRxSocket();
+
+            //Install mobility model
+            NS_LOG_INFO("Install MosaicMobilityModel on node " << singleNode->GetId());
+            Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position);
+            singleNode->AggregateObject(mobModel);
+
         } else if (m_commType == LTE) {
 
-            NS_LOG_INFO ("Creating helpers for the LTE...");
-            // Associate the node with buildings for better radio propagation modeling
-            BuildingsHelper::Install(singleNode);
+            m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
+            m_ueNodeIdList.erase(m_ueNodeIdList.begin());
+            Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
+            
+            NS_LOG_INFO("Got Node " << singleNode->GetId() << " from node pool");
 
-            // Ensure that the mobility models of all nodes are consistent with their positions
-            BuildingsHelper::MakeMobilityModelConsistent(); 
-
-            // Install an LTE device on the node
-            NetDeviceContainer ueDev = m_lteHelper->InstallUeDevice(singleNode);
-            m_ueDevs.Add(ueDev);
-            // Install the internet stack on the node
-            InternetStackHelper internet;
-            internet.Install(singleNode);
-
-            // Assign an IPv4 address to the LTE device
-            Ipv4InterfaceContainer vehicleIpIface = m_epcHelper->AssignUeIpv4Address(ueDev);
-
-            // Set up static routing for the node to use the default gateway provided by the EPC helper
-            Ipv4StaticRoutingHelper Ipv4RoutingHelper;
-            Ptr<Ipv4StaticRouting> vehicleStaticRouting = Ipv4RoutingHelper.GetStaticRouting(singleNode->GetObject<Ipv4>());
-            vehicleStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
-
-            // Attach the LTE device to the eNodeB (base station)
-            m_lteHelper->Attach(ueDev);
-
-            // Create and activate a sidelink bearer for V2X communication
-            Ptr<LteSlTft> tft = Create<LteSlTft>(LteSlTft::BIDIRECTIONAL, m_clientRespondersAddress, m_groupL2Address); 
-            m_lteV2xHelper->ActivateSidelinkBearer(Simulator::Now(), ueDev, tft);
-            m_ns3ID2UniqueAddress[ID] = m_clientRespondersAddress;
-            m_groupL2Address++;
-            m_clientRespondersAddress = Ipv4AddressGenerator::NextAddress (Ipv4Mask ("255.255.0.0"));
-
-            // Install the V2X sidelink configuration on the LTE device
-            m_lteHelper->InstallSidelinkV2xConfiguration(ueDev, m_ueSidelinkConfiguration);            
-
+            Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
+            mobModel->SetPosition(position); 
+            NS_LOG_INFO("Moved Node " << singleNode->GetId() << " to pos:" << position);
         }
         else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
-            m_mosaic2ns3ID.erase(singleNode->GetId());
-            singleNode = nullptr;
+            return;
         }
-
-        //Install mobility model
-        NS_LOG_INFO("Install ConstantVelocityMobilityModel on node " << singleNode->GetId());
-        Ptr<ConstantVelocityMobilityModel> mobModel = CreateObject<ConstantVelocityMobilityModel>();
-        mobModel->SetPosition(position);
-        singleNode->AggregateObject(mobModel);
-
-        //Install app
-        NS_LOG_INFO("Install MosaicProxyApp application on node " << singleNode->GetId());
-        Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
-        app->SetNodeManager(this);
-        singleNode->AddApplication(app);
-        app->SetSockets();
-
-
-        return;
     }
 
     uint32_t MosaicNodeManager::GetNs3NodeId(uint32_t nodeId) {
@@ -221,32 +284,21 @@ namespace ns3 {
             return;
         }
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
-
-        Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
+        Ptr<Node> node = NodeList::GetNode(nodeId);
+        
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
-        if (m_commType == DSRC) {
-            app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
-        }
-        else if (m_commType == LTE) {
-            // For LTE communication, send message to sidelink
-            // clientRespondersAddress is stored in m_ns3ID2UniqueAddress which a way for the sidelink communication
-            app->TransmitPacket(protocolID, msgID, payLength, m_ns3ID2UniqueAddress[nodeId]);
-        }
-        else{
-            NS_LOG_ERROR("Unknown communication type:" << m_commType);
-            return;
-        }
+
+        app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
     }
 
     void MosaicNodeManager::AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID) {
         if (m_isDeactivated[nodeID]) {
             return;
         }
-        
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
 
@@ -254,10 +306,11 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        
+
         Ptr<Node> node = NodeList::GetNode(nodeId);
         Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel> ();
         mobModel->SetPosition(position);
+
     }
 
     void MosaicNodeManager::DeactivateNode(uint32_t nodeId) {
@@ -287,9 +340,13 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
-        
-        Ptr<Node> node = NodeList::GetNode(nodeId);
 
+        Ptr<Node> node = NodeList::GetNode(nodeId);
+        if (node->GetNApplications() > 0) {
+            Ptr<Application> app = node->GetApplication(0);
+        } else {
+            return;
+        }
         Ptr<Application> app = node->GetApplication(0);
         Ptr<MosaicProxyApp> ssa = app->GetObject<MosaicProxyApp>();
         if (!ssa) {
@@ -312,14 +369,13 @@ namespace ns3 {
                         wavePhy->SetTxPowerEnd(txDBm);
                     }
                 } else if (m_commType == LTE) {
-                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(1));
+                    Ptr<LteUeNetDevice> netDev = DynamicCast<LteUeNetDevice> (node->GetDevice(0));
                     if (netDev == nullptr) {
                         NS_LOG_ERROR("Inconsistency: no matching NetDevice found on node while configuring");
                         return;
                     } 
                     Ptr<LteUePhy> uePhy = DynamicCast<LteUePhy> (netDev->GetPhy());
                     if (uePhy != 0){
-                        
                         uePhy->SetTxPower(txDBm);
                     }
                 }

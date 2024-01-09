@@ -26,9 +26,12 @@
 #include "ns3/application.h"
 #include "mosaic-node-manager.h"
 #include "ns3/data-rate.h"
+#include "ClientServerChannel.h"
+#include "ns3/udp-socket.h"
 
 namespace ns3 {
 
+    using namespace ClientServerChannelSpace;
     class MosaicProxyApp : public Application {
     public:
 
@@ -40,7 +43,13 @@ namespace ns3 {
 
         void SetNodeManager(MosaicNodeManager* nodeManager);
 
-        void SetSockets(void);
+        void SetCommType(CommunicationType commType);
+
+        void SetMulticastAddr(Ipv4Address m_multicastAddress);
+
+        void SetTxSocket(void);
+
+        void SetRxSocket(void);
         
         void TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address);
         
@@ -49,22 +58,24 @@ namespace ns3 {
         void Disable();
         
         virtual void DoDispose(void);
-        
         //Must be public to be accessible for ns-3 object system
         uint16_t m_port = 0;
 
     private:
-
+        
         void Receive(Ptr<Socket> socket);
 
-        Ptr<Socket> m_socket{nullptr};
+        Ptr<Socket> m_txSocket{nullptr};
+        Ptr<Socket> m_rxSocket{nullptr};
                 
         uint16_t m_sendCount = 0;
         uint64_t m_recvCount = 0;
 
         bool m_active = false;
 
+        CommunicationType m_commType;
         MosaicNodeManager* m_nodeManager;
+        Ipv4Address m_multicastAddress;
     };
 } // namespace ns3
 

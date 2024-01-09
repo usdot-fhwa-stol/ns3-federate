@@ -45,6 +45,14 @@
 #include "ns3/sl-v2x-preconfig-pool-factory.h"
 #include "ns3/ipv4-address-generator.h"
 
+#include "ns3/trace-source-accessor.h"
+#include "ns3/packet.h"
+
+#include "ns3/lte-ue-phy.h"
+#include "ns3/lte-ue-mac.h"
+#include "ns3/callback.h"
+#include <sstream>
+
 
 namespace ns3 {
 
@@ -67,7 +75,9 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType=DSRC);
+        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
+        void InitLte(int numOfNode=5);
+        void InitDsrc();
 
         void CreateMosaicNode(int ID, Vector position);
         void UpdateNodePosition(uint32_t nodeId, Vector position);
@@ -86,38 +96,48 @@ namespace ns3 {
         std::string m_delayModel;
 
     private:
+
+        void SetupLteTraces();
+        void OnConnectionEstablished(uint64_t imsi, uint16_t cellId, uint16_t rnti);
         MosaicNs3Server *m_serverPtr;
         std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
         std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
-        //Channel
+        // DSRC
+        // Channel
         YansWifiChannelHelper m_wifiChannelHelper;
         Ptr<YansWifiChannel> m_channel;
 
-        //PHY
+        // PHY
         YansWifiPhyHelper m_wifiPhyHelper = YansWifiPhyHelper::Default();
 
-        //MAC
+        // MAC
         NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
 
-        //Assembler
+        // Assembler
         Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
+        
+        Ipv4AddressHelper m_ipAddressHelper;
+        // DSRC End
 
+        // LTE
         // LTE Helper
+        std::map<uint32_t, uint32_t> m_ns3Id2DeviceId;
         Ptr<LteHelper> m_lteHelper;
         Ptr<LteV2xHelper> m_lteV2xHelper;
-        Ptr<PointToPointEpcHelper> m_epcHelper;
         Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
-
-        Ipv4AddressHelper m_ipAddressHelper;
-
-        NetDeviceContainer m_ueDevs;
-
-        uint32_t m_groupL2Address;
-        Ipv4Address m_clientRespondersAddress;
-
+        
+        NetDeviceContainer m_ueDevs;    
+        NetDeviceContainer m_enbDev;
         CommunicationType m_commType;
+        std::vector<uint32_t> m_ueNodeIdList;
+        
+        NetDeviceContainer m_activeTxUes;
+        NodeContainer m_ueNodes;
+        NodeContainer m_eNodeB;
+        // LTE End
+
 
     };
 }

@@ -25,10 +25,11 @@
 
 #include "ClientServerChannel.h"
 #include "mosaic-node-manager.h"
-
+#include "ns3/point-to-point-epc-helper.h"
 #include <atomic>
 
 namespace ns3 {
+    using namespace ClientServerChannelSpace;
 
     /**
      * @brief The central class of the MOSAIC-NS3 coupling
@@ -36,7 +37,9 @@ namespace ns3 {
     class MosaicNs3Server {
     public:
         MosaicNs3Server() = delete;
-        MosaicNs3Server(int port, int cmdPort);        
+        MosaicNs3Server(int port, int cmdPort, std::string commType = "LTE");
+
+        void SetNumOfNodes(int numOfNodes);
 
         /**
          * @brief NS3 Magic: a specialized entry-point is needed to create this class from a end-user script. The call of the constructor is forbidden by the NS3.
@@ -121,12 +124,19 @@ namespace ns3 {
         
         std::string Int2String(int n);
 
-        ClientServerChannelSpace::ClientServerChannel ambassadorFederateChannel, federateAmbassadorChannel;        
+        ClientServerChannel ambassadorFederateChannel, federateAmbassadorChannel;        
         unsigned long long m_startTime, m_endTime;
         std::vector<int> m_deactivatedNodes;        
         std::atomic_bool m_closeConnection;
         bool m_eventSentUp = false;
         Ptr<MosaicNodeManager> m_nodeManager;
+
+        CommunicationType m_commType;
+
+        int m_numOfNodes = 5;
+
+        bool m_lte_init_complete = false;
+        bool m_dsrc_init_complete = false;
     };
 }
 #endif
