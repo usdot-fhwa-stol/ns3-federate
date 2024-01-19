@@ -226,12 +226,12 @@ namespace ns3 {
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
-
+        if (m_isDeactivated[ID]) {
+            return;
+        }
         // Install the appropriate device based on communication type
         if (m_commType == DSRC) {
-            if (m_isDeactivated[ID]) {
-                return;
-            }
+            
             Ptr<Node> singleNode = CreateObject<Node>();
             
             NS_LOG_INFO("Created node " << singleNode->GetId());
@@ -258,7 +258,6 @@ namespace ns3 {
             singleNode->AggregateObject(mobModel);
 
         } else if (m_commType == LTE) {
-
             m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
             m_ueNodeIdList.erase(m_ueNodeIdList.begin());
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
