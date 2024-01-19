@@ -160,9 +160,9 @@ namespace ns3 {
             Ptr<NetDevice> ueDev = gIt->Get(0);
             Ptr<Node> ueNode = ueDev->GetNode();
 
-            NetDeviceContainer txUe ((*gIt).Get(0));
+            NetDeviceContainer txUe (gIt->Get(0));
             m_activeTxUes.Add(txUe);
-            NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get (0));
+            NetDeviceContainer rxUes = m_lteV2xHelper->RemoveNetDevice ((*gIt), txUe.Get(0));
 
             Ptr<LteSlTft> txTft = Create<LteSlTft>(LteSlTft::TRANSMIT, multicastAddress, groupL2Address); 
             m_lteV2xHelper->ActivateSidelinkBearer(Seconds(0.0), txUe, txTft);
