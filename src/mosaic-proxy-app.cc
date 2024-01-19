@@ -112,14 +112,14 @@ namespace ns3 {
 
         m_sendCount++;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
+        
+        //call the socket of this node to send the packet
         if (m_commType == DSRC){
-            //call the socket of this node to send the packet
             InetSocketAddress ipSA = InetSocketAddress(address, m_port);
             m_rxSocket->SendTo(packet, 0, ipSA);
         }
         else if (m_commType == LTE){
-            uint32_t acceptedBytes = m_txSocket->Send(packet);
-            bool result = (acceptedBytes == packet->GetSize());            
+            m_txSocket->Send(packet);
         }
     }
 
