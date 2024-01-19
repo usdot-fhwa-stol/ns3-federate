@@ -283,7 +283,7 @@ namespace ns3 {
             return;
         }
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
-        Ptr<Node> node = NodeList::GetNode(nodeId);
+        Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
         
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
