@@ -38,11 +38,13 @@ namespace ns3 {
      * @param MosaicNodeManger MosaicNodeManger given from the NS3 starter script
      */
     MosaicNs3Server::MosaicNs3Server(int port, int cmdPort, std::string commType) {
-        std::cout << "Starting federate on port " << port << "\n";
+        std::cout << "FEDERATE DEBUG: Starting federate on port " << port << "\n";
         if (commType == "DSRC"){
+            std::cout << "FEDERATE DEBUG: Select commType: DSRC" << std::endl;
             m_commType = CommunicationType::DSRC;
         }
         else if (commType == "LTE"){
+            std::cout << "FEDERATE DEBUG: Select commType: LTE" << std::endl;
             m_commType = CommunicationType::LTE;
         }
         else{
@@ -174,17 +176,17 @@ namespace ns3 {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        std::cout << "Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << cout::endl;
+                        std::cout << "FEDERATE DEBUG: Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        std::cout << "Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << cout::endl;
+                        std::cout << "FEDERATE DEBUG: Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_MOVE_NODE) {
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
-                        std::cout << "Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << cout::endl;
+                        std::cout << "FEDERATE DEBUG: Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << std::endl;
                         NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_REMOVE_NODE) {
@@ -193,7 +195,7 @@ namespace ns3 {
                         //void (std::vector<int>::*fctptr)(const int&) = &std::vector<int>::push_back;
                         //sim->ScheduleAtTime(tNext, MakeEvent(fctptr, &m_deactivatedNodes, it->id));
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::DeactivateNode, m_nodeManager, it->id));
-                        std::cout << "Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext << cout::endl;
+                        std::cout << "FEDERATE DEBUG: Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext << std::endl;
                         NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                     }
                 }
