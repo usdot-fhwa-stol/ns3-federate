@@ -234,6 +234,7 @@ namespace ns3 {
             
             Ptr<Node> singleNode = CreateObject<Node>();
             
+            std::cout<< "FEDERATE DEBUG: Created node " << singleNode->GetId() << std::endl;
             NS_LOG_INFO("Created node " << singleNode->GetId());
             m_mosaic2ns3ID[ID] = singleNode->GetId();
 
@@ -261,14 +262,16 @@ namespace ns3 {
             m_mosaic2ns3ID[ID] = m_ueNodeIdList.front();
             m_ueNodeIdList.erase(m_ueNodeIdList.begin());
             Ptr<Node> singleNode = NodeList::GetNode(m_mosaic2ns3ID[ID]);
-            
+            std::cout<< "FEDERATE DEBUG: Got Node " << singleNode->GetId() << " from node pool" << std::endl;
             NS_LOG_INFO("Got Node " << singleNode->GetId() << " from node pool");
 
             Ptr<ConstantVelocityMobilityModel> mobModel = singleNode->GetObject<ConstantVelocityMobilityModel>();
             mobModel->SetPosition(position); 
+            std::cout<< "FEDERATE DEBUG: Moved Node " << singleNode->GetId() << " to pos:" << position << std::endl;
             NS_LOG_INFO("Moved Node " << singleNode->GetId() << " to pos:" << position);
         }
         else{
+            std::cout<< "FEDERATE DEBUG: Unknown communication type:" << m_commType << std::endl;
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return;
         }
@@ -282,11 +285,13 @@ namespace ns3 {
         if (m_isDeactivated[nodeId]) {
             return;
         }
+        std::cout<< "FEDERATE DEBUG: Mosaic MosaicNodeManager::SendMsg " << nodeId << std::endl;
         NS_LOG_INFO("Mosaic MosaicNodeManager::SendMsg " << nodeId);
         Ptr<Node> node = NodeList::GetNode(m_mosaic2ns3ID[nodeId]);
         
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp> (node->GetApplication(0));
         if (app == nullptr) {
+            std::cout << "FEDERATE DEBUG: Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing" << std::endl;
             NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
             return;
         }
@@ -364,6 +369,7 @@ namespace ns3 {
                     }                        
                     Ptr<YansWifiPhy> wavePhy = DynamicCast<YansWifiPhy> (netDev->GetPhy());
                     if (wavePhy != 0) {
+                        std::cout << "FEDERATE DEBUG: txDBm:" << txDBm << std::endl;
                         wavePhy->SetTxPowerStart(txDBm);
                         wavePhy->SetTxPowerEnd(txDBm);
                     }

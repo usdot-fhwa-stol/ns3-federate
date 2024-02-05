@@ -174,14 +174,17 @@ namespace ns3 {
 
                     if (update_node_message.type == UPDATE_ADD_RSU) {
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
+                        std::cout << "Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << cout::endl;
                         NS_LOG_DEBUG("Received ADD_RSU: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_ADD_VEHICLE) {
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::CreateMosaicNode, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
+                        std::cout << "Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << cout::endl;
                         NS_LOG_DEBUG("Received ADD_VEHICLE: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_MOVE_NODE) {
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, it->id, Vector(it->x, it->y, 0.0)));
+                        std::cout << "Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext << cout::endl;
                         NS_LOG_DEBUG("Received MOVE_NODES: ID=" << it->id << " posx=" << it->x << " posy=" << it->y << " tNext=" << tNext);
 
                     } else if (update_node_message.type == UPDATE_REMOVE_NODE) {
@@ -190,6 +193,7 @@ namespace ns3 {
                         //void (std::vector<int>::*fctptr)(const int&) = &std::vector<int>::push_back;
                         //sim->ScheduleAtTime(tNext, MakeEvent(fctptr, &m_deactivatedNodes, it->id));
                         sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::DeactivateNode, m_nodeManager, it->id));
+                        std::cout << "Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext << cout::endl;
                         NS_LOG_DEBUG("Received REMOVE_NODES: ID=" << it->id << " tNext=" << tNext);
                     }
                 }
@@ -245,6 +249,7 @@ namespace ns3 {
                     //Convert the IP address
                     Ipv4Address ip(send_message.topo_address.ip_address);
                     int id = m_nodeManager->GetNs3NodeId(send_message.node_id);
+                    std::cout << "Received V2X_MESSAGE_TRANSMISSION id: " << id << " sendTime: " << send_message.time << " length: " << send_message.length << std::endl;
                     NS_LOG_DEBUG("Received V2X_MESSAGE_TRANSMISSION id: " << id << " sendTime: " << send_message.time << " length: " << send_message.length);
 
                     //create a sending jitter to avoid concurrently sending
