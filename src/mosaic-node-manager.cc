@@ -303,6 +303,7 @@ namespace ns3 {
         if (m_isDeactivated[nodeID]) {
             return;
         }
+        std::cout<< "FEDERATE DEBUG: Mosaic MosaicNodeManager::AddRecvPacket " << nodeID << std::endl;
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
 
