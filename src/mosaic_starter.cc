@@ -241,6 +241,7 @@ int main(int argc, char *argv[]) {
     try {
         MosaicNs3Server server(port, cmdPort, config.commType);
         if (config.commType == "LTE"){
+            MosaicNs3Server server(port, cmdPort, config.commType);
             config.numOfNodes = GetNumOfNodes(configFile);
             server.SetNumOfNodes(config.numOfNodes);
         }

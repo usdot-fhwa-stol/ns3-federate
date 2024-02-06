@@ -147,11 +147,13 @@ namespace ns3 {
 
         if (m_commType == CommunicationType::DSRC){
             if (!m_dsrc_init_complete){
+                std::cout << "FEDERATE DEBUG: Init DSRC" << std::endl;
                 m_nodeManager->InitDsrc();
                 m_dsrc_init_complete = true;
             }
         }else if (m_commType == CommunicationType::LTE){
             if (!m_lte_init_complete){
+                std::cout << "FEDERATE DEBUG: Init DSRC" << std::endl;
                 m_nodeManager->InitLte(m_numOfNodes);
                 m_lte_init_complete = true;
             }
