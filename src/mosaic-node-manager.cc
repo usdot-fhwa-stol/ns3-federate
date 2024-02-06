@@ -249,7 +249,8 @@ namespace ns3 {
             Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
             app->SetNodeManager(this);
             singleNode->AddApplication(app);
-            app->SetRxSocket();
+            app->SetCommType(m_commType);
+            app->SetRxSocket();            
 
             //Install mobility model
             NS_LOG_INFO("Install MosaicMobilityModel on node " << singleNode->GetId());
