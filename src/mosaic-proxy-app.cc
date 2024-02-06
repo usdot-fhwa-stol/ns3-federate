@@ -115,9 +115,9 @@ namespace ns3 {
 
         m_sendCount++;
 
-        std::cout<< "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
-        std::cout<< "Is commType DSRC: " << (m_commType == DSRC) << std::endl;
-        std::cout<< "Is commType LTE: " << (m_commType == LTE) << std::endl;
+        std::cout<< "FEDERATE DEBUG: Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
+        std::cout<< "FEDERATE DEBUG: Is commType DSRC: " << (m_commType == DSRC) << std::endl;
+        std::cout<< "FEDERATE DEBUG: Is commType LTE: " << (m_commType == LTE) << std::endl;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         
         //call the socket of this node to send the packet
@@ -127,6 +127,8 @@ namespace ns3 {
         }
         else if (m_commType == LTE){
             std::cout << "FEDERATE DEBUG: LTE sends out the packet successfully: " << (m_txSocket->Send(packet) == packet->GetSize()) << std::endl;
+        }else{
+            std::cout<< "FEDERATE DEBUG: Unknown communication type" << std::endl;
         }
     }
 
