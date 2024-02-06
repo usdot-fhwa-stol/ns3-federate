@@ -48,7 +48,7 @@ namespace ns3 {
             m_commType = CommunicationType::LTE;
         }
         else{
-            std::cout << "FEDERATE DEBUG: Unknown communication type" << std::endl;
+            std::cout << "FEDERATE DEBUG: Unknown communication type: " << commType << std::endl;
             NS_LOG_ERROR("Unknown communication type:" << commType);
             return;
         }            
