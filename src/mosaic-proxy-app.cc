@@ -121,10 +121,10 @@ namespace ns3 {
         //call the socket of this node to send the packet
         if (m_commType == DSRC){
             InetSocketAddress ipSA = InetSocketAddress(address, m_port);
-            std::cout << "FEDERATE DEBUG: Send out the packet successfully: " << (m_rxSocket->SendTo(packet, 0, ipSA) == packet->GetSize()) << std::endl;
+            std::cout << "FEDERATE DEBUG: DSRC sends out the packet successfully: " << (m_rxSocket->SendTo(packet, 0, ipSA) == packet->GetSize()) << std::endl;
         }
         else if (m_commType == LTE){
-            m_txSocket->Send(packet);
+            std::cout << "FEDERATE DEBUG: LTE sends out the packet successfully: " << (m_txSocket->Send(packet) == packet->GetSize()) << std::endl;
         }
     }
 
