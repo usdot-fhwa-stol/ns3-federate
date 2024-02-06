@@ -91,6 +91,7 @@ namespace ns3 {
         if (!m_rxSocket) {
             m_rxSocket = Socket::CreateSocket(GetNode(), TypeId::LookupByName ("ns3::UdpSocketFactory"));
             m_rxSocket->Bind(InetSocketAddress(Ipv4Address::GetAny(), m_port));
+            m_txSocket->SetAllowBroadcast(true);
             m_rxSocket->SetRecvCallback(MakeCallback(&MosaicProxyApp::Receive, this));
         } else {
             NS_FATAL_ERROR("creation attempt of a socket for MosaicProxyApp that has already a socket active");
