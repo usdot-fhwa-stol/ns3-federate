@@ -116,7 +116,8 @@ namespace ns3 {
         m_sendCount++;
 
         std::cout<< "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
-        std::cout<< "Comm Type:" << m_commType << std::endl;
+        std::cout<< "Is commType DSRC: " << (m_commType == DSRC) << std::endl;
+        std::cout<< "Is commType LTE: " << (m_commType == LTE) << std::endl;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         
         //call the socket of this node to send the packet
