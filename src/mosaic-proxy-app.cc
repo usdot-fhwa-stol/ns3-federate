@@ -62,10 +62,12 @@ namespace ns3 {
     }
 
     void MosaicProxyApp::Enable(void) {
+        std::cout << "Enable proxy app" << std::endl;
         m_active = true;
     }
 
     void MosaicProxyApp::Disable(void) {
+        std::cout << "Disable proxy app" << std::endl;
         m_active = false;
     }
 
@@ -111,6 +113,8 @@ namespace ns3 {
         packet->AddByteTag(msgIDTag);
 
         m_sendCount++;
+
+        std::cout<< "Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize() << std::endl;
         NS_LOG_INFO("Node " << GetNode()->GetId() << " SENDING packet no. " << m_sendCount << " PacketID= " << packet->GetUid() << " at " << Simulator::Now().GetNanoSeconds() << " seconds | packet size = " << packet->GetSize());
         
         //call the socket of this node to send the packet
