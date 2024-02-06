@@ -299,7 +299,6 @@ namespace ns3 {
         if (m_isDeactivated[nodeID]) {
             return;
         }
-        std::cout<<"Packet received, add receive packet to server"<<std::endl;
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
 
