@@ -128,7 +128,7 @@ namespace ns3 {
         else if (m_commType == LTE){
             std::cout << "FEDERATE DEBUG: LTE sends out the packet successfully: " << (m_txSocket->Send(packet) == packet->GetSize()) << std::endl;
         }else{
-            std::cout<< "FEDERATE DEBUG: Unknown communication type" << std::endl;
+            std::cout<< "FEDERATE DEBUG: Unknown communication type: " << m_commType << std::endl;
         }
     }
 
