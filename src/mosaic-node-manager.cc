@@ -292,7 +292,7 @@ namespace ns3 {
             return;
         }
 
-        std::cout<< "FEDERATE DEBUG: Sending message from " << nodeId <<std::endl;
+        std::cout<< "FEDERATE DEBUG: Sending message from " << nodeId << ", message ID:" << msgID <<std::endl;
         app->TransmitPacket(protocolID, msgID, payLength, ipv4Add);
     }
 
@@ -300,7 +300,7 @@ namespace ns3 {
         if (m_isDeactivated[nodeID]) {
             return;
         }
-        std::cout<< "FEDERATE DEBUG: Node " << nodeID << " received message" <<std::endl;
+        std::cout<< "FEDERATE DEBUG: Node " << nodeID << " received message, message ID:" << msgID <<std::endl;
         m_serverPtr->AddRecvPacket(recvTime, pack, nodeID, msgID);
     }
 
