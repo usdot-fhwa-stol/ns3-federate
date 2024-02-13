@@ -35,12 +35,13 @@
 #include <errno.h>
 #include <iomanip>
 #include <poll.h>
-
+bool isLoggingEnabled = false;
 #ifdef USE_OMNET_CLOG_H
 #include <omnetpp/clog.h>
 #define LOG_DEBUG EV_DEBUG
 #else
-#define LOG_DEBUG std::cout
+// #define LOG_DEBUG std::cout 
+#define LOG_DEBUG if (!isLoggingEnabled) {} else std::cout
 #endif
 
 namespace std {
