@@ -83,7 +83,6 @@ namespace ns3 {
         } else {
             NS_LOG_INFO("ERROR command port not found");
         }
-        std::cout << "ns3Server: created new connection to " << port << std::endl;
 
 
         if (m_commType == CommunicationType::DSRC){
@@ -100,6 +99,7 @@ namespace ns3 {
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return;
         }
+        std::cout << "ns3Server: created new connection to " << port << std::endl;
     }
 
     // void MosaicNs3Server::SetNumOfNodes(int numOfNodes){
