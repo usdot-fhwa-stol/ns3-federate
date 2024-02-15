@@ -83,22 +83,6 @@ namespace ns3 {
         } else {
             NS_LOG_INFO("ERROR command port not found");
         }
-
-
-        if (m_commType == CommunicationType::DSRC){
-            if (!m_dsrc_init_complete){
-                m_nodeManager->InitDsrc();
-                m_dsrc_init_complete = true;
-            }
-        }else if (m_commType == CommunicationType::LTE){
-            if (!m_lte_init_complete){
-                m_nodeManager->InitLte(m_numOfNodes);
-                m_lte_init_complete = true;
-            }
-        }else{
-            NS_LOG_ERROR("Unknown communication type:" << m_commType);
-            return;
-        }
         std::cout << "ns3Server: created new connection to " << port << std::endl;
     }
 
@@ -129,6 +113,21 @@ namespace ns3 {
                 return;
             }
 
+            if (m_commType == CommunicationType::DSRC){
+                if (!m_dsrc_init_complete){
+                    m_nodeManager->InitDsrc();
+                    m_dsrc_init_complete = true;
+                }
+            }else if (m_commType == CommunicationType::LTE){
+                if (!m_lte_init_complete){
+                    m_nodeManager->InitLte(m_numOfNodes);
+                    m_lte_init_complete = true;
+                }
+            }else{
+                NS_LOG_ERROR("Unknown communication type:" << m_commType);
+                return;
+            }
+            
             while (!m_closeConnection) {
                 NS_LOG_INFO("NumberOfNodes= " << ns3::NodeList::GetNNodes());
                 dispatchCommand();
