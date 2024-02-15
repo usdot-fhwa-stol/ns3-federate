@@ -84,11 +84,27 @@ namespace ns3 {
             NS_LOG_INFO("ERROR command port not found");
         }
         std::cout << "ns3Server: created new connection to " << port << std::endl;
+
+
+        if (m_commType == CommunicationType::DSRC){
+            if (!m_dsrc_init_complete){
+                m_nodeManager->InitDsrc();
+                m_dsrc_init_complete = true;
+            }
+        }else if (m_commType == CommunicationType::LTE){
+            if (!m_lte_init_complete){
+                m_nodeManager->InitLte(m_numOfNodes);
+                m_lte_init_complete = true;
+            }
+        }else{
+            NS_LOG_ERROR("Unknown communication type:" << m_commType);
+            return;
+        }
     }
 
-    void MosaicNs3Server::SetNumOfNodes(int numOfNodes){
-        m_numOfNodes = numOfNodes;
-    }
+    // void MosaicNs3Server::SetNumOfNodes(int numOfNodes){
+    //     m_numOfNodes = numOfNodes;
+    // }
 
     /**
      * @brief NS3 Magic: a specialized entry-point is needed to create this class from a end-user script. The call of the constructor is forbidden by the NS3.
@@ -139,21 +155,6 @@ namespace ns3 {
         if (nullptr == sim) {
             NS_LOG_INFO("Could not find Mosaic simulator implementation \n");
             m_closeConnection = true;
-            return 0;
-        }
-
-        if (m_commType == CommunicationType::DSRC){
-            if (!m_dsrc_init_complete){
-                m_nodeManager->InitDsrc();
-                m_dsrc_init_complete = true;
-            }
-        }else if (m_commType == CommunicationType::LTE){
-            if (!m_lte_init_complete){
-                m_nodeManager->InitLte(m_numOfNodes);
-                m_lte_init_complete = true;
-            }
-        }else{
-            NS_LOG_ERROR("Unknown communication type:" << m_commType);
             return 0;
         }
 
