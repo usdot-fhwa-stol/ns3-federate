@@ -97,6 +97,7 @@ namespace ns3 {
             }
         }else{
             NS_LOG_ERROR("Unknown communication type:" << m_commType);
+            return 0;
         }
     }
 
