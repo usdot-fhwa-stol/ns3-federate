@@ -216,6 +216,7 @@ namespace ns3 {
         m_lteHelper->InstallSidelinkV2xConfiguration(ueRespondersDevs, m_ueSidelinkConfiguration);  
 
         m_lteHelper->EnableTraces();
+        std::cout<< "Successfully initialized LTE" << std::endl;
     }
 
     void MosaicNodeManager::InitDsrc(){
@@ -223,6 +224,7 @@ namespace ns3 {
         m_wifiChannelHelper.SetPropagationDelay(m_delayModel);
         m_channel = m_wifiChannelHelper.Create();
         m_wifiPhyHelper.SetChannel(m_channel);
+        std::cout<< "Successfully initialized DSRC" << std::endl;
     }
 
     void MosaicNodeManager::CreateMosaicNode(int ID, Vector position) {
