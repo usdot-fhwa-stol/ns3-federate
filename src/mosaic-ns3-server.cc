@@ -157,8 +157,15 @@ namespace ns3 {
             return 0;
         }
 
-        //read the commandId from the channel
-        CMD commandId = ambassadorFederateChannel.readCommand();
+        CMD commandId;
+        if (!temp){
+            temp = true;
+            commandId = 1;
+        }
+        else{
+            //read the commandId from the channel
+            commandId = ambassadorFederateChannel.readCommand();
+        }
         switch (commandId) {
             case CMD_INIT:
                 //the CMD:INIT is not permitted after the initialization the the MosaicNs3Servers

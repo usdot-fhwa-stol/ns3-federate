@@ -137,6 +137,8 @@ namespace ns3 {
 
         bool m_lte_init_complete = false;
         bool m_dsrc_init_complete = false;
+
+        bool temp = false;
     };
 }
 #endif
