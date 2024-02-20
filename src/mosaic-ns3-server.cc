@@ -160,7 +160,7 @@ namespace ns3 {
         CMD commandId;
         if (!temp){
             temp = true;
-            commandId = 1;
+            commandId = CMD_INIT;
         }
         else{
             //read the commandId from the channel
