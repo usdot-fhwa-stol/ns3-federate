@@ -222,7 +222,7 @@ namespace ns3 {
 
                     //create a sending jitter to avoid concurrently sending
                     unsigned long long rando;
-                    rando = (rand() % 100000000);
+                    rando = (rand() % 10000000);
                     unsigned long long sendTime;
                     sendTime = send_message.time + rando;
                     Time tNext = NanoSeconds(sendTime);

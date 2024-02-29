@@ -287,7 +287,7 @@ namespace ns3 {
 
     /**
      * @brief Attach the instance of the MOSAIC server to the object of this class
-     * 
+     *
      * @param the MOSAIC server instance
      */
     void MosaicSimulatorImpl::AttachNS3Server(MosaicNs3Server* server) {
