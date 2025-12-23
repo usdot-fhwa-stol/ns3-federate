@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2020 Fraunhofer FOKUS and others. All rights reserved.
  *
- * Contact: mosaic@fokus.fraunhofer.de
+ * Contact: mosaic@fokus.fokus.fraunhofer.de
  *
  * This class is developed for the MOSAIC-NS-3 coupling.
  *
@@ -23,122 +23,108 @@
 #ifndef MOSAICNODEMANAGER_H
 #define MOSAICNODEMANAGER_H
 
+#include <map>
+#include <string>
 #include <unordered_map>
 
-#include "ns3/ipv4-address-helper.h"
 #include "ns3/node-container.h"
-#include "ns3/wifi-80211p-helper.h"
-#include "ns3/wave-mac-helper.h"
 #include "ns3/vector.h"
-#include "ns3/yans-wifi-channel.h"
-#include "ns3/yans-wifi-helper.h"
-#include "ns3/lte-helper.h"
-#include "ClientServerChannel.h"
 
-#include "ns3/lte-helper.h"
-#include "ns3/lte-v2x-helper.h"
-
-#include "ns3/point-to-point-epc-helper.h"
-
+// Internet/EPC routing
+#include "ns3/internet-module.h"
 #include "ns3/ipv4-static-routing-helper.h"
-#include "ns3/mobility-helper.h"
-#include "ns3/sl-v2x-preconfig-pool-factory.h"
-#include "ns3/ipv4-address-generator.h"
+#include "ns3/point-to-point-module.h"
 
-#include "ns3/trace-source-accessor.h"
-#include "ns3/packet.h"
-
-#include "ns3/lte-ue-phy.h"
-#include "ns3/lte-ue-mac.h"
-#include "ns3/callback.h"
-#include <sstream>
-
+// NR
+#include "ns3/antenna-module.h"
+#include "ns3/nr-module.h"
 
 namespace ns3 {
 
-    using namespace ClientServerChannelSpace;
+class MosaicNs3Server;
 
-    //Forward declaration to prevent circular dependency
-    class MosaicNs3Server;
+/**
+ * @class MosaicNodeManager
+ * @brief Manages creation, initial placement, and position updates of ns-3 nodes.
+ */
+class MosaicNodeManager : public Object
+{
+public:
+  static TypeId GetTypeId(void);
 
-    // Define the communication types
+  MosaicNodeManager();
+  virtual ~MosaicNodeManager() = default;
 
-    /**
-     * @class MosaicNodeManager
-     * @brief The class MosaicNodeManager manages the creation, the initial 
-     * placement, and the position updates of ns3 nodes.
-     */
-    class MosaicNodeManager : public Object {
-    public:
-        static TypeId GetTypeId(void);
+  void Configure(MosaicNs3Server* serverPtr);
 
-        MosaicNodeManager();
-        virtual ~MosaicNodeManager() = default;
+  void CreateMosaicNode(int ID, Vector position);
+  void UpdateNodePosition(uint32_t nodeId, Vector position);
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
-        void InitLte(int numOfNode=5);
-        void InitDsrc();
+  void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower);
 
-        void CreateMosaicNode(int ID, Vector position);
-        void UpdateNodePosition(uint32_t nodeId, Vector position);
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower);
-        void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
-        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
-        bool ActivateNode(uint32_t nodeId);
-        void DeactivateNode(uint32_t nodeId);
+  void SendMsg(uint32_t nodeId,
+               uint32_t protocolID,
+               uint32_t msgID,
+               uint32_t payLength,
+               Ipv4Address ipv4Add);
 
-        void AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID);
+  bool ActivateNode(uint32_t nodeId);
+  void DeactivateNode(uint32_t nodeId);
 
-        uint32_t GetNs3NodeId(uint32_t nodeId);
+  void AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID);
 
-        //Must be public to be accessible by ns-3 object creation routine
-        std::string m_lossModel;
-        std::string m_delayModel;
+  uint32_t GetNs3NodeId(uint32_t nodeId);
 
-    private:
+  // Must be public to be accessible by ns-3 object creation routine
+  std::string m_lossModel;
+  std::string m_delayModel;
 
-        void SetupLteTraces();
-        void OnConnectionEstablished(uint64_t imsi, uint16_t cellId, uint16_t rnti);
-        MosaicNs3Server *m_serverPtr;
-        std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
-        std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
-        std::unordered_map<uint32_t, bool> m_isDeactivated;
+private:
+  MosaicNs3Server* m_serverPtr { nullptr };
 
-        // DSRC
-        // Channel
-        YansWifiChannelHelper m_wifiChannelHelper;
-        Ptr<YansWifiChannel> m_channel;
+  // MOSAIC external id -> ns-3 node id
+  std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
 
-        // PHY
-        YansWifiPhyHelper m_wifiPhyHelper = YansWifiPhyHelper::Default();
+  // MOSAIC external id -> deactivated state
+  std::unordered_map<uint32_t, bool> m_isDeactivated;
 
-        // MAC
-        NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
+  // ========= 5G NR state =========
+  bool m_nrInitialized { false };
 
-        // Assembler
-        Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
-        
-        Ipv4AddressHelper m_ipAddressHelper;
-        // DSRC End
+  // Helpers
+  Ptr<NrPointToPointEpcHelper> m_epcHelper;
+  Ptr<IdealBeamformingHelper>  m_beamformingHelper;
+  Ptr<NrHelper>                m_nrHelper;
 
-        // LTE
-        // LTE Helper
-        std::map<uint32_t, uint32_t> m_ns3Id2DeviceId;
-        Ptr<LteHelper> m_lteHelper;
-        Ptr<LteV2xHelper> m_lteV2xHelper;
-        Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
-        
-        NetDeviceContainer m_ueDevs;    
-        NetDeviceContainer m_enbDev;
-        CommunicationType m_commType;
-        std::vector<uint32_t> m_ueNodeIdList;
-        
-        NetDeviceContainer m_activeTxUes;
-        NodeContainer m_ueNodes;
-        NodeContainer m_eNodeB;
-        // LTE End
+  // EPC backhaul
+  Ptr<Node>   m_pgw;
+  Ptr<Node>   m_remoteHost;
+  Ipv4Address m_remoteHostAddr;
 
+  // gNB
+  NodeContainer      m_gnbNodes;
+  NetDeviceContainer m_gnbDevs;
 
-    };
-}
-#endif
+  // UEs (indexed by MOSAIC nodeId)
+  std::unordered_map<uint32_t, Ptr<Node>>      m_ueNodesByMosaicId;
+  std::unordered_map<uint32_t, Ptr<NetDevice>> m_ueDevByMosaicId;
+  std::unordered_map<uint32_t, Ipv4Address>    m_ueIpByMosaicId;
+
+  // NR band/BWP config
+  BandwidthPartInfoPtrVector m_allBwps;
+  OperationBandInfo          m_band;
+
+  // Parameters (wire to MOSAIC config later)
+  uint16_t m_numerology { 4 };
+  double   m_centralFrequency { 28e9 };
+  double   m_bandwidth { 100e6 };
+  double   m_totalTxPowerDbm { 4.0 };
+
+private:
+  void InitializeNrIfNeeded();
+  Ipv4Address ConfigureUeNetworking(Ptr<Node> ue, Ptr<NetDevice> ueDev);
+};
+
+} // namespace ns3
+
+#endif // MOSAICNODEMANAGER_H
