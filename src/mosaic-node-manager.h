@@ -20,53 +20,42 @@
  *
  */
 
-#ifndef MOSAICNODEMANAGER_H
-#define MOSAICNODEMANAGER_H
+#ifndef MOSAIC_NODE_MANAGER_H
+#define MOSAIC_NODE_MANAGER_H
 
 #include <unordered_map>
 
-#include "ns3/ipv4-address-helper.h"
 #include "ns3/node-container.h"
-#include "ns3/wifi-80211p-helper.h"
-#include "ns3/wave-mac-helper.h"
 #include "ns3/vector.h"
+
+#include "ns3/yans-wifi-phy.h"
 #include "ns3/yans-wifi-channel.h"
 #include "ns3/yans-wifi-helper.h"
-#include "ns3/lte-helper.h"
-#include "ClientServerChannel.h"
+#include "ns3/wifi-mac-helper.h"
+#include "ns3/wifi-helper.h"
 
 #include "ns3/lte-helper.h"
-#include "ns3/lte-v2x-helper.h"
-
 #include "ns3/point-to-point-epc-helper.h"
 
+#include "ns3/csma-helper.h"
+
+#include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/ipv4-address-helper.h"
 #include "ns3/mobility-helper.h"
-#include "ns3/sl-v2x-preconfig-pool-factory.h"
-#include "ns3/ipv4-address-generator.h"
 
-#include "ns3/trace-source-accessor.h"
-#include "ns3/packet.h"
-
-#include "ns3/lte-ue-phy.h"
-#include "ns3/lte-ue-mac.h"
-#include "ns3/callback.h"
-#include <sstream>
-
+#include "client-server-channel.h"
 
 namespace ns3 {
 
-    using namespace ClientServerChannelSpace;
-
     //Forward declaration to prevent circular dependency
-    class MosaicNs3Server;
-
-    // Define the communication types
+    class MosaicNs3Bridge;
 
     /**
      * @class MosaicNodeManager
      * @brief The class MosaicNodeManager manages the creation, the initial 
-     * placement, and the position updates of ns3 nodes.
+     * placement, and the position updates of ns3 nodes. It also manages the
+     * node ID translation between MOSAIC and NS3 domain.
      */
     class MosaicNodeManager : public Object {
     public:
@@ -75,70 +64,170 @@ namespace ns3 {
         MosaicNodeManager();
         virtual ~MosaicNodeManager() = default;
 
-        void Configure(MosaicNs3Server* serverPtr, CommunicationType commType);
-        void InitLte(int numOfNode=5);
-        void InitDsrc();
+        void Configure(MosaicNs3Bridge* serverPtr);
 
-        void CreateMosaicNode(int ID, Vector position);
-        void UpdateNodePosition(uint32_t nodeId, Vector position);
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, int transmitPower);
-        void ConfigureSidelink(LteRrcSap::SlV2xPreconfiguration preconfiguration);
-        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
-        bool ActivateNode(uint32_t nodeId);
-        void DeactivateNode(uint32_t nodeId);
+        /**
+         * @brief this function is called just before leaving simulation time zero
+         */
+        void OnStart(void);
 
-        void AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID);
+        void OnShutdown(void);
 
-        uint32_t GetNs3NodeId(uint32_t nodeId);
+        /**
+         * @brief this function will change the eNB settings such, that no UE can request a connection.
+         * This is especially required, so that only eNB changes initiated by the handover algorithm remain.
+         * ATTENTION: You cannot insert more nodes into the network after this change, the initial connection will fail.
+         */
+        void RejectAnyUeConnectionRequest(void);
 
-        //Must be public to be accessible by ns-3 object creation routine
-        std::string m_lossModel;
-        std::string m_delayModel;
+        /**
+         * @brief create a new eNodeB
+         *
+         * @param position the new node position as a Vector
+         */
+        void CreateNodeB(Vector position);
+
+        /**
+         * @brief create a new wired node
+         *
+         * @param mosaicNodeId id of the node
+         */
+        void CreateWiredNode(uint32_t mosaicNodeId);
+
+        /**
+         * @brief create a new radio node (before simulation started)
+         *
+         * @param mosaicNodeId id of the node
+         * @param position the new node position as a Vector
+         */
+        void CreateRadioNode(uint32_t mosaicNodeId, Vector position);
+
+        /**
+         * @brief activate a radio node (after simulation started)
+         *
+         * @param mosaicNodeId id of the node
+         * @param position the new node position as a Vector
+         */
+        void ActivateRadioNode(uint32_t mosaicNodeId, Vector position);
+
+        /**
+         * @brief update the node position
+         *
+         * @param mosaicNodeId id of the node
+         * @param position the new node position as a Vector
+         */
+        void UpdateNodePosition(uint32_t mosaicNodeId, Vector position);
+        
+        /**
+         * @brief Remove the node as good as possible
+         * It is not allowed to delete a node during the simulation.
+         * The node will be deactivated as good as possible.
+         *
+         * @param mosaicNodeId id of the node
+         */
+        void RemoveNode(uint32_t mosaicNodeId);
+
+        /**
+         * @brief Evaluates configuration message and applies it to the node
+         */
+        void ConfigureWifiRadio(uint32_t mosaicNodeId, double transmitPower, Ipv4Address ip);
+
+        /**
+         * @brief Sets the provided configuration, and attaches the UE to an eNB
+         */
+        void ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip);
+
+        /**
+         * @brief start the sending of a wifi message on a node
+         *
+         * @param mosaicNodeId id of the node
+         * @param dstAddr the IPv4 destination address
+         * @param channel the channel where to send the message on
+         * @param msgID the msgID of the message
+         * @param payLength the length of the message
+         */
+        void SendWifiMsg(uint32_t mosaicNodeId, Ipv4Address dstAddr, ClientServerChannelSpace::RadioChannel channel, uint32_t msgID, uint32_t payLength);
+
+        /**
+         * @brief start the sending of a cell message on a node
+         *
+         * @param mosaicNodeId id of the node
+         * @param dstAddr the IPv4 destination address
+         * @param msgID the msgID of the message
+         * @param payLength the length of the message
+         */
+        void SendCellMsg(uint32_t mosaicNodeId, Ipv4Address dstAddr, uint32_t msgID, uint32_t payLength);
+
+        void RecvWifiMsg(unsigned long long recvTime, uint32_t ns3NodeId, int msgID);
+
+        void RecvCellMsg(unsigned long long recvTime, uint32_t ns3NodeId, int msgID);
+
+        // Must be public to be accessible by ns-3 object creation routine
+        uint16_t m_numExtraRadioNodes;
 
     private:
 
-        void SetupLteTraces();
-        void OnConnectionEstablished(uint64_t imsi, uint16_t cellId, uint16_t rnti);
-        MosaicNs3Server *m_serverPtr;
-        std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
-        std::map<uint32_t, Ipv4Address> m_ns3ID2UniqueAddress;
+        /**
+         * @brief translate the MOSAIC node IDs to Ns3 node IDs
+         */
+        uint32_t GetNs3NodeId(uint32_t mosaicNodeId);
+
+        /**
+         * @brief translate the Ns3 node IDs to MOSAIC node IDs
+         */
+        uint32_t GetMosaicNodeId(uint32_t ns3NodeId);
+
+        /**
+         * @brief Create a radio node and return it
+         */ 
+        Ptr<Node> CreateRadioNodeHelper(void);
+
+        /**
+         * @brief Print important information about device/interface configuration
+         */
+        void PrintNodeConfigs(NodeContainer nodes, uint32_t maxNum = 100);
+
+        /**
+         * @brief Print important information about device/interface configuration
+         */
+        void PrintNodeConfigsDeviceAgnostic(NodeContainer nodes, uint32_t maxNum = 100);
+
+        MosaicNs3Bridge *m_serverPtr;
+        std::map<uint32_t, uint32_t> m_mosaic2nsdrei;
+        std::map<uint32_t, uint32_t> m_nsdrei2mosaic;
+        std::unordered_map<uint32_t, bool> m_isRadioNode;
+        std::unordered_map<uint32_t, bool> m_isWiredNode;
+        std::unordered_map<uint32_t, bool> m_isCellRadioConfigured;
+        std::unordered_map<uint32_t, bool> m_isWifiRadioConfigured;
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
-        // DSRC
-        // Channel
+        /** Helpers **/
+        // Wifi
         YansWifiChannelHelper m_wifiChannelHelper;
-        Ptr<YansWifiChannel> m_channel;
-
-        // PHY
-        YansWifiPhyHelper m_wifiPhyHelper = YansWifiPhyHelper::Default();
-
-        // MAC
-        NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
-
-        // Assembler
-        Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
-        
-        Ipv4AddressHelper m_ipAddressHelper;
-        // DSRC End
-
+        YansWifiPhyHelper m_wifiPhyHelper;
+        WifiMacHelper m_wifiMacHelper;
+        WifiHelper m_wifiHelper;
         // LTE
-        // LTE Helper
-        std::map<uint32_t, uint32_t> m_ns3Id2DeviceId;
-        Ptr<LteHelper> m_lteHelper;
-        Ptr<LteV2xHelper> m_lteV2xHelper;
-        Ptr<LteUeRrcSl> m_ueSidelinkConfiguration;
-        
-        NetDeviceContainer m_ueDevs;    
-        NetDeviceContainer m_enbDev;
-        CommunicationType m_commType;
-        std::vector<uint32_t> m_ueNodeIdList;
-        
-        NetDeviceContainer m_activeTxUes;
-        NodeContainer m_ueNodes;
-        NodeContainer m_eNodeB;
-        // LTE End
+        Ptr<LteHelper> m_lteHelper; // problematic if not stored as pointer
+        Ptr<PointToPointEpcHelper> m_epcHelper;
+        // Wired
+        CsmaHelper m_csmaHelper;
+        // Internet
+        InternetStackHelper m_internetHelper;   
+        Ipv4StaticRoutingHelper m_ipv4RoutingHelper;
+        // IP
+        Ipv4AddressHelper m_backboneAddressHelper;
+        Ipv4AddressHelper m_wifiAddressHelper;
+        // Mobility
+        MobilityHelper m_mobilityHelper;
 
-
+        /** Nodes and Devices **/
+        NodeContainer m_backboneNodes;
+        NetDeviceContainer m_backboneDevices;
+        NodeContainer m_enbNodes;
+        NetDeviceContainer m_enbDevices;
+        NodeContainer m_radioNodes;
+        NodeContainer m_extraRadioNodes;
     };
-}
-#endif
+} // namespace ns3
+#endif /* MOSAIC_NODE_MANAGER_H */

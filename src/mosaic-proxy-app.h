@@ -24,14 +24,18 @@
 #define MOSAIC_PROXY_APP_H
 
 #include "ns3/application.h"
-#include "mosaic-node-manager.h"
 #include "ns3/data-rate.h"
-#include "ClientServerChannel.h"
-#include "ns3/udp-socket.h"
+
+#include "mosaic-node-manager.h"
 
 namespace ns3 {
 
-    using namespace ClientServerChannelSpace;
+    enum interface_e {
+        WIFI = 1,
+        CELL = 2,
+        ETH  = 3
+    };
+
     class MosaicProxyApp : public Application {
     public:
 
@@ -41,42 +45,39 @@ namespace ns3 {
 
         static TypeId GetTypeId(void);
 
-        void SetNodeManager(MosaicNodeManager* nodeManager);
+        void SetRecvCallback(Callback<void, unsigned long long, uint32_t, int> cb);
 
-        void SetCommType(CommunicationType commType);
-
-        void SetMulticastAddr(Ipv4Address m_multicastAddress);
-
-        void SetTxSocket(void);
-
-        void SetRxSocket(void);
+        void SetSockets(interface_e outDevice);
         
-        void TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address);
+        void TransmitPacket(Ipv4Address dstAddr, uint32_t msgID, uint32_t payLength);
         
         void Enable();
         
         void Disable();
         
         virtual void DoDispose(void);
+        
         //Must be public to be accessible for ns-3 object system
         uint16_t m_port = 0;
 
     private:
-        
+
+        int InterfaceToInterfaceIndex(interface_e outDevice);
+
         void Receive(Ptr<Socket> socket);
 
-        Ptr<Socket> m_txSocket{nullptr};
-        Ptr<Socket> m_rxSocket{nullptr};
+        Ptr<Socket> m_socket{nullptr};
                 
+        int m_outDevice = 0;
         uint16_t m_sendCount = 0;
         uint64_t m_recvCount = 0;
 
         bool m_active = false;
+        bool m_trace = false;
 
-        CommunicationType m_commType;
-        MosaicNodeManager* m_nodeManager;
-        Ipv4Address m_multicastAddress;
+        Callback<void, unsigned long long, uint32_t, int> m_recvCallback;
     };
+
 } // namespace ns3
 
 #endif   /* MOSAIC_PROXY_APP_H */
