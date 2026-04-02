@@ -1,0 +1,33 @@
+{
+  "name": "ns3-federate-dev",
+
+  "image": "usdotfhwastol/ns3-federate:latest",
+
+  "workspaceFolder": "/workspace/ns3-federate",
+
+  "remoteUser": "root",
+
+  "runArgs": [
+    "--init"
+  ],
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace/ns3-federate,type=bind"
+  ],
+
+  "containerEnv": {
+    "LD_LIBRARY_PATH": "/opt/ns3-federate/ns-allinone-3.36.1/ns-3.36.1/build/lib"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.makefile-tools",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens"
+      ]
+    }
+  }
+}
