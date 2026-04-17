@@ -28,21 +28,12 @@
 #include "ns3/node-container.h"
 #include "ns3/vector.h"
 
-#include "ns3/yans-wifi-phy.h"
-#include "ns3/yans-wifi-channel.h"
-#include "ns3/yans-wifi-helper.h"
-#include "ns3/wifi-mac-helper.h"
-#include "ns3/wifi-helper.h"
-
-#include "ns3/lte-helper.h"
-#include "ns3/point-to-point-epc-helper.h"
-
 #include "ns3/csma-helper.h"
-
 #include "ns3/internet-stack-helper.h"
-#include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/mobility-helper.h"
+#include "ns3/nr-module.h"
 
 #include "client-server-channel.h"
 
@@ -74,14 +65,14 @@ namespace ns3 {
         void OnShutdown(void);
 
         /**
-         * @brief this function will change the eNB settings such, that no UE can request a connection.
-         * This is especially required, so that only eNB changes initiated by the handover algorithm remain.
+         * @brief this function will change the gNB settings such, that no UE can request a connection.
+         * This is especially required, so that only gNB changes initiated by the handover algorithm remain.
          * ATTENTION: You cannot insert more nodes into the network after this change, the initial connection will fail.
          */
         void RejectAnyUeConnectionRequest(void);
 
         /**
-         * @brief create a new eNodeB
+         * @brief create a new gNodeB
          *
          * @param position the new node position as a Vector
          */
@@ -128,23 +119,19 @@ namespace ns3 {
         void RemoveNode(uint32_t mosaicNodeId);
 
         /**
-         * @brief Evaluates configuration message and applies it to the node
+         * @brief Legacy compatibility entry point. In the NR-only implementation,
+         *        this configures the single NR radio interface.
          */
         void ConfigureWifiRadio(uint32_t mosaicNodeId, double transmitPower, Ipv4Address ip);
 
         /**
-         * @brief Sets the provided configuration, and attaches the UE to an eNB
+         * @brief Sets the provided configuration, and attaches the UE to a gNB
          */
         void ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip);
 
         /**
-         * @brief start the sending of a wifi message on a node
-         *
-         * @param mosaicNodeId id of the node
-         * @param dstAddr the IPv4 destination address
-         * @param channel the channel where to send the message on
-         * @param msgID the msgID of the message
-         * @param payLength the length of the message
+         * @brief Legacy compatibility entry point. In the NR-only implementation,
+         *        this sends through the NR interface.
          */
         void SendWifiMsg(uint32_t mosaicNodeId, Ipv4Address dstAddr, ClientServerChannelSpace::RadioChannel channel, uint32_t msgID, uint32_t payLength);
 
@@ -182,6 +169,11 @@ namespace ns3 {
          */ 
         Ptr<Node> CreateRadioNodeHelper(void);
 
+        Ptr<NrUeNetDevice> GetNrUeDevice(Ptr<Node> node) const;
+        Ptr<NrGnbNetDevice> GetNrGnbDevice(Ptr<Node> node) const;
+        Ptr<NetDevice> GetBackboneNetDevice(Ptr<Node> node) const;
+        void BuildNrSpectrum();
+
         /**
          * @brief Print important information about device/interface configuration
          */
@@ -202,14 +194,14 @@ namespace ns3 {
         std::unordered_map<uint32_t, bool> m_isDeactivated;
 
         /** Helpers **/
-        // Wifi
-        YansWifiChannelHelper m_wifiChannelHelper;
-        YansWifiPhyHelper m_wifiPhyHelper;
-        WifiMacHelper m_wifiMacHelper;
-        WifiHelper m_wifiHelper;
-        // LTE
-        Ptr<LteHelper> m_lteHelper; // problematic if not stored as pointer
-        Ptr<PointToPointEpcHelper> m_epcHelper;
+        // NR
+        Ptr<NrHelper> m_nrHelper;
+        Ptr<NrPointToPointEpcHelper> m_epcHelper;
+        Ptr<IdealBeamformingHelper> m_beamformingHelper;
+        CcBwpCreator m_ccBwpCreator;
+        OperationBandInfo m_operationBand;
+        BandwidthPartInfoPtrVector m_allBwps;
+        bool m_nrSpectrumBuilt;
         // Wired
         CsmaHelper m_csmaHelper;
         // Internet
@@ -217,17 +209,27 @@ namespace ns3 {
         Ipv4StaticRoutingHelper m_ipv4RoutingHelper;
         // IP
         Ipv4AddressHelper m_backboneAddressHelper;
-        Ipv4AddressHelper m_wifiAddressHelper;
         // Mobility
         MobilityHelper m_mobilityHelper;
 
         /** Nodes and Devices **/
         NodeContainer m_backboneNodes;
         NetDeviceContainer m_backboneDevices;
-        NodeContainer m_enbNodes;
-        NetDeviceContainer m_enbDevices;
+        NodeContainer m_gnbNodes;
+        NetDeviceContainer m_gnbDevices;
         NodeContainer m_radioNodes;
         NodeContainer m_extraRadioNodes;
+
+        /** NR configuration **/
+        double m_nrCentralFrequencyHz;
+        double m_nrBandwidthHz;
+        uint16_t m_nrNumerology;
+        double m_nrTxPowerDbm;
+        bool m_nrShadowingEnabled;
+        uint16_t m_nrUeAntennaRows;
+        uint16_t m_nrUeAntennaColumns;
+        uint16_t m_nrGnbAntennaRows;
+        uint16_t m_nrGnbAntennaColumns;
     };
 } // namespace ns3
 #endif /* MOSAIC_NODE_MANAGER_H */
