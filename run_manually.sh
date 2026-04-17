@@ -1,21 +1,15 @@
 #!/bin/bash
+set -e
 
-port=$1
-cmdport=$2
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+port="${1:-5011}"
+cmdport="${2:-0}"
+ns3Version="3.38"
 
-if [[ -z $port ]]; then
-    port=5011
-fi
+cd "$SCRIPT_DIR"
+rm -f ClientServerChannelMessages.pb.h ClientServerChannelMessages.pb.cc
+./premake5 gmake --generate-protobuf
+make -j1 config=debug
 
-if [[ -z $cmdport ]]; then
-    cmdport=0
-fi
-
-ns3Version="3.36.1"
-
-make -j1 || exit 1
-
-LD_LIBRARY_PATH=../ns-allinone-$ns3Version/ns-$ns3Version/build/lib\
-    ./bin/Debug/ns3-federate\
-    --port=$port --cmdPort=$cmdport --configFile=ns3_federate_config.xml
-    
+export LD_LIBRARY_PATH="${SCRIPT_DIR}/ns-allinone-${ns3Version}/ns-${ns3Version}/build/lib:${LD_LIBRARY_PATH:-}"
+exec "${SCRIPT_DIR}/bin/Debug/ns3-federate" --port="$port" --cmdPort="$cmdport" --configFile="${SCRIPT_DIR}/ns3_federate_config.xml"
