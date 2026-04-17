@@ -32,7 +32,7 @@ COPY . /opt/ns3-federate
 RUN chmod +x docker/*.sh run_from_mosaic.sh run_manually.sh && \
     ./docker/install_dependencies.sh
 
-ENV LD_LIBRARY_PATH=/opt/ns3-federate/ns-allinone-3.36.1/ns-3.36.1/build/lib
+ENV LD_LIBRARY_PATH=/opt/ns3-federate/ns-allinone-3.38/ns-3.38/build/lib
 
 VOLUME ["/opt/ns3-federate/ns3config"]
 
