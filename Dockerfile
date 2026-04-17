@@ -29,7 +29,7 @@ WORKDIR /opt/ns3-federate
 
 COPY . /opt/ns3-federate
 
-RUN chmod +x docker/*.sh run_from_mosaic.sh run_manually.sh && \
+RUN chmod +x docker/*.sh run.sh run_from_mosaic.sh run_manually.sh && \
     ./docker/install_dependencies.sh
 
 ENV LD_LIBRARY_PATH=/opt/ns3-federate/ns-allinone-3.38/ns-3.38/build/lib
