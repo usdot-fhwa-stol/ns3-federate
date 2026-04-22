@@ -1,7 +1,7 @@
 {
   "name": "ns3-federate-dev",
 
-  "image": "usdotfhwastol/ns3-federate:8703a0a-SNAPSHOT",
+  "image": "usdotfhwastol/ns3-federate:10d98e8-SNAPSHOT",
 
   "workspaceFolder": "/opt/ns3-federate",
 
@@ -16,7 +16,7 @@
   ],
 
   "containerEnv": {
-    "LD_LIBRARY_PATH": "/opt/ns3-federate/ns-allinone-3.38/ns-3.38/build/lib"
+    "LD_LIBRARY_PATH": "/opt/ns3-federate/ns-allinone-3.42/ns-3.42/build/lib"
   },
 
   "customizations": {

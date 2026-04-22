@@ -142,12 +142,16 @@ namespace ns3 {
         return m_eventCount;
     }
 
-    void MosaicSimulatorImpl::Stop(void) {
+    void
+    MosaicSimulatorImpl::Stop(void)
+    {
         m_stop = true;
     }
 
-    void MosaicSimulatorImpl::Stop(Time const &time) {
-        Simulator::Schedule(time, &Simulator::Stop);
+    EventId
+    MosaicSimulatorImpl::Stop(const Time& time)
+    {
+        return Simulator::Schedule(time, &Simulator::Stop);
     }
 
     EventId MosaicSimulatorImpl::Schedule(Time const &time, EventImpl *event) {

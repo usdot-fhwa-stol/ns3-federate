@@ -22,6 +22,9 @@
 
 #include "mosaic-proxy-app.h"
 
+#include <cstdlib>
+#include <sstream>
+
 #include "ns3/csma-net-device.h"
 #include "ns3/flow-id-tag.h"
 #include "ns3/inet-socket-address.h"
@@ -37,6 +40,29 @@
 #include "ns3/uinteger.h"
 
 NS_LOG_COMPONENT_DEFINE("MosaicProxyApp");
+
+namespace {
+
+bool
+IsTimingDebugEnabledProxyApp()
+{
+    static const bool enabled = [] {
+        const char* env = std::getenv("MOSAIC_TIMING_DEBUG");
+        return env != nullptr && std::string(env) == "1";
+    }();
+    return enabled;
+}
+
+void
+TimingDebugProxyApp(const std::string& msg)
+{
+    if (IsTimingDebugEnabledProxyApp())
+    {
+        std::cout << "[TIMING][ProxyApp] " << msg << std::endl;
+    }
+}
+
+} // namespace
 
 namespace ns3
 {
@@ -176,6 +202,18 @@ MosaicProxyApp::SetSockets(interface_e interfaceType)
 void
 MosaicProxyApp::TransmitPacket(Ipv4Address dstAddr, uint32_t msgId, uint32_t payloadLength)
 {
+    if (IsTimingDebugEnabledProxyApp())
+    {
+        std::ostringstream oss;
+        oss << "TX_ENTER node=" << GetNode()->GetId()
+            << " msgId=" << msgId
+            << " dst=" << dstAddr
+            << " payload=" << payloadLength
+            << " simNowNs=" << Simulator::Now().GetNanoSeconds()
+            << " enabled=" << (m_enabled ? 1 : 0);
+        TimingDebugProxyApp(oss.str());
+    }
+
     if (!m_enabled)
     {
         return;
@@ -183,7 +221,6 @@ MosaicProxyApp::TransmitPacket(Ipv4Address dstAddr, uint32_t msgId, uint32_t pay
 
     Ptr<Packet> packet = Create<Packet>(payloadLength);
 
-    // Preserve the original MOSAIC message ID across the ns-3 packet path.
     FlowIdTag msgIdTag;
     msgIdTag.SetFlowId(msgId);
     packet->AddByteTag(msgIdTag);
@@ -191,6 +228,17 @@ MosaicProxyApp::TransmitPacket(Ipv4Address dstAddr, uint32_t msgId, uint32_t pay
     InetSocketAddress ipSA = InetSocketAddress(dstAddr, m_port);
 
     int result = m_socket->SendTo(packet, 0, ipSA);
+    if (IsTimingDebugEnabledProxyApp())
+    {
+        std::ostringstream oss;
+        oss << "TX_SENDTO node=" << GetNode()->GetId()
+            << " msgId=" << msgId
+            << " dst=" << dstAddr
+            << " pktUid=" << packet->GetUid()
+            << " simNowNs=" << Simulator::Now().GetNanoSeconds();
+        TimingDebugProxyApp(oss.str());
+    }
+
     if (result < 0)
     {
         if (m_socket->GetErrno() == Socket::SocketErrno::ERROR_MSGSIZE)
@@ -226,42 +274,52 @@ MosaicProxyApp::Receive(Ptr<Socket> socket)
     }
 
     Address from;
-    Ptr<Packet> packet = socket->RecvFrom(from);
+    Ptr<Packet> packet;
 
-    if (!packet)
+    while ((packet = socket->RecvFrom(from)))
     {
-        return;
-    }
+        InetSocketAddress address = InetSocketAddress::ConvertFrom(from);
 
-    InetSocketAddress address = InetSocketAddress::ConvertFrom(from);
+        FlowIdTag tag;
+        int msgId = -1;
 
-    FlowIdTag tag;
-    int msgId = -1;
+        if (packet->FindFirstMatchingByteTag(tag))
+        {
+            msgId = static_cast<int>(tag.GetFlowId());
+        }
+        else
+        {
+            NS_LOG_ERROR("Received packet without FlowIdTag on node "
+                         << GetNode()->GetId()
+                         << " from " << address.GetIpv4()
+                         << " pktUid=" << packet->GetUid()
+                         << " size=" << packet->GetSize());
+        }
 
-    if (packet->FindFirstMatchingByteTag(tag))
-    {
-        msgId = static_cast<int>(tag.GetFlowId());
-    }
-    else
-    {
-        NS_LOG_ERROR("Received packet without FlowIdTag on node "
-                     << GetNode()->GetId()
-                     << " from " << address.GetIpv4()
-                     << " pktUid=" << packet->GetUid()
-                     << " size=" << packet->GetSize());
-    }
+        NS_LOG_DEBUG("Received packet: node=" << GetNode()->GetId()
+                                              << " from=" << address.GetIpv4()
+                                              << " msgId=" << msgId
+                                              << " pktUid=" << packet->GetUid()
+                                              << " size=" << packet->GetSize());
 
-    NS_LOG_DEBUG("Received packet: node=" << GetNode()->GetId()
-                                          << " from=" << address.GetIpv4()
-                                          << " msgId=" << msgId
-                                          << " pktUid=" << packet->GetUid()
-                                          << " size=" << packet->GetSize());
+        if (!m_recvCallback.IsNull())
+        {
+            uint32_t ns3NodeId = GetNode()->GetId();
+            unsigned long long recvTime = Simulator::Now().GetNanoSeconds();
 
-    if (!m_recvCallback.IsNull())
-    {
-        uint32_t ns3NodeId = GetNode()->GetId();
-        unsigned long long recvTime = Simulator::Now().GetNanoSeconds();
-        m_recvCallback(recvTime, ns3NodeId, msgId);
+            if (IsTimingDebugEnabledProxyApp())
+            {
+                std::ostringstream oss;
+                oss << "RX_CALLBACK node=" << ns3NodeId
+                    << " msgId=" << msgId
+                    << " from=" << address.GetIpv4()
+                    << " pktUid=" << packet->GetUid()
+                    << " recvTimeNs=" << recvTime;
+                TimingDebugProxyApp(oss.str());
+            }
+
+            m_recvCallback(recvTime, ns3NodeId, msgId);
+        }
     }
 }
 

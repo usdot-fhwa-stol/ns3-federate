@@ -1,31 +1,10 @@
-/*
- * Copyright (c) 2020 Fraunhofer FOKUS and others. All rights reserved.
- *
- * Contact: mosaic@fokus.fraunhofer.de
- *
- * This class is developed for the MOSAIC-NS-3 coupling.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
-
 #include "mosaic-node-manager.h"
+
+#include <cstdlib>
+#include <sstream>
 
 #include "ns3/constant-velocity-mobility-model.h"
 #include "ns3/csma-net-device.h"
-#include "ns3/eps-bearer.h"
-#include "ns3/epc-tft.h"
 #include "ns3/loopback-net-device.h"
 #include "ns3/node-list.h"
 #include "ns3/point-to-point-net-device.h"
@@ -36,15 +15,34 @@
 
 NS_LOG_COMPONENT_DEFINE("MosaicNodeManager");
 
+namespace {
+
+bool
+IsTimingDebugEnabledNodeManager()
+{
+    static const bool enabled = [] {
+        const char* env = std::getenv("MOSAIC_TIMING_DEBUG");
+        return env != nullptr && std::string(env) == "1";
+    }();
+    return enabled;
+}
+
+void
+TimingDebugNodeManager(const std::string& msg)
+{
+    if (IsTimingDebugEnabledNodeManager())
+    {
+        std::cout << "[TIMING][NodeManager] " << msg << std::endl;
+    }
+}
+
+} // namespace
+
 namespace ns3
 {
 
 namespace
 {
-static constexpr uint16_t kProxyUdpPort = 8010;
-
-// Idle pool parking area for pre-created / released UEs.
-// Keep them separated, at reasonable 2D distance from gNB, and with valid UT height.
 static constexpr double kPoolCenterX = 80.0;
 static constexpr double kPoolCenterY = 80.0;
 static constexpr double kPoolSpacing = 8.0;
@@ -57,16 +55,11 @@ GetPoolParkingPosition(uint32_t nodeId)
     uint32_t idx = nodeId;
     uint32_t row = idx / kPoolCols;
     uint32_t col = idx % kPoolCols;
-
     return Vector(kPoolCenterX + col * kPoolSpacing,
                   kPoolCenterY + row * kPoolSpacing,
                   kPoolZ);
 }
 
-/**
- * Ensure an IPv4 alias exists on the specified interface.
- * Avoid adding duplicate addresses.
- */
 static void
 EnsureIpv4Alias(Ptr<Ipv4> ipv4, int32_t ifIndex, Ipv4Address ip, Ipv4Mask mask)
 {
@@ -87,11 +80,6 @@ EnsureIpv4Alias(Ptr<Ipv4> ipv4, int32_t ifIndex, Ipv4Address ip, Ipv4Mask mask)
     ipv4->AddAddress(ifIndex, Ipv4InterfaceAddress(ip, mask));
 }
 
-/**
- * Remove all IPv4 aliases on the given interface that belong to the specified prefix.
- * This is used when releasing a pre-created UE back to the pool, so the next reuse
- * does not accumulate old 10.x aliases.
- */
 static void
 RemoveIpv4AliasesInPrefix(Ptr<Ipv4> ipv4, int32_t ifIndex, Ipv4Address network, Ipv4Mask mask)
 {
@@ -110,30 +98,6 @@ RemoveIpv4AliasesInPrefix(Ptr<Ipv4> ipv4, int32_t ifIndex, Ipv4Address network, 
     }
 }
 
-static void
-ActivateMosaicUdpDedicatedBearer(Ptr<NrHelper> nrHelper, Ptr<NetDevice> ueNetDevice)
-{
-    if (nrHelper == nullptr || ueNetDevice == nullptr)
-    {
-        NS_LOG_ERROR("Cannot activate dedicated bearer: helper or UE device is null");
-        return;
-    }
-
-    Ptr<EpcTft> tft = Create<EpcTft>();
-
-    EpcTft::PacketFilter pf;
-    pf.localPortStart = kProxyUdpPort;
-    pf.localPortEnd = kProxyUdpPort;
-    pf.remotePortStart = kProxyUdpPort;
-    pf.remotePortEnd = kProxyUdpPort;
-    tft->Add(pf);
-
-    EpsBearer bearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
-
-    NS_LOG_INFO("Activating dedicated EPS bearer for Mosaic UDP flow on port " << kProxyUdpPort);
-    nrHelper->ActivateDedicatedEpsBearer(ueNetDevice, bearer, tft);
-}
-
 } // anonymous namespace
 
 NS_OBJECT_ENSURE_REGISTERED(MosaicNodeManager);
@@ -141,71 +105,122 @@ NS_OBJECT_ENSURE_REGISTERED(MosaicNodeManager);
 TypeId
 MosaicNodeManager::GetTypeId(void)
 {
-    static TypeId tid = TypeId("ns3::MosaicNodeManager")
-        .SetParent<Object>()
-        .AddConstructor<MosaicNodeManager>()
-        .AddAttribute("numExtraRadioNodes",
-                      "Number of spare pre-created NR UE nodes kept in a ready pool",
-                      UintegerValue(100),
-                      MakeUintegerAccessor(&MosaicNodeManager::m_numExtraRadioNodes),
-                      MakeUintegerChecker<uint16_t>())
-        .AddAttribute("nrCentralFrequencyHz",
-                      "NR carrier center frequency in Hz",
-                      DoubleValue(5.9e9),
-                      MakeDoubleAccessor(&MosaicNodeManager::m_nrCentralFrequencyHz),
-                      MakeDoubleChecker<double>())
-        .AddAttribute("nrBandwidthHz",
-                      "NR channel bandwidth in Hz",
-                      DoubleValue(20e6),
-                      MakeDoubleAccessor(&MosaicNodeManager::m_nrBandwidthHz),
-                      MakeDoubleChecker<double>())
-        .AddAttribute("nrNumerology",
-                      "NR numerology to apply on BWP 0",
-                      UintegerValue(1),
-                      MakeUintegerAccessor(&MosaicNodeManager::m_nrNumerology),
-                      MakeUintegerChecker<uint16_t>())
-        .AddAttribute("nrTxPowerDbm",
-                      "gNB NR Tx power in dBm",
-                      DoubleValue(30.0),
-                      MakeDoubleAccessor(&MosaicNodeManager::m_nrTxPowerDbm),
-                      MakeDoubleChecker<double>())
-        .AddAttribute("nrShadowingEnabled",
-                      "Enable 3GPP pathloss shadowing for NR",
-                      BooleanValue(false),
-                      MakeBooleanAccessor(&MosaicNodeManager::m_nrShadowingEnabled),
-                      MakeBooleanChecker())
-        .AddAttribute("nrUeAntennaRows",
-                      "Number of UE NR antenna rows",
-                      UintegerValue(1),
-                      MakeUintegerAccessor(&MosaicNodeManager::m_nrUeAntennaRows),
-                      MakeUintegerChecker<uint16_t>())
-        .AddAttribute("nrUeAntennaColumns",
-                      "Number of UE NR antenna columns",
-                      UintegerValue(1),
-                      MakeUintegerAccessor(&MosaicNodeManager::m_nrUeAntennaColumns),
-                      MakeUintegerChecker<uint16_t>())
-        .AddAttribute("nrGnbAntennaRows",
-                      "Number of gNB NR antenna rows",
-                      UintegerValue(4),
-                      MakeUintegerAccessor(&MosaicNodeManager::m_nrGnbAntennaRows),
-                      MakeUintegerChecker<uint16_t>())
-        .AddAttribute("nrGnbAntennaColumns",
-                      "Number of gNB NR antenna columns",
-                      UintegerValue(4),
-                      MakeUintegerAccessor(&MosaicNodeManager::m_nrGnbAntennaColumns),
-                      MakeUintegerChecker<uint16_t>());
+    static TypeId tid =
+        TypeId("ns3::MosaicNodeManager")
+            .SetParent<Object>()
+            .AddConstructor<MosaicNodeManager>()
+            .AddAttribute("numExtraRadioNodes",
+                          "Number of spare pre-created NR UE nodes kept in a ready pool",
+                          UintegerValue(20),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_numExtraRadioNodes),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("nrCentralFrequencyHz",
+                          "NR carrier center frequency in Hz",
+                          DoubleValue(5.9e9),
+                          MakeDoubleAccessor(&MosaicNodeManager::m_nrCentralFrequencyHz),
+                          MakeDoubleChecker<double>())
+            .AddAttribute("nrBandwidthHz",
+                          "NR channel bandwidth in Hz",
+                          DoubleValue(20e6),
+                          MakeDoubleAccessor(&MosaicNodeManager::m_nrBandwidthHz),
+                          MakeDoubleChecker<double>())
+            .AddAttribute("nrNumerology",
+                          "NR numerology to apply on SL BWP 0",
+                          UintegerValue(1),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_nrNumerology),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("nrTxPowerDbm",
+                          "UE NR Tx power in dBm",
+                          DoubleValue(30.0),
+                          MakeDoubleAccessor(&MosaicNodeManager::m_nrTxPowerDbm),
+                          MakeDoubleChecker<double>())
+            .AddAttribute("nrShadowingEnabled",
+                          "Enable 3GPP pathloss shadowing for NR",
+                          BooleanValue(false),
+                          MakeBooleanAccessor(&MosaicNodeManager::m_nrShadowingEnabled),
+                          MakeBooleanChecker())
+            .AddAttribute("nrUeAntennaRows",
+                          "Number of UE NR antenna rows",
+                          UintegerValue(1),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_nrUeAntennaRows),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("nrUeAntennaColumns",
+                          "Number of UE NR antenna columns",
+                          UintegerValue(1),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_nrUeAntennaColumns),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slBwpId",
+                          "Sidelink BWP id",
+                          UintegerValue(0),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slBwpId),
+                          MakeUintegerChecker<uint8_t>())
+            .AddAttribute("slSensingWindowMs",
+                          "Sidelink sensing window in ms",
+                          UintegerValue(100),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slSensingWindowMs),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slSelectionWindow",
+                          "Sidelink selection window in slots",
+                          UintegerValue(5),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slSelectionWindow),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slFreqResourcePscch",
+                          "Sidelink PSCCH RBs",
+                          UintegerValue(10),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slFreqResourcePscch),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slSubchannelSize",
+                          "Sidelink subchannel size in RBs",
+                          UintegerValue(10),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slSubchannelSize),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slMaxNumPerReserve",
+                          "Sidelink max num per reserve",
+                          UintegerValue(3),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slMaxNumPerReserve),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slReservePeriodMs",
+                          "Sidelink reserve period in ms",
+                          UintegerValue(100),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slReservePeriodMs),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slMcs",
+                          "Sidelink scheduler fixed MCS",
+                          UintegerValue(14),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slMcs),
+                          MakeUintegerChecker<uint16_t>())
+            .AddAttribute("slDstL2Id",
+                          "Sidelink destination L2 id",
+                          UintegerValue(255),
+                          MakeUintegerAccessor(&MosaicNodeManager::m_slDstL2Id),
+                          MakeUintegerChecker<uint32_t>())
+            .AddAttribute("slHarqEnabled",
+                          "Enable sidelink HARQ",
+                          BooleanValue(true),
+                          MakeBooleanAccessor(&MosaicNodeManager::m_slHarqEnabled),
+                          MakeBooleanChecker())
+            .AddAttribute("slTddPattern",
+                          "Sidelink TDD pattern string",
+                          StringValue("DL|DL|DL|F|UL|UL|UL|UL|UL|UL|"),
+                          MakeStringAccessor(&MosaicNodeManager::m_slTddPattern),
+                          MakeStringChecker());
     return tid;
 }
 
 MosaicNodeManager::MosaicNodeManager()
-    : m_nrSpectrumBuilt(false),
+    : m_serverPtr(nullptr),
+      m_nrSpectrumBuilt(false),
       m_backboneAddressHelper("5.0.0.0", "255.0.0.0")
 {
     m_beamformingHelper = CreateObject<IdealBeamformingHelper>();
     m_epcHelper = CreateObject<NrPointToPointEpcHelper>();
     m_nrHelper = CreateObject<NrHelper>();
+    m_nrSlHelper = CreateObject<NrSlHelper>();
+
     m_nrHelper->SetBeamformingHelper(m_beamformingHelper);
     m_nrHelper->SetEpcHelper(m_epcHelper);
+    m_nrSlHelper->SetEpcHelper(m_epcHelper);
+
 
     m_csmaHelper.SetChannelAttribute("DataRate", StringValue("100Gb/s"));
     m_csmaHelper.SetChannelAttribute("Delay", TimeValue(NanoSeconds(6560)));
@@ -219,14 +234,8 @@ MosaicNodeManager::BuildNrSpectrum()
         return;
     }
 
-    NS_LOG_INFO("Setup NR band/BWP configuration...");
-    NS_LOG_INFO("NR config:"
-                << " centerFreqHz=" << m_nrCentralFrequencyHz
-                << " bandwidthHz=" << m_nrBandwidthHz
-                << " numerology=" << m_nrNumerology
-                << " shadowing=" << m_nrShadowingEnabled
-                << " ueAnt=" << m_nrUeAntennaRows << "x" << m_nrUeAntennaColumns
-                << " gnbAnt=" << m_nrGnbAntennaRows << "x" << m_nrGnbAntennaColumns);
+    NS_LOG_INFO("BuildNrSpectrum() enter");
+    NS_ASSERT_MSG(m_nrHelper != nullptr, "m_nrHelper is null");
 
     m_beamformingHelper->SetAttribute("BeamformingMethod",
                                       TypeIdValue(DirectPathBeamforming::GetTypeId()));
@@ -234,14 +243,20 @@ MosaicNodeManager::BuildNrSpectrum()
 
     m_nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
     m_nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(m_nrShadowingEnabled));
-
-    m_nrHelper->SetGnbPhyAttribute("Numerology", UintegerValue(m_nrNumerology));
-    m_nrHelper->SetGnbPhyAttribute("TxPower", DoubleValue(m_nrTxPowerDbm));
-
+    m_nrHelper->SetUePhyAttribute("TxPower", DoubleValue(m_nrTxPowerDbm));
     m_nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(m_nrUeAntennaRows));
     m_nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(m_nrUeAntennaColumns));
-    m_nrHelper->SetGnbAntennaAttribute("NumRows", UintegerValue(m_nrGnbAntennaRows));
-    m_nrHelper->SetGnbAntennaAttribute("NumColumns", UintegerValue(m_nrGnbAntennaColumns));
+
+    // Follow official NR sidelink examples before InstallUeDevice().
+    m_nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
+    m_nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
+    m_nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
+    m_nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
+    m_nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
+
+    m_nrHelper->SetBwpManagerTypeId(TypeId::LookupByName("ns3::NrSlBwpManagerUe"));
+    m_nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_MC_PUSH_TO_TALK",
+                                                  UintegerValue(m_slBwpId));
 
     const uint8_t numCcPerBand = 1;
     CcBwpCreator::SimpleOperationBandConf bandConf(m_nrCentralFrequencyHz,
@@ -253,7 +268,12 @@ MosaicNodeManager::BuildNrSpectrum()
     m_nrHelper->InitializeOperationBand(&m_operationBand);
     m_allBwps = CcBwpCreator::GetAllBwps({m_operationBand});
 
-    NS_LOG_INFO("NR BWP summary: totalBwps=" << m_allBwps.size());
+    NS_ASSERT_MSG(!m_allBwps.empty(), "m_allBwps is empty after InitializeOperationBand");
+
+    NS_LOG_INFO("BuildNrSpectrum() done, bwps=" << m_allBwps.size()
+                                                << " centerFreqHz=" << m_nrCentralFrequencyHz
+                                                << " bandwidthHz=" << m_nrBandwidthHz
+                                                << " numerology=" << m_nrNumerology);
 
     m_nrSpectrumBuilt = true;
 }
@@ -263,44 +283,55 @@ MosaicNodeManager::Configure(MosaicNs3Bridge* serverPtr)
 {
     NS_LOG_INFO("Initialize Node Infrastructure...");
     m_serverPtr = serverPtr;
-
     BuildNrSpectrum();
-
-    NS_LOG_INFO("Setup core...");
-    Ptr<Node> pgw = m_epcHelper->GetPgwNode();
-    Ptr<Node> sgw = m_epcHelper->GetSgwNode();
-
-    NS_LOG_INFO("Setup backbone connection...");
-    m_backboneNodes.Add(pgw);
-    m_backboneDevices = m_csmaHelper.Install(m_backboneNodes);
-    m_backboneAddressHelper.Assign(m_backboneDevices);
-
-    NS_LOG_INFO("Configure routing...");
-    Ptr<Ipv4StaticRouting> pgwStaticRouting =
-        m_ipv4RoutingHelper.GetStaticRouting(pgw->GetObject<Ipv4>());
-    pgwStaticRouting->AddNetworkRouteTo(Ipv4Address("10.0.0.0"), "255.0.0.0", 1);
-    pgwStaticRouting->AddNetworkRouteTo(Ipv4Address("10.5.0.0"), "255.255.0.0", 3);
-    pgwStaticRouting->AddNetworkRouteTo(Ipv4Address("10.6.0.0"), "255.255.0.0", 3);
 }
 
 void
-MosaicNodeManager::OnStart()
+MosaicNodeManager::OnStart(void)
 {
     NS_LOG_INFO("Do the final configuration...");
     NS_LOG_INFO("Pre-created radio pool size=" << m_extraRadioNodes.GetN());
-
-    PrintNodeConfigs(m_gnbNodes, 10);
     PrintNodeConfigs(m_backboneNodes, 10);
+    PrintNodeConfigs(m_gnbNodes, 10);
     PrintNodeConfigs(m_radioNodes, 10);
     PrintNodeConfigs(m_extraRadioNodes, 10);
 }
 
 void
-MosaicNodeManager::OnShutdown()
+MosaicNodeManager::OnShutdown(void)
 {
     NS_LOG_FUNCTION(this);
-    NS_LOG_DEBUG("Print IP assignment for all radioNodes");
     PrintNodeConfigs(m_radioNodes);
+}
+
+void
+MosaicNodeManager::RejectAnyUeConnectionRequest(void)
+{
+    NS_LOG_INFO("RejectAnyUeConnectionRequest() ignored in sidelink-oriented build");
+}
+
+uint32_t
+MosaicNodeManager::GetNs3NodeId(uint32_t mosaicNodeId)
+{
+    auto it = m_mosaic2nsdrei.find(mosaicNodeId);
+    if (it == m_mosaic2nsdrei.end())
+    {
+        NS_LOG_ERROR("Node ID " << mosaicNodeId << " not found in m_mosaic2nsdrei");
+        std::exit(1);
+    }
+    return it->second;
+}
+
+uint32_t
+MosaicNodeManager::GetMosaicNodeId(uint32_t ns3NodeId)
+{
+    auto it = m_nsdrei2mosaic.find(ns3NodeId);
+    if (it == m_nsdrei2mosaic.end())
+    {
+        NS_LOG_ERROR("Node ID " << ns3NodeId << " not found in m_nsdrei2mosaic");
+        std::exit(1);
+    }
+    return it->second;
 }
 
 Ptr<NrUeNetDevice>
@@ -309,20 +340,6 @@ MosaicNodeManager::GetNrUeDevice(Ptr<Node> node) const
     for (uint32_t i = 0; i < node->GetNDevices(); ++i)
     {
         Ptr<NrUeNetDevice> dev = DynamicCast<NrUeNetDevice>(node->GetDevice(i));
-        if (dev)
-        {
-            return dev;
-        }
-    }
-    return nullptr;
-}
-
-Ptr<NrGnbNetDevice>
-MosaicNodeManager::GetNrGnbDevice(Ptr<Node> node) const
-{
-    for (uint32_t i = 0; i < node->GetNDevices(); ++i)
-    {
-        Ptr<NrGnbNetDevice> dev = DynamicCast<NrGnbNetDevice>(node->GetDevice(i));
         if (dev)
         {
             return dev;
@@ -356,12 +373,11 @@ MosaicNodeManager::PrintNodeConfigsDeviceAgnostic(NodeContainer nodes, uint32_t 
         NS_LOG_DEBUG("[node=" << node->GetId() << "]");
         for (uint32_t i = 0; i < node->GetNDevices(); i++)
         {
-            Ipv4InterfaceAddress iaddr;
             Ptr<NetDevice> device = node->GetDevice(i);
             int32_t ipif = DynamicCast<Ipv4L3Protocol>(ipv4proto)->GetInterfaceForDevice(device);
             if (ipif != -1)
             {
-                iaddr = ipv4proto->GetAddress(ipif, 0);
+                Ipv4InterfaceAddress iaddr = ipv4proto->GetAddress(ipif, 0);
                 NS_LOG_DEBUG("  if_" << i << " dev=" << device << " type="
                                      << device->GetInstanceTypeId().GetName() << " iaddr=" << iaddr);
             }
@@ -386,7 +402,6 @@ MosaicNodeManager::PrintNodeConfigs(NodeContainer nodes, uint32_t maxNum)
         for (uint32_t i = 0; i < node->GetNDevices(); i++)
         {
             Ptr<NetDevice> device = node->GetDevice(i);
-
             int32_t ipif = DynamicCast<Ipv4L3Protocol>(ipv4proto)->GetInterfaceForDevice(device);
             std::stringstream ipAddressString;
             if (ipif != -1)
@@ -400,7 +415,6 @@ MosaicNodeManager::PrintNodeConfigs(NodeContainer nodes, uint32_t maxNum)
 
             if (DynamicCast<LoopbackNetDevice>(device))
             {
-                // nop
             }
             else if (DynamicCast<CsmaNetDevice>(device))
             {
@@ -419,12 +433,6 @@ MosaicNodeManager::PrintNodeConfigs(NodeContainer nodes, uint32_t maxNum)
                                      << " imsi=" << ueDev->GetImsi()
                                      << " cellId=" << ueDev->GetCellId());
             }
-            else if (Ptr<NrGnbNetDevice> gnbDev = DynamicCast<NrGnbNetDevice>(device))
-            {
-                NS_LOG_DEBUG("  if_" << i << " dev=" << device << " NR-GNB"
-                                     << " \taddr=" << ipAddressString.str()
-                                     << " cellId=" << gnbDev->GetCellId());
-            }
             else
             {
                 NS_LOG_DEBUG("  if_" << i << " dev=" << device
@@ -436,71 +444,10 @@ MosaicNodeManager::PrintNodeConfigs(NodeContainer nodes, uint32_t maxNum)
 }
 
 void
-MosaicNodeManager::RejectAnyUeConnectionRequest()
-{
-    NS_LOG_FUNCTION(this);
-    NS_LOG_WARN("-------------------- change gNB settings now");
-    NS_LOG_WARN("-------------------- only accept handover algorithm triggers");
-    NS_LOG_WARN("-------------------- UEs cannot recover, if connection got lost once");
-    Config::SetDefault("ns3::NrGnbRrc::AdmitRrcConnectionRequest", BooleanValue(false));
-    for (uint32_t i = 0; i < m_gnbDevices.GetN(); i++)
-    {
-        Ptr<NrGnbNetDevice> device = DynamicCast<NrGnbNetDevice>(m_gnbDevices.Get(i));
-        if (device && device->GetRrc())
-        {
-            device->GetRrc()->SetAttribute("AdmitRrcConnectionRequest", BooleanValue(false));
-        }
-    }
-}
-
-uint32_t
-MosaicNodeManager::GetNs3NodeId(uint32_t mosaicNodeId)
-{
-    if (m_mosaic2nsdrei.find(mosaicNodeId) == m_mosaic2nsdrei.end())
-    {
-        NS_LOG_ERROR("Node ID " << mosaicNodeId << " not found in m_mosaic2nsdrei");
-        exit(1);
-    }
-    return m_mosaic2nsdrei[mosaicNodeId];
-}
-
-uint32_t
-MosaicNodeManager::GetMosaicNodeId(uint32_t ns3NodeId)
-{
-    if (m_nsdrei2mosaic.find(ns3NodeId) == m_nsdrei2mosaic.end())
-    {
-        NS_LOG_ERROR("Node ID " << ns3NodeId << " not found in m_nsdrei2mosaic");
-        exit(1);
-    }
-    return m_nsdrei2mosaic[ns3NodeId];
-}
-
-void
 MosaicNodeManager::CreateNodeB(Vector position)
 {
+    NS_LOG_INFO("CreateNodeB called in sidelink-oriented build; treat as bootstrap/no-op");
     BuildNrSpectrum();
-
-    Ptr<Node> node = CreateObject<Node>();
-    m_gnbNodes.Add(node);
-
-    m_mobilityHelper.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    m_mobilityHelper.Install(node);
-
-    NetDeviceContainer gnbDevices = m_nrHelper->InstallGnbDevice(NodeContainer(node), m_allBwps);
-    Ptr<NrGnbNetDevice> gnbDev = DynamicCast<NrGnbNetDevice>(gnbDevices.Get(0));
-    if (gnbDev == nullptr)
-    {
-        NS_LOG_ERROR("Failed to install NR gNB device");
-        exit(1);
-    }
-
-    gnbDev->UpdateConfig();
-
-    m_gnbDevices.Add(gnbDevices.Get(0));
-    NS_LOG_INFO("[node=" << node->GetId() << "] Create gNodeB: dev=" << gnbDevices.Get(0));
-
-    Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel>();
-    mobModel->SetPosition(position);
 
     uint32_t targetPoolSize = std::max<uint32_t>(1u, static_cast<uint32_t>(m_numExtraRadioNodes));
     while (m_extraRadioNodes.GetN() < targetPoolSize)
@@ -508,8 +455,11 @@ MosaicNodeManager::CreateNodeB(Vector position)
         Ptr<Node> ueNode = CreateRadioNodeHelper();
         m_extraRadioNodes.Add(ueNode);
         m_isDeactivated[ueNode->GetId()] = true;
-        NS_LOG_INFO("Pre-created attached radio pool node " << ueNode->GetId());
+        NS_LOG_INFO("Pre-created sidelink radio pool node " << ueNode->GetId());
     }
+
+    NS_LOG_INFO("Sidelink bootstrap complete. Virtual anchor position=("
+                << position.x << ", " << position.y << ", " << position.z << ")");
 }
 
 void
@@ -518,7 +468,7 @@ MosaicNodeManager::CreateWiredNode(uint32_t mosaicNodeId)
     if (m_mosaic2nsdrei.find(mosaicNodeId) != m_mosaic2nsdrei.end())
     {
         NS_LOG_ERROR("Cannot create node with id=" << mosaicNodeId << " multiple times.");
-        exit(1);
+        std::exit(1);
     }
 
     Ptr<Node> node = CreateObject<Node>();
@@ -530,13 +480,19 @@ MosaicNodeManager::CreateWiredNode(uint32_t mosaicNodeId)
     m_backboneNodes.Add(node);
 
     m_internetHelper.Install(node);
-    Ptr<Ipv4> ipv4proto = node->GetObject<Ipv4>();
 
-    Ptr<CsmaChannel> ch = DynamicCast<CsmaChannel>(m_backboneDevices.Get(0)->GetChannel());
-    Ptr<NetDevice> device = m_csmaHelper.Install(node, ch).Get(0);
-    m_backboneDevices.Add(device);
-    m_backboneAddressHelper.Assign(device);
-    (void)ipv4proto->GetInterfaceForDevice(device);
+    if (m_backboneDevices.GetN() == 0)
+    {
+        m_backboneDevices = m_csmaHelper.Install(m_backboneNodes);
+        m_backboneAddressHelper.Assign(m_backboneDevices);
+    }
+    else
+    {
+        Ptr<CsmaChannel> ch = DynamicCast<CsmaChannel>(m_backboneDevices.Get(0)->GetChannel());
+        Ptr<NetDevice> device = m_csmaHelper.Install(node, ch).Get(0);
+        m_backboneDevices.Add(device);
+        m_backboneAddressHelper.Assign(device);
+    }
 
     Ptr<MosaicProxyApp> app = CreateObject<MosaicProxyApp>();
     app->SetRecvCallback(MakeCallback(&MosaicNodeManager::RecvCellMsg, this));
@@ -544,55 +500,211 @@ MosaicNodeManager::CreateWiredNode(uint32_t mosaicNodeId)
     app->SetSockets(interface_e::ETH);
 }
 
+void
+MosaicNodeManager::InstallSidelinkPreconfiguration(const NetDeviceContainer& ueDevices)
+{
+    NS_LOG_INFO("InstallSidelinkPreconfiguration() enter, ueCount=" << ueDevices.GetN());
+
+    if (ueDevices.GetN() == 0)
+    {
+        return;
+    }
+
+    std::set<uint8_t> bwpIdContainer;
+    bwpIdContainer.insert(m_slBwpId);
+
+    // Follow official NR sidelink examples: configure error model + AMC + scheduler
+    // before PrepareUeForSidelink().
+    m_nrSlHelper->SetSlErrorModel("ns3::NrEesmIrT1");
+    m_nrSlHelper->SetUeSlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
+    m_nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerFixedMcs::GetTypeId());
+    m_nrSlHelper->SetUeSlSchedulerAttribute("Mcs", UintegerValue(m_slMcs));
+    m_nrSlHelper->PrepareUeForSidelink(ueDevices, bwpIdContainer);
+
+    LteRrcSap::SlResourcePoolNr slResourcePoolNr;
+    Ptr<NrSlCommResourcePoolFactory> ptrFactory = Create<NrSlCommResourcePoolFactory>();
+
+    std::vector<std::bitset<1>> slBitmap = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
+    ptrFactory->SetSlTimeResources(slBitmap);
+    ptrFactory->SetSlSensingWindow(m_slSensingWindowMs);
+    ptrFactory->SetSlSelectionWindow(m_slSelectionWindow);
+    ptrFactory->SetSlFreqResourcePscch(m_slFreqResourcePscch);
+    ptrFactory->SetSlSubchannelSize(m_slSubchannelSize);
+    ptrFactory->SetSlMaxNumPerReserve(m_slMaxNumPerReserve);
+    std::list<uint16_t> resourceReservePeriodList = {0, m_slReservePeriodMs};
+    ptrFactory->SetSlResourceReservePeriodList(resourceReservePeriodList);
+    slResourcePoolNr = ptrFactory->CreatePool();
+
+    LteRrcSap::SlResourcePoolConfigNr slresoPoolConfigNr;
+    slresoPoolConfigNr.haveSlResourcePoolConfigNr = true;
+    LteRrcSap::SlResourcePoolIdNr slResourcePoolIdNr;
+    slResourcePoolIdNr.id = 0;
+    slresoPoolConfigNr.slResourcePoolId = slResourcePoolIdNr;
+    slresoPoolConfigNr.slResourcePool = slResourcePoolNr;
+
+    LteRrcSap::SlBwpPoolConfigCommonNr slBwpPoolConfigCommonNr;
+    slBwpPoolConfigCommonNr.slTxPoolSelectedNormal[slResourcePoolIdNr.id] = slresoPoolConfigNr;
+
+    LteRrcSap::Bwp bwp;
+    bwp.numerology = m_nrNumerology;
+    bwp.symbolsPerSlots = 14;
+    bwp.rbPerRbg = 1;
+    // 20 MHz @ mu=1 is ~51 RBs; use a conservative valid value if config is smaller.
+    bwp.bandwidth = std::max<uint16_t>(std::max<uint16_t>(m_slSubchannelSize, 10), 50);
+
+    LteRrcSap::SlBwpGeneric slBwpGeneric;
+    slBwpGeneric.bwp = bwp;
+    slBwpGeneric.slLengthSymbols = LteRrcSap::GetSlLengthSymbolsEnum(14);
+    slBwpGeneric.slStartSymbol = LteRrcSap::GetSlStartSymbolEnum(0);
+
+    LteRrcSap::SlBwpConfigCommonNr slBwpConfigCommonNr;
+    slBwpConfigCommonNr.haveSlBwpGeneric = true;
+    slBwpConfigCommonNr.slBwpGeneric = slBwpGeneric;
+    slBwpConfigCommonNr.haveSlBwpPoolConfigCommonNr = true;
+    slBwpConfigCommonNr.slBwpPoolConfigCommonNr = slBwpPoolConfigCommonNr;
+
+    LteRrcSap::SlFreqConfigCommonNr slFreConfigCommonNr;
+    for (const auto& it : bwpIdContainer)
+    {
+        slFreConfigCommonNr.slBwpList[it] = slBwpConfigCommonNr;
+    }
+
+    LteRrcSap::TddUlDlConfigCommon tddUlDlConfigCommon;
+    tddUlDlConfigCommon.tddPattern = m_slTddPattern;
+
+    LteRrcSap::SlPreconfigGeneralNr slPreconfigGeneralNr;
+    slPreconfigGeneralNr.slTddConfig = tddUlDlConfigCommon;
+
+    LteRrcSap::SlUeSelectedConfig slUeSelectedPreConfig;
+    slUeSelectedPreConfig.slProbResourceKeep = 0;
+
+    LteRrcSap::SlPsschTxParameters psschParams;
+    psschParams.slMaxTxTransNumPssch = 5;
+
+    LteRrcSap::SlPsschTxConfigList psschTxConfigList;
+    psschTxConfigList.slPsschTxParameters[0] = psschParams;
+    slUeSelectedPreConfig.slPsschTxConfigList = psschTxConfigList;
+
+    LteRrcSap::SidelinkPreconfigNr slPreConfigNr;
+    slPreConfigNr.slPreconfigGeneral = slPreconfigGeneralNr;
+    slPreConfigNr.slUeSelectedPreConfig = slUeSelectedPreConfig;
+    slPreConfigNr.slPreconfigFreqInfoList[m_slBwpId] = slFreConfigCommonNr;
+
+    m_nrSlHelper->InstallNrSlPreConfiguration(ueDevices, slPreConfigNr);
+
+    NS_LOG_INFO("InstallSidelinkPreconfiguration() done");
+}
+
+void
+MosaicNodeManager::ActivateSidelinkBearer(const NetDeviceContainer& ueDevices,
+                                          Ipv4Address remoteAddress)
+{
+    NS_LOG_INFO("ActivateSidelinkBearer() enter, ueCount=" << ueDevices.GetN()
+                                                           << " remoteAddress=" << remoteAddress);
+
+    if (ueDevices.GetN() == 0)
+    {
+        return;
+    }
+
+    Ptr<LteSlTft> tft;
+    SidelinkInfo slInfo;
+    slInfo.m_castType = SidelinkInfo::CastType::Groupcast;
+    slInfo.m_dstL2Id = m_slDstL2Id;
+
+    slInfo.m_dynamic = true;
+    slInfo.m_rri = MilliSeconds(m_slReservePeriodMs);
+    slInfo.m_pdb = MilliSeconds(100);
+    slInfo.m_harqEnabled = m_slHarqEnabled;
+    tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, remoteAddress, slInfo);
+    m_nrSlHelper->ActivateNrSlBearer(Seconds(0), ueDevices, tft);
+
+    for (uint32_t i = 0; i < ueDevices.GetN(); ++i)
+    {
+        Ptr<NrUeNetDevice> ueDev = DynamicCast<NrUeNetDevice>(ueDevices.Get(i));
+        if (ueDev != nullptr)
+        {
+            m_isSidelinkBearerActivated[ueDev->GetNode()->GetId()] = true;
+        }
+    }
+
+    NS_LOG_INFO("ActivateSidelinkBearer() done");
+}
+
+void
+MosaicNodeManager::InstallSidelinkTrafficFilters(const NetDeviceContainer& ueDevices)
+{
+    NS_LOG_INFO("InstallSidelinkTrafficFilters() enter, ueCount=" << ueDevices.GetN());
+    ActivateSidelinkBearer(ueDevices, Ipv4Address("225.0.0.0"));
+}
+
+void
+MosaicNodeManager::ConfigureNodeIpv4ForSidelink(Ptr<Node> node,
+                                                Ptr<NetDevice> device,
+                                                Ipv4Address ip,
+                                                Ipv4Mask mask)
+{
+    Ptr<Ipv4> ipv4proto = node->GetObject<Ipv4>();
+    NS_ASSERT_MSG(ipv4proto != nullptr, "IPv4 object is null");
+
+    int32_t ifIndex = ipv4proto->GetInterfaceForDevice(device);
+    EnsureIpv4Alias(ipv4proto, ifIndex, ip, mask);
+}
+
 Ptr<Node>
 MosaicNodeManager::CreateRadioNodeHelper(void)
 {
+    NS_LOG_INFO("CreateRadioNodeHelper() enter");
     BuildNrSpectrum();
 
+    NS_ASSERT_MSG(m_nrHelper != nullptr, "m_nrHelper is null");
+    NS_ASSERT_MSG(m_nrSlHelper != nullptr, "m_nrSlHelper is null");
+    NS_ASSERT_MSG(!m_allBwps.empty(), "m_allBwps is empty");
+
     Ptr<Node> node = CreateObject<Node>();
+    NS_ASSERT_MSG(node != nullptr, "Failed to create radio node");
+
     m_internetHelper.Install(node);
-    Ptr<Ipv4> ipv4proto = node->GetObject<Ipv4>();
 
     m_mobilityHelper.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
     m_mobilityHelper.Install(node);
 
     Ptr<ConstantVelocityMobilityModel> cvmm = node->GetObject<ConstantVelocityMobilityModel>();
-    if (cvmm != nullptr)
-    {
-        cvmm->SetPosition(GetPoolParkingPosition(node->GetId()));
-        cvmm->SetVelocity(Vector(0.0, 0.0, 0.0));
-    }
+    NS_ASSERT_MSG(cvmm != nullptr, "ConstantVelocityMobilityModel is null");
+    cvmm->SetPosition(GetPoolParkingPosition(node->GetId()));
+    cvmm->SetVelocity(Vector(0.0, 0.0, 0.0));
 
-    NetDeviceContainer nrDevices = m_nrHelper->InstallUeDevice(NodeContainer(node), m_allBwps);
-    Ptr<NrUeNetDevice> ueDevice = DynamicCast<NrUeNetDevice>(nrDevices.Get(0));
-    if (ueDevice == nullptr)
-    {
-        NS_LOG_ERROR("Failed to install NR UE device");
-        exit(1);
-    }
+    NetDeviceContainer ueDevices = m_nrHelper->InstallUeDevice(NodeContainer(node), m_allBwps);
+    NS_ASSERT_MSG(ueDevices.GetN() == 1, "InstallUeDevice did not return exactly one UE device");
 
-    m_epcHelper->AssignUeIpv4Address(nrDevices);
+    Ptr<NrUeNetDevice> ueDevice = DynamicCast<NrUeNetDevice>(ueDevices.Get(0));
+    NS_ASSERT_MSG(ueDevice != nullptr, "Failed to cast installed UE device to NrUeNetDevice");
 
-    int32_t ifIndex = ipv4proto->GetInterfaceForDevice(nrDevices.Get(0));
-    Ptr<Ipv4StaticRouting> ueStaticRouting = m_ipv4RoutingHelper.GetStaticRouting(ipv4proto);
-    ueStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), ifIndex);
+    // Follow the official examples: assign UE IPv4 addresses through the EPC
+    // helper and install a default route before activating SL bearers.
+    Ipv4InterfaceContainer ueIpIface = m_epcHelper->AssignUeIpv4Address(ueDevices);
+    (void) ueIpIface;
+    Ptr<Ipv4StaticRouting> ueStaticRouting =
+        m_ipv4RoutingHelper.GetStaticRouting(node->GetObject<Ipv4>());
+    NS_ASSERT_MSG(ueStaticRouting != nullptr, "UE static routing object is null");
+    ueStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+
+    // Official examples call UpdateConfig() after InstallUeDevice() and before
+    // PrepareUeForSidelink().
+    ueDevice->UpdateConfig();
+
+    InstallSidelinkPreconfiguration(ueDevices);
+    InstallSidelinkTrafficFilters(ueDevices);
 
     Ptr<MosaicProxyApp> cellApp = CreateObject<MosaicProxyApp>();
+    NS_ASSERT_MSG(cellApp != nullptr, "Failed to create MosaicProxyApp");
+
     cellApp->SetRecvCallback(MakeCallback(&MosaicNodeManager::RecvCellMsg, this));
     node->AddApplication(cellApp);
     cellApp->SetSockets(interface_e::CELL);
     cellApp->Disable();
 
-    if (m_gnbDevices.GetN() > 0)
-    {
-        NetDeviceContainer ueContainer;
-        ueContainer.Add(ueDevice);
-
-        m_nrHelper->AttachToClosestEnb(ueContainer, m_gnbDevices);
-        ueDevice->UpdateConfig();
-        ActivateMosaicUdpDedicatedBearer(m_nrHelper, ueDevice);
-    }
-
+    NS_LOG_INFO("CreateRadioNodeHelper() created nodeId=" << node->GetId());
     return node;
 }
 
@@ -602,14 +714,14 @@ MosaicNodeManager::CreateRadioNode(uint32_t mosaicNodeId, Vector position)
     if (m_mosaic2nsdrei.find(mosaicNodeId) != m_mosaic2nsdrei.end())
     {
         NS_LOG_ERROR("Cannot create node with id=" << mosaicNodeId << " multiple times.");
-        exit(1);
+        std::exit(1);
     }
 
-    Ptr<Node> node;
+    Ptr<Node> node = nullptr;
     for (uint32_t i = 0; i < m_extraRadioNodes.GetN(); ++i)
     {
         Ptr<Node> candidate = m_extraRadioNodes.Get(i);
-        if (m_nsdrei2mosaic.find(candidate->GetId()) == m_nsdrei2mosaic.end())
+        if (candidate != nullptr && m_nsdrei2mosaic.find(candidate->GetId()) == m_nsdrei2mosaic.end())
         {
             node = candidate;
             break;
@@ -618,13 +730,15 @@ MosaicNodeManager::CreateRadioNode(uint32_t mosaicNodeId, Vector position)
 
     if (node == nullptr)
     {
-        NS_LOG_WARN("No pre-created NR UE available; creating one on demand");
+        NS_LOG_WARN("No pre-created sidelink radio node available; creating one on demand");
         node = CreateRadioNodeHelper();
+        NS_ASSERT_MSG(node != nullptr, "CreateRadioNodeHelper returned null node");
         m_extraRadioNodes.Add(node);
         m_isDeactivated[node->GetId()] = true;
     }
 
-    NS_LOG_INFO("Create radio node " << mosaicNodeId << "->" << node->GetId());
+    NS_LOG_INFO("Create radio node " << mosaicNodeId << " -> " << node->GetId());
+
     m_mosaic2nsdrei[mosaicNodeId] = node->GetId();
     m_nsdrei2mosaic[node->GetId()] = mosaicNodeId;
     m_isRadioNode[node->GetId()] = true;
@@ -640,40 +754,7 @@ MosaicNodeManager::CreateRadioNode(uint32_t mosaicNodeId, Vector position)
 void
 MosaicNodeManager::ActivateRadioNode(uint32_t mosaicNodeId, Vector position)
 {
-    if (m_mosaic2nsdrei.find(mosaicNodeId) != m_mosaic2nsdrei.end())
-    {
-        NS_LOG_ERROR("Cannot create node with id=" << mosaicNodeId << " multiple times.");
-        exit(1);
-    }
-
-    Ptr<Node> node;
-    for (uint32_t i = 0; i < m_extraRadioNodes.GetN(); ++i)
-    {
-        Ptr<Node> candidate = m_extraRadioNodes.Get(i);
-        if (m_nsdrei2mosaic.find(candidate->GetId()) == m_nsdrei2mosaic.end())
-        {
-            node = candidate;
-            break;
-        }
-    }
-
-    if (node == nullptr)
-    {
-        NS_LOG_ERROR("No available prepared radio node found. Increase numExtraRadioNodes.");
-        exit(1);
-    }
-
-    NS_LOG_INFO("Activate radio node " << mosaicNodeId << "->" << node->GetId());
-    m_mosaic2nsdrei[mosaicNodeId] = node->GetId();
-    m_nsdrei2mosaic[node->GetId()] = mosaicNodeId;
-    m_isRadioNode[node->GetId()] = true;
-    m_isWiredNode[node->GetId()] = false;
-    m_isCellRadioConfigured[node->GetId()] = false;
-    m_isWifiRadioConfigured[node->GetId()] = false;
-    m_isDeactivated[node->GetId()] = false;
-    m_radioNodes.Add(node);
-
-    UpdateNodePosition(mosaicNodeId, position);
+    CreateRadioNode(mosaicNodeId, position);
 }
 
 void
@@ -687,6 +768,7 @@ MosaicNodeManager::UpdateNodePosition(uint32_t mosaicNodeId, Vector position)
 
     Ptr<Node> node = NodeList::GetNode(nodeId);
     Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel>();
+    NS_ASSERT_MSG(mobModel != nullptr, "MobilityModel is null");
     mobModel->SetPosition(position);
 }
 
@@ -703,16 +785,13 @@ MosaicNodeManager::RemoveNode(uint32_t mosaicNodeId)
     bool isRadio = m_isRadioNode[nodeId];
     bool isWired = m_isWiredNode[nodeId];
 
-    uint32_t numApps = node->GetNApplications();
-    for (uint32_t i = 0; i < numApps; i++)
+    for (uint32_t i = 0; i < node->GetNApplications(); i++)
     {
         Ptr<MosaicProxyApp> app = DynamicCast<MosaicProxyApp>(node->GetApplication(i));
-        if (!app)
+        if (app)
         {
-            NS_LOG_ERROR("No app with index=" << i << " found on node " << nodeId << " !");
-            exit(1);
+            app->Disable();
         }
-        app->Disable();
     }
 
     m_isDeactivated[nodeId] = true;
@@ -720,13 +799,12 @@ MosaicNodeManager::RemoveNode(uint32_t mosaicNodeId)
     if (isRadio)
     {
         NS_LOG_INFO("Release radio node " << mosaicNodeId << "->" << nodeId << " back to pre-created pool");
-
         m_mosaic2nsdrei.erase(mosaicNodeId);
         m_nsdrei2mosaic.erase(nodeId);
-
         m_isRadioNode[nodeId] = false;
         m_isCellRadioConfigured[nodeId] = false;
         m_isWifiRadioConfigured[nodeId] = false;
+        m_isSidelinkBearerActivated[nodeId] = false;
 
         Ptr<NrUeNetDevice> ueDevice = GetNrUeDevice(node);
         if (ueDevice != nullptr)
@@ -747,7 +825,6 @@ MosaicNodeManager::RemoveNode(uint32_t mosaicNodeId)
         {
             cvmm->SetVelocity(Vector(0.0, 0.0, 0.0));
         }
-
         return;
     }
 
@@ -768,6 +845,7 @@ MosaicNodeManager::ConfigureWifiRadio(uint32_t mosaicNodeId, double transmitPowe
     {
         return;
     }
+
     if (m_isWifiRadioConfigured[nodeId])
     {
         NS_LOG_ERROR("Cannot configure WIFI interface multiple times. Ignoring.");
@@ -781,8 +859,7 @@ MosaicNodeManager::ConfigureWifiRadio(uint32_t mosaicNodeId, double transmitPowe
         Ptr<NrUeNetDevice> ueDev = GetNrUeDevice(node);
         if (ueDev)
         {
-            m_nrHelper->GetUePhy(ueDev, 0)->SetAttribute("TxPower",
-                                                         DoubleValue(10 * log10(transmitPower)));
+            m_nrHelper->GetUePhy(ueDev, 0)->SetAttribute("TxPower", DoubleValue(10 * log10(transmitPower)));
         }
     }
 
@@ -797,6 +874,7 @@ MosaicNodeManager::ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip)
     {
         return;
     }
+
     if (m_isCellRadioConfigured[nodeId])
     {
         NS_LOG_ERROR("Cannot configure CELL interface multiple times. Ignoring.");
@@ -807,21 +885,13 @@ MosaicNodeManager::ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip)
     NS_LOG_INFO("[node=" << nodeId << "] ip=" << ip);
     Ptr<Node> node = NodeList::GetNode(nodeId);
 
-    bool partOf10 = ip.CombineMask("255.0.0.0").Get() == Ipv4Address("10.0.0.0").Get();
-    bool partOf105 = ip.CombineMask("255.255.0.0").Get() == Ipv4Address("10.5.0.0").Get();
-    bool partOf106 = ip.CombineMask("255.255.0.0").Get() == Ipv4Address("10.6.0.0").Get();
-    NS_ASSERT_MSG(partOf10, "The ip for all nodes must be part of 10.0.0.0/8 network.");
-
     if (m_isRadioNode[nodeId])
     {
-        NS_ASSERT_MSG(!partOf105, "The ip for radio nodes must not be part of 10.5.0.0/16 network.");
-        NS_ASSERT_MSG(!partOf106, "The ip for radio nodes must not be part of 10.6.0.0/16 network.");
-
         Ptr<MosaicProxyApp> cellApp = DynamicCast<MosaicProxyApp>(node->GetApplication(0));
         if (!cellApp)
         {
             NS_LOG_ERROR("No cell app found on node " << nodeId << " !");
-            exit(1);
+            std::exit(1);
         }
         cellApp->Enable();
 
@@ -829,25 +899,25 @@ MosaicNodeManager::ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip)
         if (device == nullptr)
         {
             NS_LOG_ERROR("No NR UE device found on node " << nodeId);
-            exit(1);
+            std::exit(1);
         }
 
-        Ptr<Ipv4> ipv4proto = node->GetObject<Ipv4>();
-        int32_t ifIndex = ipv4proto->GetInterfaceForDevice(device);
-
-        EnsureIpv4Alias(ipv4proto, ifIndex, ip, Ipv4Mask("255.0.0.0"));
-
-        NS_LOG_INFO("NR UE already pre-attached; enabling app only");
+        ConfigureNodeIpv4ForSidelink(node, device, ip, Ipv4Mask("255.0.0.0"));
+        Ptr<Ipv4StaticRouting> ueStaticRouting =
+            m_ipv4RoutingHelper.GetStaticRouting(node->GetObject<Ipv4>());
+        if (ueStaticRouting != nullptr)
+        {
+            ueStaticRouting->SetDefaultRoute(m_epcHelper->GetUeDefaultGatewayAddress(), 1);
+        }
+        NS_LOG_INFO("Configured radio node " << nodeId << " for sidelink-style IP routing");
     }
     else if (m_isWiredNode[nodeId])
     {
-        NS_ASSERT_MSG(partOf105 || partOf106, "The ip for wired nodes must be part of 10.5.0.0/16 or 10.6.0.0/16 network.");
-
         Ptr<MosaicProxyApp> csmaApp = DynamicCast<MosaicProxyApp>(node->GetApplication(0));
         if (!csmaApp)
         {
             NS_LOG_ERROR("No csma app found on node " << nodeId << " !");
-            exit(1);
+            std::exit(1);
         }
         csmaApp->Enable();
 
@@ -855,21 +925,15 @@ MosaicNodeManager::ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip)
         if (device == nullptr)
         {
             NS_LOG_ERROR("No backbone device found on wired node " << nodeId);
-            exit(1);
+            std::exit(1);
         }
 
-        Ptr<Ipv4> ipv4proto = node->GetObject<Ipv4>();
-        int32_t ifIndex = ipv4proto->GetInterfaceForDevice(device);
-
-        EnsureIpv4Alias(ipv4proto, ifIndex, ip, Ipv4Mask("255.255.0.0"));
-
-        Ptr<Ipv4StaticRouting> serverStaticRouting = m_ipv4RoutingHelper.GetStaticRouting(ipv4proto);
-        serverStaticRouting->SetDefaultRoute(Ipv4Address("5.0.0.1"), ifIndex);
+        ConfigureNodeIpv4ForSidelink(node, device, ip, Ipv4Mask("255.255.0.0"));
     }
     else
     {
         NS_LOG_ERROR("Invalid State: Node has to be either radio or wired node.");
-        exit(1);
+        std::exit(1);
     }
 }
 
@@ -880,11 +944,6 @@ MosaicNodeManager::SendWifiMsg(uint32_t mosaicNodeId,
                                uint32_t msgID,
                                uint32_t payLength)
 {
-    uint32_t nodeId = GetNs3NodeId(mosaicNodeId);
-    if (m_isDeactivated[nodeId])
-    {
-        return;
-    }
     if (channel != ClientServerChannelSpace::RadioChannel::PROTO_CCH)
     {
         NS_LOG_WARN("NR-only implementation ignores legacy DSRC channel selection.");
@@ -893,8 +952,23 @@ MosaicNodeManager::SendWifiMsg(uint32_t mosaicNodeId,
 }
 
 void
-MosaicNodeManager::SendCellMsg(uint32_t mosaicNodeId, Ipv4Address dstAddr, uint32_t msgID, uint32_t payLength)
+MosaicNodeManager::SendCellMsg(uint32_t mosaicNodeId,
+                               Ipv4Address dstAddr,
+                               uint32_t msgID,
+                               uint32_t payLength)
 {
+    if (IsTimingDebugEnabledNodeManager())
+    {
+        std::ostringstream oss;
+        oss << "SEND_CELL_ENTER"
+            << " msgId=" << msgID
+            << " mosaicNodeId=" << mosaicNodeId
+            << " requestedDst=" << dstAddr
+            << " payload=" << payLength
+            << " simNowNs=" << Simulator::Now().GetNanoSeconds();
+        TimingDebugNodeManager(oss.str());
+    }
+
     uint32_t nodeId = GetNs3NodeId(mosaicNodeId);
     if (m_isDeactivated[nodeId])
     {
@@ -909,12 +983,33 @@ MosaicNodeManager::SendCellMsg(uint32_t mosaicNodeId, Ipv4Address dstAddr, uint3
     {
         app = DynamicCast<MosaicProxyApp>(node->GetApplication(0));
     }
+
     if (app == nullptr)
     {
         NS_LOG_ERROR("Node " << nodeId << " was not initialized properly, MosaicProxyApp is missing");
         return;
     }
-    app->TransmitPacket(dstAddr, msgID, payLength);
+
+    Ipv4Address slGroupAddr("225.0.0.0");
+    NS_LOG_DEBUG("[node=" << nodeId << "] using sidelink multicast dst=" << slGroupAddr
+                         << " (requested dst=" << dstAddr << ") msgID=" << msgID
+                         << " len=" << payLength);
+
+    if (IsTimingDebugEnabledNodeManager())
+    {
+        std::ostringstream oss;
+        oss << "SEND_CELL_RESOLVED"
+            << " msgId=" << msgID
+            << " mosaicNodeId=" << mosaicNodeId
+            << " ns3NodeId=" << nodeId
+            << " requestedDst=" << dstAddr
+            << " actualDst=" << slGroupAddr
+            << " payload=" << payLength
+            << " simNowNs=" << Simulator::Now().GetNanoSeconds();
+        TimingDebugNodeManager(oss.str());
+    }
+
+    app->TransmitPacket(slGroupAddr, msgID, payLength);
 }
 
 void
@@ -931,6 +1026,17 @@ MosaicNodeManager::RecvWifiMsg(unsigned long long recvTime, uint32_t ns3NodeId, 
 void
 MosaicNodeManager::RecvCellMsg(unsigned long long recvTime, uint32_t ns3NodeId, int msgID)
 {
+    if (IsTimingDebugEnabledNodeManager())
+    {
+        std::ostringstream oss;
+        oss << "RECV_CELL_FORWARD"
+            << " recvTimeNs=" << recvTime
+            << " ns3NodeId=" << ns3NodeId
+            << " msgId=" << msgID
+            << " simNowNs=" << Simulator::Now().GetNanoSeconds();
+        TimingDebugNodeManager(oss.str());
+    }
+
     if (m_isDeactivated[ns3NodeId])
     {
         return;

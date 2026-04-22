@@ -1,73 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ns3>
+
+    <!-- ================= LOG ================= -->
     <LogLevel>
-        <!-- for field "name" refer to corresponding ns3 model -->
-        <!-- possible level values: error warn debug info function logic all * -->
-        <!-- including higher levels: level_error level_warn level_debug level_info level_function level_logic level_all ** -->
-        <!-- possible prefix values: prefix_func prefix_time prefix_node prefix_level prefix_all -->
 
         <component name="*" value="error|prefix_level|prefix_time|prefix_func"/>
 
-        <component name="MainClass"             value="error|warn|info|debug"/>
-        <component name="MosaicSimulatorImpl"   value="error|warn|info|debug"/>
+        <component name="MainClass"             value="error|warn|info"/>
+        <component name="MosaicSimulatorImpl"   value="error|warn|info"/>
         <component name="MosaicNs3Bridge"       value="error|warn|info"/>
         <component name="MosaicNodeManager"     value="error|warn|info"/>
         <component name="MosaicProxyApp"        value="error|warn|info|prefix_node"/>
         <component name="ClientServerChannel"   value="error|warn|info"/>
 
-        <component name="UdpSocketImpl"         value="error|warn|prefix_node"/>
-        <component name="UdpL4Protocol"         value="error|warn|prefix_node"/>
-        <component name="TrafficControlLayer"   value="error|warn|prefix_node"/>
-        <component name="Ipv4L3Protocol"        value="error|warn|prefix_node"/>
-        <component name="Ipv4Interface"         value="error|warn|prefix_node"/>
-        <component name="Ipv4GlobalRouting"     value="error|warn|prefix_node"/>
-        <component name="Ipv4StaticRouting"     value="error|warn|prefix_node"/>
-        <component name="ArpL3Protocol"         value="error|warn|prefix_node"/>
+        <!-- Network -->
+        <component name="UdpSocketImpl"         value="error|warn"/>
+        <component name="Ipv4L3Protocol"        value="error|warn"/>
+        <component name="Ipv4StaticRouting"     value="error|warn"/>
 
-        <!-- NR / EPC related: keep only components verified by runtime -->
+        <!-- NR -->
         <component name="NrHelper"              value="error|warn"/>
-        <component name="NrGnbNetDevice"        value="error|warn"/>
         <component name="NrUeNetDevice"         value="error|warn"/>
-        <component name="NrGnbMac"              value="error|warn"/>
         <component name="NrUeMac"               value="error|warn"/>
-        <component name="NrGnbPhy"              value="error|warn"/>
         <component name="NrUePhy"               value="error|warn"/>
-        <component name="NrSpectrumPhy"         value="error|warn"/>
-        <component name="NrPointToPointEpcHelper" value="error|warn"/>
-        <component name="EpcPgwApplication"     value="error|warn"/>
-        <component name="EpcSgwApplication"     value="error|warn"/>
-        <component name="EpcUeNas"              value="error|warn"/>
 
-        <component name="PropagationLossModel"          value="error"/>
-        <component name="ThreeGppChannelModel"          value="error|warn"/>
-        <component name="ThreeGppPropagationLossModel"  value="error|warn"/>
-        <component name="BuildingsPropagationLossModel" value="error|warn"/>
+        <!-- Sidelink -->
+        <component name="NrSlHelper"            value="error|warn"/>
+
     </LogLevel>
 
-    <!-- GLOBAL SETTINGS -->
+    <!-- ================= GLOBAL ================= -->
     <global name="RngSeed" value="1"/>
 
-    <!-- FEDERATE SETTINGS -->
+    <!-- ================= MOSAIC ================= -->
     <default name="ns3::MosaicProxyApp::Port" value="8010"/>
     <default name="ns3::MosaicNodeManager::numExtraRadioNodes" value="20"/>
 
-    <!-- NR NODE MANAGER SETTINGS -->
+    <!-- ================= NR BASIC ================= -->
     <default name="ns3::MosaicNodeManager::nrCentralFrequencyHz" value="5900000000"/>
-    <default name="ns3::MosaicNodeManager::nrBandwidthHz" value="20000000"/>
-    <default name="ns3::MosaicNodeManager::nrNumerology" value="1"/>
     <default name="ns3::MosaicNodeManager::nrTxPowerDbm" value="30"/>
     <default name="ns3::MosaicNodeManager::nrShadowingEnabled" value="false"/>
+    <default name="ns3::MosaicNodeManager::nrBandwidthHz" value="40000000"/>
+    <default name="ns3::MosaicNodeManager::nrNumerology" value="1"/>
+
+    <default name="ns3::MosaicNodeManager::slMaxNumPerReserve" value="3"/>
+    <default name="ns3::MosaicNodeManager::slSubchannelSize" value="10"/>
+    <default name="ns3::MosaicNodeManager::slFreqResourcePscch" value="10"/>
+    <default name="ns3::MosaicNodeManager::slReservePeriodMs" value="20"/>
+    <default name="ns3::MosaicNodeManager::slHarqEnabled" value="true"/>
+    
+    <!-- UE antenna -->
     <default name="ns3::MosaicNodeManager::nrUeAntennaRows" value="1"/>
     <default name="ns3::MosaicNodeManager::nrUeAntennaColumns" value="1"/>
-    <default name="ns3::MosaicNodeManager::nrGnbAntennaRows" value="4"/>
-    <default name="ns3::MosaicNodeManager::nrGnbAntennaColumns" value="4"/>
 
-    <!-- NR / LTE-shared lower-layer settings -->
+    <!-- ================= LTE/NR shared ================= -->
     <default name="ns3::LteRlcUm::MaxTxBufferSize" value="100000"/>
 
-    <!-- NETWORK SETTINGS -->
+    <!-- ================= NETWORK ================= -->
     <default name="ns3::ArpCache::PendingQueueSize" value="100"/>
 
-    <!-- PROPAGATION SETTINGS -->
+    <!-- ================= PROPAGATION ================= -->
     <default name="ns3::FriisPropagationLossModel::Frequency" value="5900000000"/>
+
 </ns3>

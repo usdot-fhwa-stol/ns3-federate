@@ -1,7 +1,7 @@
 -- premake5.lua
 
 local tools = require ('tools')
-local ns3version = os.getenv("NS3_VERSION") or "3.38"
+local ns3version = os.getenv("NS3_VERSION") or "3.42"
 local PROTO_PATH    = "."
 local PROTO_CC_PATH = "."
 
@@ -23,7 +23,7 @@ project "ns3-federate"
     kind "ConsoleApp"
     language "C++"
     targetdir "bin/%{cfg.buildcfg}"
-    buildoptions { "-std=c++17" }
+    buildoptions { "-std=c++20" }
 
     files { "src/**.h"
           , "src/**.cc" 

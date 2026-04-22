@@ -24,7 +24,33 @@
 
 #include "mosaic-simulator-impl.h"
 
+#include <cstdlib>
+#include <sstream>
+
 NS_LOG_COMPONENT_DEFINE("MosaicNs3Bridge");
+
+namespace {
+
+bool
+IsTimingDebugEnabled()
+{
+    static const bool enabled = [] {
+        const char* env = std::getenv("MOSAIC_TIMING_DEBUG");
+        return env != nullptr && std::string(env) == "1";
+    }();
+    return enabled;
+}
+
+void
+TimingDebug(const std::string& msg)
+{
+    if (IsTimingDebugEnabled())
+    {
+        std::cout << "[TIMING][Bridge] " << msg << std::endl;
+    }
+}
+
+} // namespace
 
 namespace ns3 {
     using namespace ClientServerChannelSpace;
@@ -133,7 +159,20 @@ namespace ns3 {
             {
                 AddNode message = ambassadorFederateChannel.readAddNode();
                 Time tNext = NanoSeconds(message.time());
-                Time tDelay = tNext - m_sim->Now();
+                Time now = m_sim->Now();
+                Time tDelay = tNext - now;
+
+                if (IsTimingDebugEnabled())
+                {
+                    std::ostringstream oss;
+                    oss << "ADD_NODE"
+                        << " msgTimeNs=" << message.time()
+                        << " simNowNs=" << now.GetNanoSeconds()
+                        << " delayNs=" << tDelay.GetNanoSeconds()
+                        << " type=" << message.type()
+                        << " nodeId=" << message.node_id();
+                    TimingDebug(oss.str());
+                }
 
                 if (message.type() == AddNode_NodeType_RADIO_NODE) {
                     NS_LOG_DEBUG("Received ADD_RADIO_NODE: mosNID=" << message.node_id() << " pos(x=" << message.x() << " y=" << message.y() << " z=" << message.z() << ") tNext=" << tNext);
@@ -165,13 +204,26 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             case CommandMessage_CommandType_UPDATE_NODE:
             {
                 UpdateNode message = ambassadorFederateChannel.readUpdateNode();
                 Time tNext = NanoSeconds(message.time());
-                Time tDelay = tNext - m_sim->Now();
+                Time now = m_sim->Now();
+                Time tDelay = tNext - now;
 
-                for ( size_t i = 0; i < message.properties_size(); i++ ) { //fill the update messages into our struct
+                if (IsTimingDebugEnabled())
+                {
+                    std::ostringstream oss;
+                    oss << "UPDATE_NODE"
+                        << " msgTimeNs=" << message.time()
+                        << " simNowNs=" << now.GetNanoSeconds()
+                        << " delayNs=" << tDelay.GetNanoSeconds()
+                        << " propertiesSize=" << message.properties_size();
+                    TimingDebug(oss.str());
+                }
+
+                for (size_t i = 0; i < message.properties_size(); i++) {
                     UpdateNode_NodeData node_data = message.properties(i);
                     m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, node_data.id(), Vector(node_data.x(), node_data.y(), node_data.z())));
                     NS_LOG_DEBUG("Received UPDATE_NODE(S): mosNID=" << node_data.id() << " pos(x=" << node_data.x() << " y=" << node_data.y() << " z=" << node_data.z() << ") tNext=" << tNext);
@@ -179,11 +231,24 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             case CommandMessage_CommandType_REMOVE_NODE:
             {
                 RemoveNode message = ambassadorFederateChannel.readRemoveNode();
                 Time tNext = NanoSeconds(message.time());
-                Time tDelay = tNext - m_sim->Now();
+                Time now = m_sim->Now();
+                Time tDelay = tNext - now;
+
+                if (IsTimingDebugEnabled())
+                {
+                    std::ostringstream oss;
+                    oss << "REMOVE_NODE"
+                        << " msgTimeNs=" << message.time()
+                        << " simNowNs=" << now.GetNanoSeconds()
+                        << " delayNs=" << tDelay.GetNanoSeconds()
+                        << " nodeId=" << message.node_id();
+                    TimingDebug(oss.str());
+                }
                 
                 m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::RemoveNode, m_nodeManager, message.node_id()));
                 NS_LOG_DEBUG("Received REMOVE_NODE: mosNID=" << message.node_id() << " tNext=" << tNext);
@@ -191,11 +256,21 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             // advance the next time step and run the simulation read the next time step
             case CommandMessage_CommandType_ADVANCE_TIME:
             {
                 m_currentAdvanceTime = ambassadorFederateChannel.readTimeMessage();
                 Time tNext = NanoSeconds(m_currentAdvanceTime);
+
+                if (IsTimingDebugEnabled())
+                {
+                    std::ostringstream oss;
+                    oss << "ADVANCE_TIME grantNs=" << m_currentAdvanceTime
+                        << " simNowNs=" << m_sim->Now().GetNanoSeconds()
+                        << " eventCount=" << m_sim->GetEventCount();
+                    TimingDebug(oss.str());
+                }
 
                 if (tNext == NanoSeconds(0)) {
                     // We need that TrafficControlLayer::DoInitialize() (triggered by Node::Initialize()) 
@@ -235,6 +310,7 @@ namespace ns3 {
                 federateAmbassadorChannel.writeTimeMessage(Simulator::Now().GetNanoSeconds());
                 break;
             }
+
             case CommandMessage_CommandType_CONF_WIFI_RADIO:
             {
                 try {
@@ -263,6 +339,7 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             case CommandMessage_CommandType_SEND_WIFI_MSG:
             {
                 try {
@@ -284,6 +361,7 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             case CommandMessage_CommandType_CONF_CELL_RADIO:
             {
                 try {
@@ -308,6 +386,7 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             case CommandMessage_CommandType_SEND_CELL_MSG:
             {
                 try {
@@ -319,7 +398,23 @@ namespace ns3 {
                     if (tNext == NanoSeconds(0)) {
                         tNext = NanoSeconds(1);
                     }
-                    Time tDelay = tNext - m_sim->Now();
+                    Time now = m_sim->Now();
+                    Time tDelay = tNext - now;
+
+                    if (IsTimingDebugEnabled())
+                    {
+                        std::ostringstream oss;
+                        oss << "SEND_CELL_MSG_SCHEDULE"
+                            << " msgId=" << message.message_id()
+                            << " mosaicNodeId=" << message.node_id()
+                            << " requestedDst=" << ip
+                            << " sendTimeNs=" << tNext.GetNanoSeconds()
+                            << " simNowNs=" << now.GetNanoSeconds()
+                            << " delayNs=" << tDelay.GetNanoSeconds()
+                            << " payload=" << message.length();
+                        TimingDebug(oss.str());
+                    }
+
                     m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::SendCellMsg, m_nodeManager, message.node_id(), ip, message.message_id(), message.length()));
                     NS_LOG_DEBUG("Received SEND_CELL_MSG: mosNID=" << message.node_id() << " id=" << message.message_id() << " sendTime=" << message.time() << " length=" << message.length());
                 } catch (int e) {
@@ -329,6 +424,7 @@ namespace ns3 {
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
             }
+
             case CommandMessage_CommandType_SHUT_DOWN:
                 NS_LOG_INFO("Received CMD_SHUT_DOWN");
                 m_nodeManager->OnShutdown();
@@ -353,7 +449,7 @@ namespace ns3 {
         }
         nextTime *= m_timeFactor; // convert to nanoseconds
 
-        if (m_reportedTimes.find (nextTime) != m_reportedTimes.end()) {
+        if (m_reportedTimes.find(nextTime) != m_reportedTimes.end()) {
             return;
         }
         m_reportedTimes.insert(nextTime);
@@ -364,8 +460,7 @@ namespace ns3 {
         if (nextTime < m_currentAdvanceTime) {
             NS_LOG_DEBUG("nextEvent " << nextTime << " [smaller than grant]");
             m_didRequestEventInThePast = true;
-        } 
-        else {
+        } else {
             NS_LOG_DEBUG("nextEvent " << nextTime);
         }
         m_countNextEventRequest++;
@@ -374,11 +469,11 @@ namespace ns3 {
     }
 
     void MosaicNs3Bridge::writeReceiveWifiMessage(unsigned long long recvTime, int nodeID, int msgID) {
-        NS_LOG_DEBUG("Received a message! " << recvTime << ":" << m_currentAdvanceTime );
+        NS_LOG_DEBUG("Received a message! " << recvTime << ":" << m_currentAdvanceTime);
         if (recvTime < m_currentAdvanceTime) {
             NS_LOG_DEBUG("Received a message [smaller than grant]");
             m_didRequestEventInThePast = true;
-        } 
+        }
         m_countNextEventRequest++;
         federateAmbassadorChannel.writeCommand(CommandMessage_CommandType_RECV_WIFI_MSG);
         federateAmbassadorChannel.writeReceiveWifiMessage(recvTime, nodeID, msgID, RadioChannel::PROTO_CCH, 0);
@@ -386,11 +481,21 @@ namespace ns3 {
     }
 
     void MosaicNs3Bridge::writeReceiveCellMessage(unsigned long long recvTime, int nodeID, int msgID) {
-        NS_LOG_DEBUG("Received a message! " << recvTime << ":" << m_currentAdvanceTime );
+        if (IsTimingDebugEnabled())
+        {
+            std::ostringstream oss;
+            oss << "WRITE_RECV_CELL msgId=" << msgID
+                << " mosaicNodeId=" << nodeID
+                << " recvTimeNs=" << recvTime
+                << " simNowNs=" << m_sim->Now().GetNanoSeconds()
+                << " currentAdvanceTimeNs=" << m_currentAdvanceTime;
+            TimingDebug(oss.str());
+        }
+        NS_LOG_DEBUG("Received a message! " << recvTime << ":" << m_currentAdvanceTime);
         if (recvTime < m_currentAdvanceTime) {
             NS_LOG_DEBUG("Received a message [smaller than grant]");
             m_didRequestEventInThePast = true;
-        } 
+        }
         m_countNextEventRequest++;
         federateAmbassadorChannel.writeCommand(CommandMessage_CommandType_RECV_CELL_MSG);
         federateAmbassadorChannel.writeReceiveCellMessage(recvTime, nodeID, msgID);

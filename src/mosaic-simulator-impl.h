@@ -63,8 +63,8 @@ namespace ns3 {
         virtual void Destroy();
         virtual bool IsFinished(void) const;
         virtual Time Next(void) const;
-        virtual void Stop(void);
-        virtual void Stop(Time const &time);
+        virtual void Stop(void) override;
+        virtual EventId Stop(const Time& time) override;
         virtual void ScheduleWithContext(uint32_t context, Time const &time, EventImpl *event);
         virtual EventId ScheduleNow(EventImpl *event);
         virtual EventId ScheduleDestroy(EventImpl *event);
