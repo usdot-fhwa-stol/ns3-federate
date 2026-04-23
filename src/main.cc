@@ -23,24 +23,19 @@
 #include <exception>
 #include <string>
 #include <unistd.h>
-
-#include "ns3/log.h"
-#include "ns3/core-module.h"
-#include "mosaic-ns3-server.h"
-#include "ns3/config-store.h"
-
 #include <algorithm>
 #include <libxml2/libxml/xpath.h>
 #include <libxml2/libxml/tree.h>
 
+#include "ns3/log.h"
+#include "ns3/core-module.h"
+#include "ns3/config-store.h"
+
+#include "mosaic-ns3-bridge.h"
+
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("MosaicStarter");
-
-struct NetworkConfig {
-    std::string commType;
-    int numOfNodes;
-};
+NS_LOG_COMPONENT_DEFINE("MainClass");
 
 static LogLevel ParseLogLevel(const std::string & levelString) {
     //Taken from ns-3 environment parsing of log level
@@ -144,118 +139,48 @@ void SetLogLevels(const std::string & configFile) {
     xmlXPathFreeObject(result);
 }
 
-std::string GetCommType(const std::string &configFile) {
-    xmlDocPtr doc = xmlParseFile(configFile.c_str());
-    xmlXPathContextPtr context = xmlXPathNewContext(doc);
-
-    // XPath to find the specific CommType component
-    xmlChar *xpath = (xmlChar *) "//ns3/NetworkConfig/component[@name='CommType']";
-    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
-
-    std::string valueString;
-    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
-        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
-
-        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
-            std::string attrName((char *) attr->name);
-            if (attrName == "value") {
-                valueString.assign((char *) xmlNodeListGetString(doc, attr->children, 1));
-                break; // Once value is found, break the loop
-            }
-        }
-    }
-
-    xmlXPathFreeObject(result);
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-
-    return valueString;
-}
-
-int GetNumOfNodes(const std::string &configFile) {
-    xmlDocPtr doc = xmlParseFile(configFile.c_str());
-    xmlXPathContextPtr context = xmlXPathNewContext(doc);
-
-    // XPath to find the specific NumOfNodes component
-    xmlChar *xpath = (xmlChar *) "//NetworkConfig/component[@name='NumOfNodes']";
-    xmlXPathObjectPtr result = xmlXPathEvalExpression(xpath, context);
-
-    int numOfNodes = 0;
-    if (result && result->nodesetval && result->nodesetval->nodeNr > 0) {
-        xmlNodePtr nodePtr = result->nodesetval->nodeTab[0]; // First (and should be only) node
-
-        for (xmlAttrPtr attr = nodePtr->properties; attr != nullptr; attr = attr->next) {
-            std::string attrName((char *) attr->name);
-            if (attrName == "value") {
-                std::string valueString = (char *) xmlNodeListGetString(doc, attr->children, 1);
-                numOfNodes = std::atoi(valueString.c_str());
-                break; // Once value is found, break the loop
-            }
-        }
-    }
-
-    xmlXPathFreeObject(result);
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
-
-    return numOfNodes;
-}
-
 int main(int argc, char *argv[]) {
     using namespace std;
+
+    // ns3 logs to std::clog, redirect to std::cout
+    auto destination = std::cout.rdbuf();
+    std::clog.rdbuf(destination);
+
     //default values
     int port = 0;
     int cmdPort = 0;
-    std::string configFile = "scratch/ns3_federate_config.xml";
+    std::string configFile = "ns3_federate_config.xml";
+
+    MosaicNodeManager::GetTypeId();
+    CommandLine cmd("ns3-federate");
+    cmd.Usage("Mosaic ns-3 federate.");
+    cmd.AddValue("cmdPort", "the command port", cmdPort);
+    cmd.AddValue("port", "the port", port);
+    cmd.AddValue("configFile", "the configuration file", configFile);
+    cmd.Parse(argc, argv);
 
     GlobalValue::Bind("SchedulerType", StringValue("ns3::ListScheduler"));
     GlobalValue::Bind("SimulatorImplementationType", StringValue("ns3::MosaicSimulatorImpl"));
-
-    MosaicNodeManager::GetTypeId();
-    CommandLine cmd;
-    cmd.Usage("Mosaic ns-3 federate.\n\tcmdPort - command port");
-    cmd.AddValue("cmdPort", "the command port", cmdPort);
-    cmd.AddValue("port", "the port", port);
-    cmd.AddValue("configFile", "the configuration file to evaluate", configFile);
-    cmd.Parse(argc, argv);
-
     if (access(configFile.c_str(), F_OK) == -1) {
-        cerr << "Could not open configuration file \"" << configFile << "\"" << endl;
-        return -1;
+        std::cerr << "Could not open configuration file \"" << configFile << "\"" << std::endl;
+        return 1;
     }
-
     Config::SetDefault("ns3::ConfigStore::Filename", StringValue(configFile.c_str()));
     Config::SetDefault("ns3::ConfigStore::FileFormat", StringValue("Xml"));
     Config::SetDefault("ns3::ConfigStore::Mode", StringValue("Load"));
     ConfigStore xmlConfig;
-
     xmlConfig.ConfigureDefaults();
     xmlConfig.ConfigureAttributes();
-
     SetLogLevels(configFile);
-    
-    NetworkConfig config;
-    config.commType = GetCommType(configFile);
 
+    Time::SetResolution (Time::NS);
 
     try {
-        MosaicNs3Server server(port, cmdPort, config.commType);
-        if (config.commType == "LTE"){
-            config.numOfNodes = GetNumOfNodes(configFile);
-            server.SetNumOfNodes(config.numOfNodes);
-        }
-        else if (config.commType == "DSRC"){
-            // do nothing
-        }
-        else{
-            NS_LOG_ERROR("Unknown communication type:" << config.commType);
-            return 0;
-        }
-            
-        server.processCommandsUntilSimStep();
+        MosaicNs3Bridge instance(port, cmdPort);
+        instance.run();
     } catch (int e) {
         NS_LOG_ERROR("Caught exception [" << e << "]. Exiting ns-3 federate ");
-        return -1;
+        return 1;
     }
 
     Simulator::Destroy();
