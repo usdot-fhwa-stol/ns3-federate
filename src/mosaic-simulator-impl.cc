@@ -80,7 +80,7 @@ namespace ns3 {
     void MosaicSimulatorImpl::SetScheduler(ObjectFactory schedulerFactory) {
         Ptr<Scheduler> scheduler = schedulerFactory.Create<Scheduler> ();
 
-        if (m_events != 0) {
+        if (m_events) {
             while (!m_events->IsEmpty()) {
                 Scheduler::Event next = m_events->RemoveNext();
                 scheduler->Insert(next);
@@ -142,19 +142,33 @@ namespace ns3 {
         return m_eventCount;
     }
 
-    void MosaicSimulatorImpl::Stop(void) {
+    void
+    MosaicSimulatorImpl::Stop(void)
+    {
         m_stop = true;
     }
 
-    void MosaicSimulatorImpl::Stop(Time const &time) {
-        Simulator::Schedule(time, &Simulator::Stop);
+    EventId
+    MosaicSimulatorImpl::Stop(const Time& time)
+    {
+        return Simulator::Schedule(time, &Simulator::Stop);
     }
 
     EventId MosaicSimulatorImpl::Schedule(Time const &time, EventImpl *event) {
 
-        Time tAbsolute = time + TimeStep(m_currentTs);
 
-        NS_ASSERT(tAbsolute.IsPositive());
+        Time now = TimeStep(m_currentTs);
+        Time tAbsolute = time + now;
+
+        // Only reject truly negative (past) delay
+        if (time < NanoSeconds(0))
+        {
+            NS_LOG_ERROR("Negative delay detected: delay=" << time
+                        << " now=" << now
+                        << " => clamped to now");
+
+            tAbsolute = now;
+        }
 
         Scheduler::Event ev;
         ev.impl = event;

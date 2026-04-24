@@ -1,14 +1,10 @@
 #!/bin/bash
+set -e
 
-port=$1
-cmdport=$2
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+port="${1:-40001}"
+cmdport="${2:-0}"
+ns3Version="${NS3_VERSION:-3.42}"
 
-if [[ -z $cmdport ]]; then
-    cmdport=0
-fi
-
-ns3Version="3.36.1"
-
-LD_LIBRARY_PATH=./ns-allinone-$ns3Version/ns-$ns3Version/build/lib\
-    ./ns3-federate\
-    --port=$port --cmdPort=$cmdport --configFile=ns3config/ns3_federate_config.xml
+export LD_LIBRARY_PATH="${SCRIPT_DIR}/ns-allinone-${ns3Version}/ns-${ns3Version}/build/lib:${LD_LIBRARY_PATH:-}"
+exec "${SCRIPT_DIR}/ns3-federate" --port="$port" --cmdPort="$cmdport" --configFile="${SCRIPT_DIR}/ns3config/ns3_federate_config.xml"
