@@ -249,7 +249,7 @@ MosaicNodeManager::BuildNrSpectrum()
 
     // Follow official NR sidelink examples before InstallUeDevice().
     m_nrHelper->SetUeMacTypeId(NrSlUeMac::GetTypeId());
-    m_nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
+    m_nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(true));
     m_nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
     m_nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
     m_nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
@@ -524,7 +524,7 @@ MosaicNodeManager::InstallSidelinkPreconfiguration(const NetDeviceContainer& ueD
     LteRrcSap::SlResourcePoolNr slResourcePoolNr;
     Ptr<NrSlCommResourcePoolFactory> ptrFactory = Create<NrSlCommResourcePoolFactory>();
 
-    std::vector<std::bitset<1>> slBitmap = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
+    std::vector<std::bitset<1>> slBitmap = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     ptrFactory->SetSlTimeResources(slBitmap);
     ptrFactory->SetSlSensingWindow(m_slSensingWindowMs);
     ptrFactory->SetSlSelectionWindow(m_slSelectionWindow);

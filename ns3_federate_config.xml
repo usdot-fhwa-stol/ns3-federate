@@ -38,16 +38,20 @@
 
     <!-- ================= NR BASIC ================= -->
     <default name="ns3::MosaicNodeManager::nrCentralFrequencyHz" value="5900000000"/>
-    <default name="ns3::MosaicNodeManager::nrTxPowerDbm" value="30"/>
+    <default name="ns3::MosaicNodeManager::nrTxPowerDbm" value="33"/>
     <default name="ns3::MosaicNodeManager::nrShadowingEnabled" value="false"/>
     <default name="ns3::MosaicNodeManager::nrBandwidthHz" value="40000000"/>
     <default name="ns3::MosaicNodeManager::nrNumerology" value="1"/>
+    <default name="ns3::MosaicNodeManager::slMcs" value="20"/>
 
-    <default name="ns3::MosaicNodeManager::slMaxNumPerReserve" value="3"/>
+    <default name="ns3::MosaicNodeManager::slMaxNumPerReserve" value="1"/>
     <default name="ns3::MosaicNodeManager::slSubchannelSize" value="10"/>
-    <default name="ns3::MosaicNodeManager::slFreqResourcePscch" value="10"/>
+
+    <!-- <default name="ns3::MosaicNodeManager::slSensingWindowMs" value="1100"/> -->
+    <!-- <default name="ns3::MosaicNodeManager::slSelectionWindow" value="20"/> -->
+    <default name="ns3::MosaicNodeManager::slFreqResourcePscch" value="4"/>
     <default name="ns3::MosaicNodeManager::slReservePeriodMs" value="20"/>
-    <default name="ns3::MosaicNodeManager::slHarqEnabled" value="true"/>
+    <default name="ns3::MosaicNodeManager::slHarqEnabled" value="false"/>
     
     <!-- UE antenna -->
     <default name="ns3::MosaicNodeManager::nrUeAntennaRows" value="1"/>
