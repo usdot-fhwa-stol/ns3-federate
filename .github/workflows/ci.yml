@@ -1,0 +1,54 @@
+name: CI
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - develop
+      - master
+      - "release/*"
+
+jobs:
+  sonar:
+    runs-on: ubuntu-22.04
+    container:
+      image: ubuntu:jammy
+
+    env:
+      NS3_FLAVOR: v2x
+      NS3_VERSION: "3.42"
+      V2X_NS3_VERSION: "3.42"
+      V2X_NS3_REF: ns-3-dev-v2x-v1.1
+      V2X_NR_REF: v2x-1.1
+      LEGACY_NS3_VERSION: "3.38"
+      LEGACY_NR_BRANCH: 5g-lena-v2.4.y
+
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get install -y git curl zip unzip
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install build-wrapper
+        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v7.1.0
+
+      - name: Build with build-wrapper
+        run: |
+          mkdir -p /opt
+          ln -s "$GITHUB_WORKSPACE" /opt/ns3-federate
+          chmod +x docker/*.sh run.sh run_from_mosaic.sh run_manually.sh
+          build-wrapper-linux-x86-64 --out-dir bw-output ./docker/install_dependencies.sh
+
+      - name: Run sonar-scanner
+        uses: usdot-fhwa-stol/actions/sonar-scanner@main
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          working-dir: ${{ github.workspace }}
