@@ -1,0 +1,18 @@
+name: Docker Hub build
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - master
+      - "release/*"
+    tags:
+      - "carma-system-*"
+jobs:
+  dockerhub:
+    uses: usdot-fhwa-stol/actions/.github/workflows/dockerhub.yml@main
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    with:
+      runner: ubuntu-latest-8-cores
