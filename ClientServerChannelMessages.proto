@@ -24,35 +24,35 @@ message CommandMessage {
 
         INIT = 1;                   // once at start up
         SHUT_DOWN = 2;              // once at shut down
-        SUCCESS = 3;                // used as 'cmd ack'
-        NEXT_EVENT = 4;
-        ADVANCE_TIME = 5;
-        END = 6;                    // used as 'advance time done'
-        PREEMPTED = 7;
+        SUCCESS = 41;               // used as 'cmd ack'
+        NEXT_EVENT = 21;
+        ADVANCE_TIME = 20;
+        END = 40;                   // used as 'advance time done'
+        PREEMPTED = 42;
 
         /* Entities... */
-        ADD_NODE = 10;
-        UPDATE_NODE = 11;
-        REMOVE_NODE = 12;
+        ADD_NODE = 12;
+        UPDATE_NODE = 10;
+        REMOVE_NODE = 11;
 
         /* Wifi Communication... */
-        CONF_WIFI_RADIO = 20;
-        SEND_WIFI_MSG = 21;
+        CONF_WIFI_RADIO = 31;
+        SEND_WIFI_MSG = 30;
         RECV_WIFI_MSG = 22;
 
         /* Cellular Communication... */
-        CONF_CELL_RADIO = 30;
-        SEND_CELL_MSG = 31;
-        RECV_CELL_MSG = 32;
+        CONF_CELL_RADIO = 32;
+        SEND_CELL_MSG = 33;
+        RECV_CELL_MSG = 34;
     }
     required CommandType command_type = 1;
 }
 
 message InitMessage {
-    required int64 simulation_start_time = 1;
-    required int64 simulation_end_time = 2;
-    required int32 protocol_version = 3;
-    required bool preemptive_execution = 4;
+    optional int64 simulation_start_time = 1;
+    optional int64 simulation_end_time = 2;
+    optional int32 protocol_version = 3;
+    optional bool preemptive_execution = 4 [default = false];
 }
 
 message PortExchange {
@@ -81,14 +81,21 @@ message AddNode {
 }
 
 message UpdateNode {
-    required int64  time = 1;
+    enum UpdateType {
+        ADD_RSU = 1;
+        ADD_VEHICLE = 2;
+        MOVE_NODE = 3;
+        REMOVE_NODE = 4;
+    }
+    required UpdateType update_type = 1;
+    required int64 time = 2;
     message NodeData {
         required int32 id = 1;
         required double x = 2;
         required double y = 3;
-        required double z = 4;
+        optional double z = 4 [default = 0.0];
     }
-    repeated NodeData properties = 2;
+    repeated NodeData properties = 3;
 }
 
 message RemoveNode {
@@ -126,7 +133,7 @@ message ConfigureWifiRadio {
         required bool receiving_messages = 1; //Determines whether the radio receives messages or only routes
         required uint32 ip_address = 2;
         required uint32 subnet_address = 3;
-        required double transmission_power = 4;
+        required uint32 transmission_power = 4;
         enum RadioMode {
             SINGLE_CHANNEL = 1;
             DUAL_CHANNEL = 2;
@@ -151,7 +158,7 @@ message SendWifiMessage {
     
     message TopologicalAddress {
         required uint32 ip_address = 1;
-        optional uint32 ttl = 2;
+        required uint32 ttl = 2;
     }
     message GeoRectangleAddress {
         required uint32 ip_address = 1;

@@ -268,7 +268,7 @@ InitMessage ClientServerChannel::readInitMessage() {
 
     InitMessage msg;
     msg.ParseFromCodedStream ( &codedIn );
-    if (msg.protocol_version() != PROTOCOL_VERSION) {
+    if (msg.has_protocol_version() && msg.protocol_version() != PROTOCOL_VERSION) {
         NS_LOG_ERROR("Do not have correct protocol version. Have: " << msg.protocol_version() << " Require: " << PROTOCOL_VERSION);
         exit(1);
     }
@@ -427,11 +427,9 @@ SendWifiMessage ClientServerChannel::readSendWifiMessage(void) {
     if (message.has_topological_address() ) {
         // all good
     } else if (message.has_rectangle_address() ) {
-        NS_LOG_ERROR("Not yet implemented.");
-        exit(1);
+        NS_LOG_WARN("GeoRectangle addressing is treated as topological forwarding by IP.");
     } else if (message.has_circle_address() ) {
-        NS_LOG_ERROR("Not yet implemented.");
-        exit(1);
+        NS_LOG_WARN("GeoCircle addressing is treated as topological forwarding by IP.");
     } else {
         NS_LOG_ERROR("Address is missing.");
         exit(1);
@@ -544,10 +542,12 @@ void ClientServerChannel::writeReceiveWifiMessage(uint64_t time, int node_id, in
 
 void ClientServerChannel::writeReceiveCellMessage(uint64_t time, int node_id, int message_id) {
     NS_LOG_FUNCTION(this << time << node_id << message_id);
-    ReceiveCellMessage message;
+    ReceiveWifiMessage message;
     message.set_time(time);
     message.set_node_id(node_id);
+    message.set_channel_id(RadioChannel::PROTO_CCH);
     message.set_message_id(message_id);
+    message.set_rssi(0);
 
     int varintsize = google::protobuf::io::CodedOutputStream::VarintSize32(message.ByteSizeLong());
     int message_size = varintsize + message.ByteSizeLong();
