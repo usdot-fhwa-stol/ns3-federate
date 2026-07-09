@@ -64,6 +64,7 @@ class MosaicNodeManager : public Object
     uint32_t GetMosaicNodeId(uint32_t ns3NodeId);
 
     Ptr<Node> CreateRadioNodeHelper(void);
+    Vector EnforceMinUeSeparation(uint32_t nodeId, Vector position);
     Ptr<NrUeNetDevice> GetNrUeDevice(Ptr<Node> node) const;
     Ptr<NetDevice> GetBackboneNetDevice(Ptr<Node> node) const;
 
