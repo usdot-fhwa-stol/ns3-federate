@@ -1,5 +1,6 @@
 #include "mosaic-node-manager.h"
 
+#include <cmath>
 #include <cstdlib>
 #include <sstream>
 
@@ -48,6 +49,15 @@ static constexpr double kPoolCenterY = 80.0;
 static constexpr double kPoolSpacing = 8.0;
 static constexpr uint32_t kPoolCols = 10;
 static constexpr double kPoolZ = 1.5;
+
+// Minimum allowed 2D separation between two active UEs. Two UEs at the exact
+// same (x,y) form a zero-distance sidelink: the DirectPathBeamforming steering
+// vector has zero length and the 3GPP UMi pathloss evaluates log10(0), which
+// yields a NaN SINR and aborts ns-3 (NS_ABORT in nr-spectrum-phy). This happens
+// during startup before the first real position update, when MOSAIC places all
+// fresh vehicles at the origin (0,0,0). Keep the value small so it is
+// physically negligible but still guarantees a non-degenerate channel.
+static constexpr double kMinUeSeparationM = 1.0;
 
 static Vector
 GetPoolParkingPosition(uint32_t nodeId)
@@ -757,6 +767,54 @@ MosaicNodeManager::ActivateRadioNode(uint32_t mosaicNodeId, Vector position)
     CreateRadioNode(mosaicNodeId, position);
 }
 
+Vector
+MosaicNodeManager::EnforceMinUeSeparation(uint32_t nodeId, Vector position)
+{
+    // Returns true if 'p' lies within kMinUeSeparationM (in the 2D plane) of any
+    // other active radio node.
+    auto conflicts = [&](const Vector& p) {
+        for (uint32_t i = 0; i < m_radioNodes.GetN(); ++i)
+        {
+            Ptr<Node> other = m_radioNodes.Get(i);
+            if (other == nullptr || other->GetId() == nodeId || m_isDeactivated[other->GetId()])
+            {
+                continue;
+            }
+            Ptr<MobilityModel> om = other->GetObject<MobilityModel>();
+            if (om == nullptr)
+            {
+                continue;
+            }
+            Vector op = om->GetPosition();
+            double dx = op.x - p.x;
+            double dy = op.y - p.y;
+            if ((dx * dx + dy * dy) < (kMinUeSeparationM * kMinUeSeparationM))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    if (!conflicts(position))
+    {
+        return position;
+    }
+
+    // Deterministic per-node offset on a small circle (golden-angle spacing so
+    // distinct node ids never map to the same point) to break the co-location.
+    const double angle = static_cast<double>(nodeId) * 2.399963229728653; // golden angle (rad)
+    Vector adjusted(position.x + kMinUeSeparationM * std::cos(angle),
+                    position.y + kMinUeSeparationM * std::sin(angle),
+                    position.z);
+    NS_LOG_WARN("UE ns3NodeId=" << nodeId << " requested position ("
+                                << position.x << "," << position.y << "," << position.z
+                                << ") coincides with another active UE; nudging to ("
+                                << adjusted.x << "," << adjusted.y << "," << adjusted.z
+                                << ") to avoid a zero-distance sidelink (NaN SINR).");
+    return adjusted;
+}
+
 void
 MosaicNodeManager::UpdateNodePosition(uint32_t mosaicNodeId, Vector position)
 {
@@ -769,7 +827,7 @@ MosaicNodeManager::UpdateNodePosition(uint32_t mosaicNodeId, Vector position)
     Ptr<Node> node = NodeList::GetNode(nodeId);
     Ptr<MobilityModel> mobModel = node->GetObject<MobilityModel>();
     NS_ASSERT_MSG(mobModel != nullptr, "MobilityModel is null");
-    mobModel->SetPosition(position);
+    mobModel->SetPosition(EnforceMinUeSeparation(nodeId, position));
 }
 
 void

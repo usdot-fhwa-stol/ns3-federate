@@ -56,8 +56,6 @@ namespace ns3 {
     using namespace ClientServerChannelSpace;
 
     MosaicNs3Bridge::MosaicNs3Bridge(int port, int cmdPort) {
-        std::cout << "Starting ns3 federate on OutPort=" << port << " CmdPort=" << cmdPort << std::endl;
-
         m_sim = DynamicCast<MosaicSimulatorImpl> (Simulator::GetImplementation());
         if (!m_sim) {
             NS_LOG_ERROR("Could not find MosaicSimulatorImpl");
@@ -90,7 +88,8 @@ namespace ns3 {
 
         /* Initialize federateAmbassadorChannel (mostly for SENDING) */
         NS_LOG_INFO("Initialize federateAmbassadorChannel");
-        federateAmbassadorChannel.prepareConnection("0.0.0.0", port);
+        uint16_t assignedOutPort = federateAmbassadorChannel.prepareConnection("0.0.0.0", port);
+        std::cout << "Starting ns3 federate on OutPort=" << assignedOutPort << " CmdPort=" << cmdPort << std::endl;
         federateAmbassadorChannel.connect();
         federateAmbassadorChannel.writeCommand(CommandMessage_CommandType_INIT);
 
@@ -219,14 +218,38 @@ namespace ns3 {
                         << " msgTimeNs=" << message.time()
                         << " simNowNs=" << now.GetNanoSeconds()
                         << " delayNs=" << tDelay.GetNanoSeconds()
+                        << " updateType=" << message.update_type()
                         << " propertiesSize=" << message.properties_size();
                     TimingDebug(oss.str());
                 }
 
                 for (size_t i = 0; i < message.properties_size(); i++) {
                     UpdateNode_NodeData node_data = message.properties(i);
-                    m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, node_data.id(), Vector(node_data.x(), node_data.y(), node_data.z())));
-                    NS_LOG_DEBUG("Received UPDATE_NODE(S): mosNID=" << node_data.id() << " pos(x=" << node_data.x() << " y=" << node_data.y() << " z=" << node_data.z() << ") tNext=" << tNext);
+                    Vector position(node_data.x(), node_data.y(), node_data.z());
+
+                    switch (message.update_type()) {
+                        case UpdateNode_UpdateType_ADD_RSU:
+                        case UpdateNode_UpdateType_ADD_VEHICLE:
+                            NS_LOG_DEBUG("Received ADD_RADIO_NODE via UPDATE_NODE: mosNID=" << node_data.id() << " pos(x=" << node_data.x() << " y=" << node_data.y() << " z=" << node_data.z() << ") tNext=" << tNext);
+                            if (!m_didRunOnStart) {
+                                m_nodeManager->CreateRadioNode(node_data.id(), position);
+                            } else {
+                                m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::ActivateRadioNode, m_nodeManager, node_data.id(), position));
+                            }
+                            break;
+                        case UpdateNode_UpdateType_MOVE_NODE:
+                            NS_LOG_DEBUG("Received MOVE_NODE via UPDATE_NODE: mosNID=" << node_data.id() << " pos(x=" << node_data.x() << " y=" << node_data.y() << " z=" << node_data.z() << ") tNext=" << tNext);
+                            m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::UpdateNodePosition, m_nodeManager, node_data.id(), position));
+                            break;
+                        case UpdateNode_UpdateType_REMOVE_NODE:
+                            NS_LOG_DEBUG("Received REMOVE_NODE via UPDATE_NODE: mosNID=" << node_data.id() << " tNext=" << tNext);
+                            m_sim->Schedule(tDelay, MakeEvent(&MosaicNodeManager::RemoveNode, m_nodeManager, node_data.id()));
+                            break;
+                        default:
+                            NS_LOG_ERROR("Received unknown UPDATE_NODE type " << message.update_type());
+                            m_closeConnection = true;
+                            return;
+                    }
                 }
                 ambassadorFederateChannel.writeCommand(CommandMessage_CommandType_SUCCESS);
                 break;
@@ -344,7 +367,17 @@ namespace ns3 {
             {
                 try {
                     SendWifiMessage message = ambassadorFederateChannel.readSendWifiMessage();
-                    Ipv4Address ip(message.topological_address().ip_address());
+                    Ipv4Address ip;
+                    if (message.has_topological_address()) {
+                        ip.Set(message.topological_address().ip_address());
+                    } else if (message.has_rectangle_address()) {
+                        ip.Set(message.rectangle_address().ip_address());
+                    } else if (message.has_circle_address()) {
+                        ip.Set(message.circle_address().ip_address());
+                    } else {
+                        NS_LOG_ERROR("SEND_WIFI_MSG address is missing");
+                        exit(1);
+                    }
 
                     Time tNext = NanoSeconds(message.time());
                     // ns3 does not like to send packets at time zero, use 1ns instead
@@ -497,7 +530,7 @@ namespace ns3 {
             m_didRequestEventInThePast = true;
         }
         m_countNextEventRequest++;
-        federateAmbassadorChannel.writeCommand(CommandMessage_CommandType_RECV_CELL_MSG);
+        federateAmbassadorChannel.writeCommand(CommandMessage_CommandType_RECV_WIFI_MSG);
         federateAmbassadorChannel.writeReceiveCellMessage(recvTime, nodeID, msgID);
     }
 

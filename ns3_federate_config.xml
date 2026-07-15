@@ -49,7 +49,7 @@
 
     <!-- <default name="ns3::MosaicNodeManager::slSensingWindowMs" value="1100"/> -->
     <!-- <default name="ns3::MosaicNodeManager::slSelectionWindow" value="20"/> -->
-    <default name="ns3::MosaicNodeManager::slFreqResourcePscch" value="4"/>
+    <default name="ns3::MosaicNodeManager::slFreqResourcePscch" value="10"/>
     <default name="ns3::MosaicNodeManager::slReservePeriodMs" value="20"/>
     <default name="ns3::MosaicNodeManager::slHarqEnabled" value="false"/>
     

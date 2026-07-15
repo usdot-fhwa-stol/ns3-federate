@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO_ROOT="/opt/ns3-federate"
+REPO_ROOT="${REPO_ROOT:-/home/mosaic/bin/fed/ns3}"
 
 # Build mode:
 #   nr  -> legacy 5G-LENA on ns-3 release tarball
