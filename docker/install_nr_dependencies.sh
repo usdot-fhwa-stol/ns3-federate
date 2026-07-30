@@ -170,5 +170,5 @@ chmod +x "$REPO_ROOT/run.sh" "$REPO_ROOT/run_from_mosaic.sh" "$REPO_ROOT/run_man
 mkdir -p "$REPO_ROOT/ns3config"
 chmod 777 "$REPO_ROOT/ns3config"
 
-echo "=== install_dependencies.sh complete ==="
+echo "=== install_nr_dependencies.sh complete ==="
 echo "=== NS3_FLAVOR=${NS3_FLAVOR} NS3_VERSION=${NS3_VERSION} ==="
