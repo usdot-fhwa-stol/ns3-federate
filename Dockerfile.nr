@@ -26,11 +26,12 @@ ARG LEGACY_NS3_VERSION=3.38
 ARG LEGACY_NR_BRANCH=5g-lena-v2.4.y
 
 LABEL org.opencontainers.image.title="ns3-federate" \
-      org.opencontainers.image.description="Docker image containing the MOSAIC adapted ns-3 federate" \
+      org.opencontainers.image.description="MOSAIC ns-3 federate with 5G NR V2X sidelink support" \
       org.opencontainers.image.version="$VERSION" \
       org.opencontainers.image.revision="$VCS_REF" \
       org.opencontainers.image.created="$BUILD_DATE" \
-      org.opencontainers.image.vendor="LEIDOS"
+      org.opencontainers.image.vendor="LEIDOS" \
+      org.opencontainers.image.radio-technology="5g-nr"
 
 WORKDIR /home/mosaic/bin/fed/ns3
 
@@ -45,7 +46,7 @@ RUN chmod +x docker/*.sh run.sh run_from_mosaic.sh run_manually.sh && \
     V2X_NR_REF="$V2X_NR_REF" \
     LEGACY_NS3_VERSION="$LEGACY_NS3_VERSION" \
     LEGACY_NR_BRANCH="$LEGACY_NR_BRANCH" \
-    ./docker/install_dependencies.sh
+    ./docker/install_nr_dependencies.sh
 
 RUN if [ "$NS3_FLAVOR" = "v2x" ]; then \
       TARGET_NS3_VERSION="$V2X_NS3_VERSION"; \
