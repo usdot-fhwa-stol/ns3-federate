@@ -9,10 +9,29 @@ on:
     tags:
       - "carma-system-*"
 jobs:
-  dockerhub:
+  dockerhub-dsrc-default:
     uses: usdot-fhwa-stol/actions/.github/workflows/dockerhub.yml@main
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       runner: ubuntu-latest-8-cores
+      file: Dockerfile.dsrc
+  dockerhub-dsrc:
+    uses: usdot-fhwa-stol/actions/.github/workflows/dockerhub.yml@main
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    with:
+      runner: ubuntu-latest-8-cores
+      file: Dockerfile.dsrc
+      tag_name_suffix: dsrc
+  dockerhub-5g-nr:
+    uses: usdot-fhwa-stol/actions/.github/workflows/dockerhub.yml@main
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    with:
+      runner: ubuntu-latest-8-cores
+      file: Dockerfile.nr
+      tag_name_suffix: 5g-nr
