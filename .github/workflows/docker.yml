@@ -3,6 +3,11 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   docker-dsrc:
     uses: usdot-fhwa-stol/actions/.github/workflows/docker.yml@main
@@ -15,3 +20,91 @@ jobs:
     with:
       runner: ubuntu-latest
       file: Dockerfile.nr
+
+  determine_docker_org_and_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_organization: ${{ steps.docker-org-and-tag.outputs.docker_organization }}
+      docker_image_tag: ${{ steps.docker-org-and-tag.outputs.docker_image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - id: docker-org-and-tag
+        uses: usdot-fhwa-stol/actions/docker-org-and-tag@main
+
+  scout-dsrc:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: determine_docker_org_and_tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build DSRC image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.dsrc
+          load: true
+          tags: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/ns3-federate:pr-${{ github.event.pull_request.number }}-dsrc
+
+      - name: Docker Scout Compare DSRC
+        uses: docker/scout-action@v1
+        with:
+          command: compare
+          image: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/ns3-federate:pr-${{ github.event.pull_request.number }}-dsrc
+          to-env: ${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}-dsrc
+          ignore-unchanged: true
+          only-severities: critical,high
+          organization: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}
+          keep-previous-comments: true
+
+  scout-5g-nr:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: determine_docker_org_and_tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build 5G NR image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.nr
+          load: true
+          tags: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/ns3-federate:pr-${{ github.event.pull_request.number }}-5g-nr
+
+      - name: Docker Scout Compare 5G NR
+        uses: docker/scout-action@v1
+        with:
+          command: compare
+          image: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}/ns3-federate:pr-${{ github.event.pull_request.number }}-5g-nr
+          to-env: ${{ needs.determine_docker_org_and_tag.outputs.docker_image_tag }}-5g-nr
+          ignore-unchanged: true
+          only-severities: critical,high
+          organization: ${{ needs.determine_docker_org_and_tag.outputs.docker_organization }}
+          keep-previous-comments: true
