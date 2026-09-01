@@ -46,15 +46,16 @@ jobs:
         run: |
           mkdir -p /opt
           ln -s "$GITHUB_WORKSPACE" /opt/ns3-federate
+          echo "CLONED_REPO_PATH=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
           chmod +x docker/*.sh run.sh run_from_mosaic.sh run_manually.sh
           build-wrapper-linux-x86-64 --out-dir bw-output ./docker/install_nr_dependencies.sh
 
       - name: Validate build-wrapper output
         run: |
-          test -s bw-output/compile_commands.json
+          test -s "$GITHUB_WORKSPACE/bw-output/compile_commands.json"
 
       - name: Run sonar-scanner
         uses: usdot-fhwa-stol/actions/sonar-scanner@main
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
-          working-dir: ${{ github.workspace }}
+          working-dir: ${{ env.CLONED_REPO_PATH }}
