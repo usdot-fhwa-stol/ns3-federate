@@ -21,14 +21,15 @@
  */
 
 #include "mosaic-simulator-impl.h"
+
+#include <math.h>
+
 #include "ns3/simulator.h"
 #include "ns3/event-impl.h"
 #include "ns3/ptr.h"
 #include "ns3/pointer.h"
 #include "ns3/assert.h"
 #include "ns3/log.h"
-
-#include <math.h>
 
 NS_LOG_COMPONENT_DEFINE("MosaicSimulatorImpl");
 
@@ -79,7 +80,7 @@ namespace ns3 {
     void MosaicSimulatorImpl::SetScheduler(ObjectFactory schedulerFactory) {
         Ptr<Scheduler> scheduler = schedulerFactory.Create<Scheduler> ();
 
-        if (m_events != 0) {
+        if (m_events) {
             while (!m_events->IsEmpty()) {
                 Scheduler::Event next = m_events->RemoveNext();
                 scheduler->Insert(next);
@@ -141,19 +142,33 @@ namespace ns3 {
         return m_eventCount;
     }
 
-    void MosaicSimulatorImpl::Stop(void) {
+    void
+    MosaicSimulatorImpl::Stop(void)
+    {
         m_stop = true;
     }
 
-    void MosaicSimulatorImpl::Stop(Time const &time) {
-        Simulator::Schedule(time, &Simulator::Stop);
+    EventId
+    MosaicSimulatorImpl::Stop(const Time& time)
+    {
+        return Simulator::Schedule(time, &Simulator::Stop);
     }
 
     EventId MosaicSimulatorImpl::Schedule(Time const &time, EventImpl *event) {
 
-        Time tAbsolute = time + TimeStep(m_currentTs);
 
-        NS_ASSERT(tAbsolute.IsPositive());
+        Time now = TimeStep(m_currentTs);
+        Time tAbsolute = time + now;
+
+        // Only reject truly negative (past) delay
+        if (time < NanoSeconds(0))
+        {
+            NS_LOG_ERROR("Negative delay detected: delay=" << time
+                        << " now=" << now
+                        << " => clamped to now");
+
+            tAbsolute = now;
+        }
 
         Scheduler::Event ev;
         ev.impl = event;
@@ -163,7 +178,7 @@ namespace ns3 {
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
-        m_server->writeNextTime(ev.key.m_ts);
+        m_mosaicNs3Bridge->writeNextTime(ev.key.m_ts);
 
         return EventId(event, ev.key.m_ts, ev.key.m_context, ev.key.m_uid);
     }
@@ -179,7 +194,7 @@ namespace ns3 {
         m_uid++;
         m_unscheduledEvents++;
         m_events->Insert(ev);
-        m_server->writeNextTime(ev.key.m_ts);
+        m_mosaicNs3Bridge->writeNextTime(ev.key.m_ts);
     }
 
     EventId MosaicSimulatorImpl::ScheduleNow(EventImpl *event) {
@@ -291,8 +306,8 @@ namespace ns3 {
         return m_currentContext;
     }
 
-    void MosaicSimulatorImpl::AttachNS3Server(MosaicNs3Server* server) {
-        m_server = server;
+    void MosaicSimulatorImpl::AttachBridge(MosaicNs3Bridge* instance) {
+        m_mosaicNs3Bridge = instance;
     }
 
 } // namespace ns3

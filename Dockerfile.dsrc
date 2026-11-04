@@ -1,0 +1,73 @@
+# Copyright (C) 2026 LEIDOS.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+FROM ubuntu:bionic
+
+ARG VERSION=unknown
+ARG VCS_REF=unknown
+ARG BUILD_DATE=unknown
+ARG DSRC_NS3_VERSION=3.28
+ARG DSRC_FEDERATE_REPO=https://github.com/mosaic-addons/ns3-federate.git
+ARG DSRC_FEDERATE_REF=21.0
+
+LABEL org.opencontainers.image.title="ns3-federate" \
+      org.opencontainers.image.description="MOSAIC ns-3 federate with DSRC/IEEE 802.11p support" \
+      org.opencontainers.image.version="$VERSION" \
+      org.opencontainers.image.revision="$VCS_REF" \
+      org.opencontainers.image.created="$BUILD_DATE" \
+      org.opencontainers.image.vendor="LEIDOS" \
+      org.opencontainers.image.source="$DSRC_FEDERATE_REPO" \
+      org.opencontainers.image.ref.name="$DSRC_FEDERATE_REF" \
+      org.opencontainers.image.radio-technology="dsrc"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      gcc \
+      g++ \
+      git \
+      lbzip2 \
+      libprotobuf-dev \
+      libsqlite3-dev \
+      libxml2-dev \
+      patch \
+      pkg-config \
+      protobuf-compiler \
+      python3.6 \
+      rsync \
+      unzip \
+      wget && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /home/mosaic/bin/fed/ns3
+
+COPY docker/install_dsrc_dependencies.sh ./docker/install_dsrc_dependencies.sh
+
+RUN chmod +x docker/install_dsrc_dependencies.sh && \
+    DSRC_NS3_VERSION="$DSRC_NS3_VERSION" \
+    DSRC_FEDERATE_REPO="$DSRC_FEDERATE_REPO" \
+    DSRC_FEDERATE_REF="$DSRC_FEDERATE_REF" \
+    ./docker/install_dsrc_dependencies.sh && \
+    mkdir -p ns3/scratch
+
+ENV LD_LIBRARY_PATH=/home/mosaic/bin/fed/ns3/ns-allinone-${DSRC_NS3_VERSION}/ns-${DSRC_NS3_VERSION}/build
+
+VOLUME ["/home/mosaic/bin/fed/ns3/scratch"]
+
+EXPOSE 40001 40002
+
+ENTRYPOINT ["bash", "-lc", "cp scratch/* ns3/scratch 2>/dev/null || true; ./run.sh 40001 40002"]

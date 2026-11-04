@@ -1,100 +1,137 @@
-/*
- * Copyright (c) 2020 Fraunhofer FOKUS and others. All rights reserved.
- *
- * Contact: mosaic@fokus.fraunhofer.de
- *
- * This class is developed for the MOSAIC-NS-3 coupling.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
+#ifndef MOSAIC_NODE_MANAGER_H
+#define MOSAIC_NODE_MANAGER_H
 
-#ifndef MOSAICNODEMANAGER_H
-#define MOSAICNODEMANAGER_H
-
+#include <set>
+#include <string>
 #include <unordered_map>
 
-#include "ns3/ipv4-address-helper.h"
 #include "ns3/node-container.h"
-#include "ns3/wifi-80211p-helper.h"
-#include "ns3/wave-mac-helper.h"
 #include "ns3/vector.h"
-#include "ns3/yans-wifi-phy.h"
-#include "ns3/yans-wifi-channel.h"
-#include "ns3/yans-wifi-helper.h"
+
+#include "ns3/csma-helper.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-static-routing-helper.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/nr-module.h"
+
+#include "client-server-channel.h"
 
 namespace ns3 {
 
-    //Forward declaration to prevent circular dependency
-    class MosaicNs3Server;
+class MosaicNs3Bridge;
 
-    /**
-     * @class MosaicNodeManager
-     * @brief The class MosaicNodeManager manages the creation, the initial 
-     * placement, and the position updates of ns3 nodes.
-     */
-    class MosaicNodeManager : public Object {
-    public:
-        static TypeId GetTypeId(void);
+class MosaicNodeManager : public Object
+{
+  public:
+    static TypeId GetTypeId(void);
 
-        MosaicNodeManager();
-        virtual ~MosaicNodeManager() = default;
+    MosaicNodeManager();
+    ~MosaicNodeManager() override = default;
 
-        void Configure(MosaicNs3Server* serverPtr);
+    void Configure(MosaicNs3Bridge* serverPtr);
+    void OnStart(void);
+    void OnShutdown(void);
+    void RejectAnyUeConnectionRequest(void);
 
-        void CreateMosaicNode(int ID, Vector position);
+    void CreateNodeB(Vector position);
+    void CreateWiredNode(uint32_t mosaicNodeId);
+    void CreateRadioNode(uint32_t mosaicNodeId, Vector position);
+    void ActivateRadioNode(uint32_t mosaicNodeId, Vector position);
+    void UpdateNodePosition(uint32_t mosaicNodeId, Vector position);
+    void RemoveNode(uint32_t mosaicNodeId);
 
-        void UpdateNodePosition(uint32_t nodeId, Vector position);
+    void ConfigureWifiRadio(uint32_t mosaicNodeId, double transmitPower, Ipv4Address ip);
+    void ConfigureCellRadio(uint32_t mosaicNodeId, Ipv4Address ip);
 
-        /**
-         * @brief Evaluates configuration message and applies it to the node
-         */
-        void ConfigureNodeRadio(uint32_t nodeId, bool radioTurnedOn, double transmitPower);
+    void SendWifiMsg(uint32_t mosaicNodeId,
+                     Ipv4Address dstAddr,
+                     ClientServerChannelSpace::RadioChannel channel,
+                     uint32_t msgID,
+                     uint32_t payLength);
+    void SendCellMsg(uint32_t mosaicNodeId,
+                     Ipv4Address dstAddr,
+                     uint32_t msgID,
+                     uint32_t payLength);
 
-        void SendMsg(uint32_t nodeId, uint32_t protocolID, uint32_t msgID, uint32_t payLenght, Ipv4Address ipv4Add);
+    void RecvWifiMsg(unsigned long long recvTime, uint32_t ns3NodeId, int msgID);
+    void RecvCellMsg(unsigned long long recvTime, uint32_t ns3NodeId, int msgID);
 
-        bool ActivateNode(uint32_t nodeId);
+    uint16_t m_numExtraRadioNodes;
 
-        void DeactivateNode(uint32_t nodeId);
+  private:
+    uint32_t GetNs3NodeId(uint32_t mosaicNodeId);
+    uint32_t GetMosaicNodeId(uint32_t ns3NodeId);
 
-        void AddRecvPacket(unsigned long long recvTime, Ptr<Packet> pack, int nodeID, int msgID);
+    Ptr<Node> CreateRadioNodeHelper(void);
+    Vector EnforceMinUeSeparation(uint32_t nodeId, Vector position);
+    Ptr<NrUeNetDevice> GetNrUeDevice(Ptr<Node> node) const;
+    Ptr<NetDevice> GetBackboneNetDevice(Ptr<Node> node) const;
 
-        uint32_t GetNs3NodeId(uint32_t nodeId);
+    void BuildNrSpectrum();
+    void InstallSidelinkPreconfiguration(const NetDeviceContainer& ueDevices);
+    void InstallSidelinkTrafficFilters(const NetDeviceContainer& ueDevices);
+    void ConfigureNodeIpv4ForSidelink(Ptr<Node> node,
+                                      Ptr<NetDevice> device,
+                                      Ipv4Address ip,
+                                      Ipv4Mask mask);
+    void ActivateSidelinkBearer(const NetDeviceContainer& ueDevices, Ipv4Address remoteAddress);
 
-        //Must be public to be accessible by ns-3 object creation routine
-        std::string m_lossModel;
-        std::string m_delayModel;
+    void PrintNodeConfigs(NodeContainer nodes, uint32_t maxNum = 100);
+    void PrintNodeConfigsDeviceAgnostic(NodeContainer nodes, uint32_t maxNum = 100);
 
-    private:
-        MosaicNs3Server *m_serverPtr;
-        std::map<uint32_t, uint32_t> m_mosaic2ns3ID;
-        std::unordered_map<uint32_t, bool> m_isDeactivated;
+    MosaicNs3Bridge* m_serverPtr;
+    std::map<uint32_t, uint32_t> m_mosaic2nsdrei;
+    std::map<uint32_t, uint32_t> m_nsdrei2mosaic;
+    std::unordered_map<uint32_t, bool> m_isRadioNode;
+    std::unordered_map<uint32_t, bool> m_isWiredNode;
+    std::unordered_map<uint32_t, bool> m_isCellRadioConfigured;
+    std::unordered_map<uint32_t, bool> m_isWifiRadioConfigured;
+    std::unordered_map<uint32_t, bool> m_isDeactivated;
+    std::unordered_map<uint32_t, bool> m_isSidelinkBearerActivated;
 
-        //Channel
-        YansWifiChannelHelper m_wifiChannelHelper;
-        Ptr<YansWifiChannel> m_channel;
+    Ptr<NrHelper> m_nrHelper;
+    Ptr<NrPointToPointEpcHelper> m_epcHelper;
+    Ptr<NrSlHelper> m_nrSlHelper;
+    Ptr<IdealBeamformingHelper> m_beamformingHelper;
+    CcBwpCreator m_ccBwpCreator;
+    OperationBandInfo m_operationBand;
+    BandwidthPartInfoPtrVector m_allBwps;
+    bool m_nrSpectrumBuilt;
 
-        //PHY
-        YansWifiPhyHelper m_wifiPhyHelper;
+    CsmaHelper m_csmaHelper;
+    InternetStackHelper m_internetHelper;
+    Ipv4StaticRoutingHelper m_ipv4RoutingHelper;
+    Ipv4AddressHelper m_backboneAddressHelper;
+    MobilityHelper m_mobilityHelper;
 
-        //MAC
-        NqosWaveMacHelper m_waveMacHelper = NqosWaveMacHelper::Default();
+    NodeContainer m_backboneNodes;
+    NetDeviceContainer m_backboneDevices;
+    NodeContainer m_gnbNodes;
+    NodeContainer m_radioNodes;
+    NodeContainer m_extraRadioNodes;
 
-        //Assembler
-        Wifi80211pHelper m_wifi80211pHelper = Wifi80211pHelper::Default();
+    double m_nrCentralFrequencyHz;
+    double m_nrBandwidthHz;
+    uint16_t m_nrNumerology;
+    double m_nrTxPowerDbm;
+    bool m_nrShadowingEnabled;
+    uint16_t m_nrUeAntennaRows;
+    uint16_t m_nrUeAntennaColumns;
 
-        Ipv4AddressHelper m_ipAddressHelper;
-    };
-}
+    uint8_t m_slBwpId;
+    uint16_t m_slSensingWindowMs;
+    uint16_t m_slSelectionWindow;
+    uint16_t m_slFreqResourcePscch;
+    uint16_t m_slSubchannelSize;
+    uint16_t m_slMaxNumPerReserve;
+    uint16_t m_slReservePeriodMs;
+    uint16_t m_slMcs;
+    uint32_t m_slDstL2Id;
+    bool m_slHarqEnabled;
+    std::string m_slTddPattern;
+};
+
+} // namespace ns3
+
 #endif

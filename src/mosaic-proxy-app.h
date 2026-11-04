@@ -24,48 +24,54 @@
 #define MOSAIC_PROXY_APP_H
 
 #include "ns3/application.h"
-#include "mosaic-node-manager.h"
-#include "ns3/data-rate.h"
+#include "ns3/address.h"
+#include "ns3/callback.h"
+#include "ns3/event-id.h"
+#include "ns3/ipv4-address.h"
+#include "ns3/packet.h"
+#include "ns3/ptr.h"
+#include "ns3/socket.h"
 
 namespace ns3 {
 
+    enum class interface_e {
+        WIFI,
+        CELL,
+        ETH
+    };
+
     class MosaicProxyApp : public Application {
     public:
-
-        MosaicProxyApp() = default;
-
-        virtual ~MosaicProxyApp() = default;
-
         static TypeId GetTypeId(void);
 
-        void SetNodeManager(MosaicNodeManager* nodeManager);
+        MosaicProxyApp();
+        ~MosaicProxyApp() override;
 
-        void SetSockets(void);
-        
-        void TransmitPacket(uint32_t protocolID, uint32_t msgID, uint32_t payLength, Ipv4Address address);
-        
+        void SetSockets(interface_e interfaceType);
+        void SetRecvCallback(Callback<void, unsigned long long, uint32_t, int> cb);
+
         void Enable();
-        
         void Disable();
-        
-        virtual void DoDispose(void);
-        
-        //Must be public to be accessible for ns-3 object system
-        uint16_t m_port = 0;
+
+        void TransmitPacket(Ipv4Address dstAddr, uint32_t msgId, uint32_t payloadLength);
+
+    protected:
+        void DoDispose() override;
+        void StartApplication() override;
+        void StopApplication() override;
 
     private:
-
+        uint32_t ResolveOutgoingDeviceIndex(interface_e interfaceType) const;
         void Receive(Ptr<Socket> socket);
 
-        Ptr<Socket> m_socket{nullptr};
-                
-        uint16_t m_sendCount = 0;
-        uint64_t m_recvCount = 0;
-
-        bool m_active = false;
-
-        MosaicNodeManager* m_nodeManager;
+    private:
+        Ptr<Socket> m_socket;
+        Callback<void, unsigned long long, uint32_t, int> m_recvCallback;
+        interface_e m_interfaceType{interface_e::ETH};
+        bool m_enabled{false};
+        uint16_t m_port{1234};
     };
+
 } // namespace ns3
 
-#endif   /* MOSAIC_PROXY_APP_H */
+#endif /* MOSAIC_PROXY_APP_H */

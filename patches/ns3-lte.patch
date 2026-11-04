@@ -1,0 +1,24 @@
+diff --git a/src/lte/helper/no-backhaul-epc-helper.cc b/src/lte/helper/no-backhaul-epc-helper.cc
+index 1a29b4b..892d92e 100644
+--- a/src/lte/helper/no-backhaul-epc-helper.cc
++++ b/src/lte/helper/no-backhaul-epc-helper.cc
+@@ -461,6 +461,19 @@ NoBackhaulEpcHelper::ActivateEpsBearer (Ptr<NetDevice> ueDevice, uint64_t imsi,
+           NS_LOG_LOGIC (" UE IPv4 address: " << ueAddr);
+           m_pgwApp->SetUeAddress (imsi, ueAddr);
+         }
++      else if (interface >= 0 && ueIpv4->GetNAddresses (interface) == 2)
++        {
++          Ipv4Address ueAddr = ueIpv4->GetAddress (interface, 1).GetLocal ();
++          NS_LOG_LOGIC (" UE IPv4 address: " << ueAddr);
++          m_pgwApp->SetUeAddress (imsi, ueAddr);
++        }
++      else 
++        {
++          NS_LOG_ERROR("  The manual adaptation in no-backhaul-epc-helper.cc does not cover this case. Shut down.");
++          NS_LOG_ERROR("  if=" << interface);
++          NS_LOG_ERROR("  GetNAddresses=" << ueIpv4->GetNAddresses (interface));
++          exit(1);
++        }
+     }
+   if (ueIpv6)
+     {
