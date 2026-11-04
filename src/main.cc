@@ -139,12 +139,18 @@ void SetLogLevels(const std::string & configFile) {
     xmlXPathFreeObject(result);
 }
 
+void redirectClogToCout() {
+    // std::clog should print to standard output (std::cout)
+    // change stream buffer of std::clog
+    auto destination = std::cout.rdbuf();
+    std::clog.rdbuf(destination);
+}
+
 int main(int argc, char *argv[]) {
     using namespace std;
 
     // ns3 logs to std::clog, redirect to std::cout
-    auto destination = std::cout.rdbuf();
-    std::clog.rdbuf(destination);
+    redirectClogToCout();
 
     //default values
     int port = 0;
