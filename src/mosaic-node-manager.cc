@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <sstream>
 
+#include "ns3/buildings-helper.h"
 #include "ns3/constant-velocity-mobility-model.h"
 #include "ns3/csma-net-device.h"
 #include "ns3/loopback-net-device.h"
@@ -272,7 +273,7 @@ MosaicNodeManager::BuildNrSpectrum()
     CcBwpCreator::SimpleOperationBandConf bandConf(m_nrCentralFrequencyHz,
                                                    m_nrBandwidthHz,
                                                    numCcPerBand,
-                                                   BandwidthPartInfo::UMi_StreetCanyon);
+                                                   BandwidthPartInfo::V2V_Urban);
 
     m_operationBand = m_ccBwpCreator.CreateOperationBandContiguousCc(bandConf);
     m_nrHelper->InitializeOperationBand(&m_operationBand);
@@ -678,6 +679,7 @@ MosaicNodeManager::CreateRadioNodeHelper(void)
 
     m_mobilityHelper.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
     m_mobilityHelper.Install(node);
+    BuildingsHelper::Install(node);
 
     Ptr<ConstantVelocityMobilityModel> cvmm = node->GetObject<ConstantVelocityMobilityModel>();
     NS_ASSERT_MSG(cvmm != nullptr, "ConstantVelocityMobilityModel is null");
